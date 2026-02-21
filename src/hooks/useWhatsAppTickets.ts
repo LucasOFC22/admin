@@ -771,7 +771,7 @@ export const useWhatsAppTickets = (options?: {
         const { data: userBySupabaseId } = await authClient
           .from('usuarios')
           .select('nome, email')
-          .eq('supabase_id', currentUserId)
+          .eq('id', currentUserId)
           .maybeSingle();
         userData = userBySupabaseId;
       }
@@ -881,7 +881,7 @@ export const useWhatsAppTickets = (options?: {
             const { data: userBySupabaseId } = await bgClient
               .from('usuarios')
               .select('nome, email')
-              .eq('supabase_id', currentUserId)
+              .eq('id', currentUserId)
               .maybeSingle();
             userData = userBySupabaseId;
           }
@@ -955,21 +955,15 @@ export const useWhatsAppTickets = (options?: {
         return;
       }
 
-      // Buscar dados do atendente na tabela usuarios (incluindo o id real)
+      // userId do cookie já é o usuarios.id
+      const usuarioId = userId;
       let userData: { id?: string; nome?: string; email?: string } | null = null;
-      const { data: userBySupabaseId } = await authClient
+      const { data: userById } = await authClient
         .from('usuarios')
         .select('id, nome, email')
-        .eq('supabase_id', userId)
+        .eq('id', usuarioId)
         .maybeSingle();
-      userData = userBySupabaseId;
-
-      // Usar o id da tabela usuarios, não o supabase_id
-      const usuarioId = userData?.id;
-      if (!usuarioId) {
-        toast.error('Usuário não encontrado na base de dados');
-        return;
-      }
+      userData = userById;
 
       const { error: updateError } = await authClient
         .from('chats_whatsapp')
@@ -1085,7 +1079,7 @@ export const useWhatsAppTickets = (options?: {
             const { data: userBySupabaseId } = await bgClient
               .from('usuarios')
               .select('nome, email')
-              .eq('supabase_id', currentUserId)
+              .eq('id', currentUserId)
               .maybeSingle();
             userData = userBySupabaseId;
           }
