@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, Package, AlertCircle, Inbox, Filter, Search, RotateCcw, UserSearch, Eye, Pencil, Printer, Settings } from 'lucide-react';
+import { RefreshCw, Package, AlertCircle, Inbox, Filter, Search, RotateCcw, UserSearch, Eye, Pencil, Printer, Settings, AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
+import { useCotacoesPendentes } from '@/hooks/useCotacoesPendentes';
 import { useSupabaseCotacoes } from '@/hooks/useSupabaseCotacoes.ts';
 import { useDebounce } from '@/hooks/useDebounce.ts';
 import { backendService } from '@/services/api/backendService';
@@ -155,6 +156,29 @@ const CotacoesContent = () => {
     refetch, 
     updateQuoteStatus 
   } = useSupabaseCotacoes(activeStatus, combinedFilters);
+
+  const { data: cotacoesPendentes = [] } = useCotacoesPendentes();
+  const [prioridadeFilter, setPrioridadeFilter] = useState<'todos' | 'urgente' | 'medio' | 'suave'>('todos');
+
+  const prioridadeStats = {
+    urgente: cotacoesPendentes.filter(c => c.prioridade === 'urgente').length,
+    medio: cotacoesPendentes.filter(c => c.prioridade === 'medio').length,
+    suave: cotacoesPendentes.filter(c => c.prioridade === 'suave').length,
+  };
+
+  const handlePrioridadeClick = (prioridade: 'urgente' | 'medio' | 'suave') => {
+    setPrioridadeFilter(prev => prev === prioridade ? 'todos' : prioridade);
+  };
+
+  // Filtrar quotes por prioridade quando filtro ativo
+  const pendentesIds = new Set(
+    prioridadeFilter !== 'todos' 
+      ? cotacoesPendentes.filter(c => c.prioridade === prioridadeFilter).map(c => c.id)
+      : []
+  );
+  const filteredQuotes = prioridadeFilter === 'todos'
+    ? quotes
+    : quotes.filter(q => pendentesIds.has(q.id));
 
   const handleStatusChange = (status: string) => {
     setActiveStatus(status);
@@ -387,6 +411,54 @@ const CotacoesContent = () => {
             </div>
           </div>
         </div>
+
+        {/* Cards de Prioridade - Cotações sem valor */}
+        {cotacoesPendentes.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mx-3 sm:mx-4 mt-3 sm:mt-4">
+            <Card 
+              className={`p-4 border-l-4 border-l-red-500 cursor-pointer transition-all hover:shadow-md ${prioridadeFilter === 'urgente' ? 'ring-2 ring-red-500 bg-red-50/50 dark:bg-red-950/20' : ''}`}
+              onClick={() => handlePrioridadeClick('urgente')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/30">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Urgente (&gt;48h)</p>
+                  <p className="text-2xl font-bold text-red-600">{prioridadeStats.urgente}</p>
+                </div>
+              </div>
+            </Card>
+            <Card 
+              className={`p-4 border-l-4 border-l-yellow-500 cursor-pointer transition-all hover:shadow-md ${prioridadeFilter === 'medio' ? 'ring-2 ring-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20' : ''}`}
+              onClick={() => handlePrioridadeClick('medio')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
+                  <Clock className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Médio (24-48h)</p>
+                  <p className="text-2xl font-bold text-yellow-600">{prioridadeStats.medio}</p>
+                </div>
+              </div>
+            </Card>
+            <Card 
+              className={`p-4 border-l-4 border-l-green-500 cursor-pointer transition-all hover:shadow-md ${prioridadeFilter === 'suave' ? 'ring-2 ring-green-500 bg-green-50/50 dark:bg-green-950/20' : ''}`}
+              onClick={() => handlePrioridadeClick('suave')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/30">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Suave (&lt;24h)</p>
+                  <p className="text-2xl font-bold text-green-600">{prioridadeStats.suave}</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Filtros Fixos */}
         <Card className="m-3 sm:m-4">
@@ -733,11 +805,11 @@ const CotacoesContent = () => {
             <ErrorState />
           ) : isLoading ? (
             <LoadingSkeleton />
-          ) : !showSearchResults && quotes.length === 0 ? (
+          ) : !showSearchResults && filteredQuotes.length === 0 ? (
             <EmptyState />
           ) : !showSearchResults ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 animate-fade-in">
-              {quotes.map((cotacao) => (
+              {filteredQuotes.map((cotacao) => (
                 <CotacaoCard
                   key={cotacao.id}
                   cotacao={cotacao}
