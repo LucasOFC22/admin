@@ -246,23 +246,26 @@ Deno.serve(async (req) => {
           throw new Error(`Erro ao atualizar chat: ${updateError.message}`);
         }
 
-        // Registrar mensagem no histórico
+        // Registrar mensagem do sistema no histórico (após envio ao WhatsApp)
         const messageContent = config.inactivity_use_template 
-          ? `[Template: ${config.inactivity_template_name}] Atendimento encerrado por inatividade`
-          : config.inactivity_message || 'Atendimento encerrado por inatividade';
+          ? `[Template: ${config.inactivity_template_name}] ${config.inactivity_message || 'Atendimento encerrado por inatividade.'}`
+          : config.inactivity_message || 'Atendimento encerrado por inatividade.';
 
-        await supabase.from('mensagens_whatsapp').insert({
+        const { error: msgInsertError } = await supabase.from('mensagens_whatsapp').insert({
           chatId: chat.id,
           message_type: 'text',
           message_text: messageContent,
-          send: 'atendente',
-          is_read: true,
+          send: 'sistema',
           message_data: {
             type: 'inactivity_close',
             automatic: true,
             closed_at: now
           }
         });
+
+        if (msgInsertError) {
+          console.error(`Erro ao inserir mensagem do sistema no chat ${chat.id}:`, msgInsertError.message);
+        }
 
         closedCount++;
         console.log(`✅ Chat ${chat.id} encerrado por inatividade`);
