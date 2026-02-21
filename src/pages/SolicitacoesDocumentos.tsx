@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 import PageHeader from '@/components/admin/PageHeader';
-import { FileCheck } from 'lucide-react';
+import { FileCheck, AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { useSolicitacoesDocumentos } from '@/hooks/useSolicitacoesDocumentos';
+import { useSolicitacoesPendentes } from '@/hooks/useSolicitacoesPendentes';
 import { SolicitacoesStats } from '@/components/admin/solicitacoes-documentos/SolicitacoesStats';
 import { SolicitacoesFilters } from '@/components/admin/solicitacoes-documentos/SolicitacoesFilters';
 import { SolicitacoesTable } from '@/components/admin/solicitacoes-documentos/SolicitacoesTable';
@@ -35,6 +37,14 @@ const SolicitacoesDocumentos = () => {
     status: statusFilter === 'todos' ? undefined : statusFilter,
     tipo: tipoFilter === 'todos' ? undefined : tipoFilter
   });
+
+  const { data: pendentes = [] } = useSolicitacoesPendentes();
+
+  const prioridadeStats = {
+    urgente: pendentes.filter(s => s.prioridade === 'urgente').length,
+    medio: pendentes.filter(s => s.prioridade === 'medio').length,
+    suave: pendentes.filter(s => s.prioridade === 'suave').length,
+  };
 
   useEffect(() => {
     logActivity({
@@ -73,6 +83,45 @@ const SolicitacoesDocumentos = () => {
 
         <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
           <SolicitacoesStats stats={stats} />
+
+          {/* Cards de Prioridade Pendentes */}
+          {pendentes.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Card className="p-4 border-l-4 border-l-red-500">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/30">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Urgente (&gt;48h)</p>
+                    <p className="text-2xl font-bold text-red-600">{prioridadeStats.urgente}</p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-4 border-l-4 border-l-yellow-500">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
+                    <Clock className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Médio (24-48h)</p>
+                    <p className="text-2xl font-bold text-yellow-600">{prioridadeStats.medio}</p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-4 border-l-4 border-l-green-500">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/30">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Suave (&lt;24h)</p>
+                    <p className="text-2xl font-bold text-green-600">{prioridadeStats.suave}</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
 
           <SolicitacoesFilters
             search={search}
