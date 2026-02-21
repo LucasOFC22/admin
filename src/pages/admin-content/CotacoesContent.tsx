@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,9 +119,21 @@ const mapSearchResultToMappedQuote = (result: SearchResult): MappedQuote => {
 
 const CotacoesContent = () => {
   const { logActivity } = useActivityLogger();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeStatus, setActiveStatus] = useState('todos');
   const [advancedFilters, setAdvancedFilters] = useState<FilterOptions>({});
+
+  // Preencher filtro ao vir da notificação
+  useEffect(() => {
+    const orcamento = searchParams.get('orcamento');
+    if (orcamento) {
+      setAdvancedFilters(prev => ({ ...prev, id: orcamento }));
+      // Limpar o param da URL para não reprocessar
+      searchParams.delete('orcamento');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
