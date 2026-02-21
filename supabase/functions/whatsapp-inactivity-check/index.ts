@@ -88,12 +88,11 @@ Deno.serve(async (req) => {
 
     console.log(`⏰ Buscando chats inativos há mais de ${timeoutMinutes} minutos (desde ${cutoffTime})`);
 
-    // 2. Buscar TODOS os chats ativos (não apenas os com last_customer_message_at)
-    console.log('📊 [QUERY 2] Buscando todos os chats ativos...');
+    // 2. Buscar todos os chats com resolvido = false
+    console.log('📊 [QUERY 2] Buscando todos os chats com resolvido = false...');
     const { data: activeChats, error: chatsError } = await supabase
       .from('chats_whatsapp')
       .select('id, usuarioid, adminid, last_customer_message_at')
-      .eq('ativo', true)
       .eq('resolvido', false);
 
     if (chatsError) {
