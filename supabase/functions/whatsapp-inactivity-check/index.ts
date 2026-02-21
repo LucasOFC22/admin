@@ -35,7 +35,6 @@ interface Conexao {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -43,26 +42,14 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('🔍 Verificando chats inativos...');
-
     // 1. Buscar configuração de inatividade
-    const configQuery = {
-      tabela: 'config_whatsapp',
-      campos: 'inactivity_enabled, inactivity_timeout_minutes, inactivity_message, inactivity_use_template, inactivity_template_name, inactivity_template_language, inactivity_template_variables',
-      filtros: 'limit(1), maybeSingle()'
-    };
-    console.log('📊 [QUERY 1] Config:', JSON.stringify(configQuery));
-
     const { data: configData, error: configError } = await supabase
       .from('config_whatsapp')
       .select('inactivity_enabled, inactivity_timeout_minutes, inactivity_message, inactivity_use_template, inactivity_template_name, inactivity_template_language, inactivity_template_variables')
       .limit(1)
       .maybeSingle();
-
-    console.log('📊 [RESULT 1] Config retornada:', JSON.stringify(configData));
 
     if (configError) {
       console.error('Erro ao buscar config:', configError);
@@ -74,9 +61,7 @@ Deno.serve(async (req) => {
 
     const config = configData as WhatsAppConfig;
 
-    // Se inatividade não está habilitada, retorna
     if (!config?.inactivity_enabled) {
-      console.log('⏸️ Encerramento por inatividade está desabilitado');
       return new Response(
         JSON.stringify({ success: true, message: 'Inatividade desabilitada', closedChats: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -86,10 +71,7 @@ Deno.serve(async (req) => {
     const timeoutMinutes = config.inactivity_timeout_minutes || 30;
     const cutoffTime = new Date(Date.now() - timeoutMinutes * 60 * 1000).toISOString();
 
-    console.log(`⏰ Buscando chats inativos há mais de ${timeoutMinutes} minutos (desde ${cutoffTime})`);
-
     // 2. Buscar todos os chats com resolvido = false
-    console.log('📊 [QUERY 2] Buscando todos os chats com resolvido = false...');
     const { data: activeChats, error: chatsError } = await supabase
       .from('chats_whatsapp')
       .select('id, usuarioid, adminid, last_customer_message_at')
@@ -103,17 +85,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`📊 [RESULT 2] Chats ativos encontrados: ${activeChats?.length || 0}`);
-
     if (!activeChats || activeChats.length === 0) {
-      console.log('✅ Nenhum chat ativo encontrado');
       return new Response(
         JSON.stringify({ success: true, message: 'Nenhum chat ativo', closedChats: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // 3. Para cada chat ativo, buscar a última mensagem em mensagens_whatsapp
+    // 3. Para cada chat ativo, buscar a última mensagem
     const chatsToClose: InactiveChat[] = [];
 
     for (const chat of activeChats) {
@@ -130,27 +109,19 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      if (!lastMsg) {
-        console.log(`⏭️ Chat ${chat.id}: sem mensagens, ignorando`);
-        continue;
-      }
+      if (!lastMsg) continue;
 
       const lastMsgTime = new Date(lastMsg.created_at).getTime();
       const cutoffMs = new Date(cutoffTime).getTime();
       const isOld = lastMsgTime < cutoffMs;
       const isFromAttendant = lastMsg.send === 'atendente';
 
-      console.log(`📊 Chat ${chat.id}: última msg de "${lastMsg.send}" em ${lastMsg.created_at} | antiga=${isOld} | do_atendente=${isFromAttendant}`);
-
-      // Encerra se a última mensagem é antiga E foi do atendente (cliente não respondeu)
       if (isOld && isFromAttendant) {
-        console.log(`🔴 Chat ${chat.id}: inativo - última msg do atendente há mais de ${timeoutMinutes} min`);
         chatsToClose.push(chat as InactiveChat);
       }
     }
 
     if (chatsToClose.length === 0) {
-      console.log('✅ Nenhum chat inativo para encerrar');
       return new Response(
         JSON.stringify({ success: true, message: 'Nenhum chat inativo', closedChats: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -158,20 +129,17 @@ Deno.serve(async (req) => {
     }
 
     const chats = chatsToClose;
-    console.log(`📋 Encontrados ${chats.length} chats inativos para encerrar`);
 
-    // 3. Buscar dados dos contatos para enviar mensagens
+    // Buscar dados dos contatos
     const usuarioIds = [...new Set(chats.map(c => c.usuarioid).filter(Boolean))];
     const contatosMap: Record<string, Contato> = {};
 
     if (usuarioIds.length > 0) {
-      console.log('📊 [QUERY 3] Contatos:', JSON.stringify({ tabela: 'contatos_whatsapp', campos: 'id, nome, telefone', filtro: `id IN (${usuarioIds.length} ids)` }));
       const { data: contatosData, error: contatosError } = await supabase
         .from('contatos_whatsapp')
         .select('id, nome, telefone')
         .in('id', usuarioIds);
 
-      console.log('📊 [RESULT 3] Contatos encontrados:', contatosData?.length);
       if (!contatosError && contatosData) {
         contatosData.forEach((contato: Contato) => {
           contatosMap[contato.id] = contato;
@@ -179,15 +147,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4. Buscar conexão do WhatsApp para enviar mensagens
-    console.log('📊 [QUERY 4] Conexão:', JSON.stringify({ tabela: 'conexoes', campos: 'id, whatsapp_token, whatsapp_phone_id', filtro: 'is_default = true' }));
+    // Buscar conexão do WhatsApp
     const { data: conexaoData, error: conexaoError } = await supabase
       .from('conexoes')
       .select('id, whatsapp_token, whatsapp_phone_id')
       .eq('is_default', true)
       .limit(1)
       .maybeSingle();
-    console.log('📊 [RESULT 4] Conexão encontrada:', !!conexaoData);
 
     if (conexaoError || !conexaoData) {
       console.error('Erro ao buscar conexão:', conexaoError);
@@ -201,35 +167,27 @@ Deno.serve(async (req) => {
     let closedCount = 0;
     const errors: string[] = [];
 
-    // 5. Processar cada chat inativo
+    // Processar cada chat inativo
     for (const chat of chats) {
       try {
         const contato = contatosMap[chat.usuarioid];
-        const contatoNome = contato?.nome || 'Cliente';
         const contatoTelefone = contato?.telefone;
 
-        console.log(`🔄 Processando chat ${chat.id} - ${contatoNome}`);
-
-        // Enviar mensagem de encerramento se tiver telefone
         if (contatoTelefone) {
-          const phoneNumber = contatoTelefone.replace(/\D/g, '');
+          const phoneNumber = contatoTelefone.replace(/\\D/g, '');
           
           if (config.inactivity_use_template && config.inactivity_template_name) {
-            // Enviar template
             await sendTemplateMessage(
-              conexao,
-              phoneNumber,
+              conexao, phoneNumber,
               config.inactivity_template_name,
               config.inactivity_template_language,
               config.inactivity_template_variables
             );
           } else if (config.inactivity_message) {
-            // Enviar mensagem de texto
             await sendTextMessage(conexao, phoneNumber, config.inactivity_message);
           }
         }
 
-        // Atualizar chat como fechado por inatividade
         const now = new Date().toISOString();
         const { error: updateError } = await supabase
           .from('chats_whatsapp')
@@ -246,7 +204,6 @@ Deno.serve(async (req) => {
           throw new Error(`Erro ao atualizar chat: ${updateError.message}`);
         }
 
-        // Registrar mensagem do sistema no histórico (após envio ao WhatsApp)
         const messageContent = config.inactivity_use_template 
           ? `[Template: ${config.inactivity_template_name}] ${config.inactivity_message || 'Atendimento encerrado por inatividade.'}`
           : config.inactivity_message || 'Atendimento encerrado por inatividade.';
@@ -268,16 +225,12 @@ Deno.serve(async (req) => {
         }
 
         closedCount++;
-        console.log(`✅ Chat ${chat.id} encerrado por inatividade`);
-
       } catch (error) {
         const errorMsg = `Erro ao processar chat ${chat.id}: ${error}`;
         console.error(errorMsg);
         errors.push(errorMsg);
       }
     }
-
-    console.log(`🏁 Processamento concluído: ${closedCount}/${chats.length} chats encerrados`);
 
     return new Response(
       JSON.stringify({
@@ -326,36 +279,25 @@ async function sendTextMessage(conexao: Conexao, to: string, message: string): P
 }
 
 async function sendTemplateMessage(
-  conexao: Conexao,
-  to: string,
-  templateName: string,
-  language: string,
-  variables: any[]
+  conexao: Conexao, to: string, templateName: string,
+  language: string, variables: any[]
 ): Promise<void> {
   const components: any[] = [];
 
   if (variables && Array.isArray(variables)) {
-    // Adicionar variáveis de header se existirem
     const headerVars = variables.filter(v => v.type === 'header');
     if (headerVars.length > 0) {
       components.push({
         type: 'header',
-        parameters: headerVars.map(v => ({
-          type: 'text',
-          text: v.value
-        }))
+        parameters: headerVars.map(v => ({ type: 'text', text: v.value }))
       });
     }
 
-    // Adicionar variáveis de body
     const bodyVars = variables.filter(v => v.type !== 'header');
     if (bodyVars.length > 0) {
       components.push({
         type: 'body',
-        parameters: bodyVars.map(v => ({
-          type: 'text',
-          text: v.value
-        }))
+        parameters: bodyVars.map(v => ({ type: 'text', text: v.value }))
       });
     }
   }
