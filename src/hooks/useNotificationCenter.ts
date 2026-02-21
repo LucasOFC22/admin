@@ -337,7 +337,7 @@ export const useNotificationCenter = () => {
     setRealtimeStatus('connecting');
 
     let connectedChannels = 0;
-    const totalChannels = 3;
+    const totalChannels = 4;
     const realtimeClient = getRealtimeClient();
 
     const checkAllConnected = () => {
@@ -413,13 +413,34 @@ export const useNotificationCenter = () => {
         }
       });
 
+    const solicitacoesChannel = realtimeClient
+      .channel('notification-center-solicitacoes-docs')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'solicitacoes_documentos'
+        },
+        () => {
+          fetchSolicitacoesPendentes();
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') checkAllConnected();
+        if (status === 'CHANNEL_ERROR') {
+          setRealtimeStatus('disconnected');
+        }
+      });
+
     return () => {
       isCleaningUpRef.current = true;
       realtimeClient.removeChannel(whatsappMsgChannel);
       realtimeClient.removeChannel(whatsappChatChannel);
       realtimeClient.removeChannel(chatInternoChannel);
+      realtimeClient.removeChannel(solicitacoesChannel);
     };
-  }, [user?.id, user?.supabase_id, fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats]);
+  }, [user?.id, user?.supabase_id, fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats, fetchSolicitacoesPendentes]);
 
   const totalCount = useMemo(() => {
     const whatsappTotal = whatsappChats.reduce((sum, c) => sum + c.unreadCount, 0);
