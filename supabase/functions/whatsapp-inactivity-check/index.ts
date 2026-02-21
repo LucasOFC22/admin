@@ -30,8 +30,8 @@ interface Contato {
 
 interface Conexao {
   id: string;
-  access_token: string;
-  phone_number_id: string;
+  whatsapp_token: string;
+  whatsapp_phone_id: string;
 }
 
 Deno.serve(async (req) => {
@@ -180,10 +180,10 @@ Deno.serve(async (req) => {
     }
 
     // 4. Buscar conexão do WhatsApp para enviar mensagens
-    console.log('📊 [QUERY 4] Conexão:', JSON.stringify({ tabela: 'conexoes', campos: 'id, access_token, phone_number_id', filtro: 'is_default = true' }));
+    console.log('📊 [QUERY 4] Conexão:', JSON.stringify({ tabela: 'conexoes', campos: 'id, whatsapp_token, whatsapp_phone_id', filtro: 'is_default = true' }));
     const { data: conexaoData, error: conexaoError } = await supabase
       .from('conexoes')
-      .select('id, access_token, phone_number_id')
+      .select('id, whatsapp_token, whatsapp_phone_id')
       .eq('is_default', true)
       .limit(1)
       .maybeSingle();
@@ -298,11 +298,11 @@ Deno.serve(async (req) => {
 
 async function sendTextMessage(conexao: Conexao, to: string, message: string): Promise<void> {
   const response = await fetch(
-    `https://graph.facebook.com/v18.0/${conexao.phone_number_id}/messages`,
+    `https://graph.facebook.com/v18.0/${conexao.whatsapp_phone_id}/messages`,
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${conexao.access_token}`,
+        'Authorization': `Bearer ${conexao.whatsapp_token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -358,11 +358,11 @@ async function sendTemplateMessage(
   }
 
   const response = await fetch(
-    `https://graph.facebook.com/v18.0/${conexao.phone_number_id}/messages`,
+    `https://graph.facebook.com/v18.0/${conexao.whatsapp_phone_id}/messages`,
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${conexao.access_token}`,
+        'Authorization': `Bearer ${conexao.whatsapp_token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
