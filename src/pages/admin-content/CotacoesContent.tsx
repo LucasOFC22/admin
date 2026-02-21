@@ -124,11 +124,15 @@ const CotacoesContent = () => {
   const [activeStatus, setActiveStatus] = useState('todos');
   const [advancedFilters, setAdvancedFilters] = useState<FilterOptions>({});
 
+  // Flag para busca automática vinda da notificação
+  const [autoBuscar, setAutoBuscar] = useState(false);
+
   // Preencher filtro ao vir da notificação
   useEffect(() => {
     const orcamento = searchParams.get('orcamento');
     if (orcamento) {
       setAdvancedFilters(prev => ({ ...prev, id: orcamento }));
+      setAutoBuscar(true);
       // Limpar o param da URL para não reprocessar
       searchParams.delete('orcamento');
       setSearchParams(searchParams, { replace: true });
@@ -287,6 +291,14 @@ const CotacoesContent = () => {
       setIsSearching(false);
     }
   };
+
+  // Disparar busca automática quando vindo da notificação
+  useEffect(() => {
+    if (autoBuscar && advancedFilters.id) {
+      setAutoBuscar(false);
+      handleBuscar();
+    }
+  }, [autoBuscar, advancedFilters.id]);
 
   const handlePreviewCotacao = async (idOrcamento: number) => {
     await logActivity({
