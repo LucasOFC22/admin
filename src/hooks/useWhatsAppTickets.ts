@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { requireAuthenticatedClient, getAuthenticatedSupabaseClient, getRealtimeClient } from '@/config/supabaseAuth';
+import { CookieAuth } from '@/lib/auth/cookieAuth';
 import { toast } from '@/lib/toast';
 
 // Helper para obter cliente Supabase autenticado
@@ -761,18 +762,19 @@ export const useWhatsAppTickets = (options?: {
       const ticket = allTickets.find(t => t.id === ticketId || t.chatId?.toString() === ticketId);
       const chatId = ticket?.chatId || ticketId;
 
-      // Buscar dados do atendente atual
-      const { data: { session } } = await authClient.auth.getSession();
-      const currentUserId = session?.user?.id;
+      // Buscar dados do atendente atual via cookie
+      const currentUserId = CookieAuth.getUserId();
       
       // Buscar dados do atendente na tabela usuarios
       let userData: { nome?: string; email?: string } | null = null;
-      const { data: userBySupabaseId } = await authClient
-        .from('usuarios')
-        .select('nome, email')
-        .eq('supabase_id', currentUserId)
-        .maybeSingle();
-      userData = userBySupabaseId;
+      if (currentUserId) {
+        const { data: userBySupabaseId } = await authClient
+          .from('usuarios')
+          .select('nome, email')
+          .eq('supabase_id', currentUserId)
+          .maybeSingle();
+        userData = userBySupabaseId;
+      }
 
       const updateData: any = {
         filas: filaId,
@@ -871,9 +873,8 @@ export const useWhatsAppTickets = (options?: {
       (async () => {
         try {
           const bgClient = getSupabase();
-          // Buscar dados do atendente atual
-          const { data: { session } } = await bgClient.auth.getSession();
-          const currentUserId = session?.user?.id;
+          // Buscar dados do atendente atual via cookie
+          const currentUserId = CookieAuth.getUserId();
           
           let userData: { nome?: string; email?: string } | null = null;
           if (currentUserId) {
@@ -946,9 +947,8 @@ export const useWhatsAppTickets = (options?: {
       const ticket = allTickets.find(t => t.id === ticketId || t.chatId?.toString() === ticketId);
       const chatId = ticket?.chatId || ticketId;
 
-      // Obter o ID do usuário logado
-      const { data: { session } } = await authClient.auth.getSession();
-      const userId = session?.user?.id;
+      // Obter o ID do usuário logado via cookie
+      const userId = CookieAuth.getUserId();
 
       if (!userId) {
         toast.error('Usuário não autenticado');
@@ -1077,9 +1077,8 @@ export const useWhatsAppTickets = (options?: {
       (async () => {
         try {
           const bgClient = getSupabase();
-          // Buscar dados do atendente atual
-          const { data: { session } } = await bgClient.auth.getSession();
-          const currentUserId = session?.user?.id;
+          // Buscar dados do atendente atual via cookie
+          const currentUserId = CookieAuth.getUserId();
           
           let userData: { nome?: string; email?: string } | null = null;
           if (currentUserId) {
