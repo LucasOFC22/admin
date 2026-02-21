@@ -49,11 +49,20 @@ Deno.serve(async (req) => {
     console.log('🔍 Verificando chats inativos...');
 
     // 1. Buscar configuração de inatividade
+    const configQuery = {
+      tabela: 'config_whatsapp',
+      campos: 'inactivity_enabled, inactivity_timeout_minutes, inactivity_message, inactivity_use_template, inactivity_template_name, inactivity_template_language, inactivity_template_variables',
+      filtros: 'limit(1), maybeSingle()'
+    };
+    console.log('📊 [QUERY 1] Config:', JSON.stringify(configQuery));
+
     const { data: configData, error: configError } = await supabase
       .from('config_whatsapp')
       .select('inactivity_enabled, inactivity_timeout_minutes, inactivity_message, inactivity_use_template, inactivity_template_name, inactivity_template_language, inactivity_template_variables')
       .limit(1)
       .maybeSingle();
+
+    console.log('📊 [RESULT 1] Config retornada:', JSON.stringify(configData));
 
     if (configError) {
       console.error('Erro ao buscar config:', configError);
@@ -80,7 +89,18 @@ Deno.serve(async (req) => {
     console.log(`⏰ Buscando chats inativos há mais de ${timeoutMinutes} minutos (desde ${cutoffTime})`);
 
     // 2. Buscar chats ativos com inatividade do cliente
-    // Usando a tabela correta: chats_whatsapp
+    const chatsQuery = {
+      tabela: 'chats_whatsapp',
+      campos: 'id, usuarioid, adminid, last_customer_message_at',
+      filtros: {
+        'ativo': true,
+        'resolvido': false,
+        'last_customer_message_at': 'NOT NULL',
+        'last_customer_message_at <': cutoffTime
+      }
+    };
+    console.log('📊 [QUERY 2] Chats inativos:', JSON.stringify(chatsQuery));
+
     const { data: inactiveChats, error: chatsError } = await supabase
       .from('chats_whatsapp')
       .select('id, usuarioid, adminid, last_customer_message_at')
@@ -89,8 +109,13 @@ Deno.serve(async (req) => {
       .not('last_customer_message_at', 'is', null)
       .lt('last_customer_message_at', cutoffTime);
 
+    console.log('📊 [RESULT 2] Chats encontrados:', inactiveChats?.length, 'registros');
+    if (inactiveChats && inactiveChats.length > 0) {
+      console.log('📊 [RESULT 2] Primeiros 5 chats:', JSON.stringify(inactiveChats.slice(0, 5)));
+    }
+
     if (chatsError) {
-      console.error('Erro ao buscar chats:', chatsError);
+      console.error('Erro ao buscar chats:', JSON.stringify(chatsError));
       return new Response(
         JSON.stringify({ success: false, error: 'Erro ao buscar chats' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -114,11 +139,13 @@ Deno.serve(async (req) => {
     const contatosMap: Record<string, Contato> = {};
 
     if (usuarioIds.length > 0) {
+      console.log('📊 [QUERY 3] Contatos:', JSON.stringify({ tabela: 'contatos_whatsapp', campos: 'id, nome, telefone', filtro: `id IN (${usuarioIds.length} ids)` }));
       const { data: contatosData, error: contatosError } = await supabase
         .from('contatos_whatsapp')
         .select('id, nome, telefone')
         .in('id', usuarioIds);
 
+      console.log('📊 [RESULT 3] Contatos encontrados:', contatosData?.length);
       if (!contatosError && contatosData) {
         contatosData.forEach((contato: Contato) => {
           contatosMap[contato.id] = contato;
@@ -127,12 +154,14 @@ Deno.serve(async (req) => {
     }
 
     // 4. Buscar conexão do WhatsApp para enviar mensagens
+    console.log('📊 [QUERY 4] Conexão:', JSON.stringify({ tabela: 'conexoes', campos: 'id, access_token, phone_number_id', filtro: 'is_default = true' }));
     const { data: conexaoData, error: conexaoError } = await supabase
       .from('conexoes')
       .select('id, access_token, phone_number_id')
       .eq('is_default', true)
       .limit(1)
       .maybeSingle();
+    console.log('📊 [RESULT 4] Conexão encontrada:', !!conexaoData);
 
     if (conexaoError || !conexaoData) {
       console.error('Erro ao buscar conexão:', conexaoError);
