@@ -312,7 +312,7 @@ export const useNotificationCenter = () => {
       const agora = new Date();
 
       const pendentes: CotacaoPendente[] = mapped
-        .filter(q => q.value === 0 || q.value === null || q.value === undefined)
+        .filter(q => q.value === 0 || q.value === null || q.value === undefined || (q.status || '').toUpperCase() === 'PENDENTE')
         .map(q => {
           const criado = new Date(q.criadoEm);
           const horasPendente = Math.round(((agora.getTime() - criado.getTime()) / (1000 * 60 * 60)) * 10) / 10;
