@@ -22,6 +22,7 @@ const SolicitacoesDocumentos = () => {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [tipoFilter, setTipoFilter] = useState('todos');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [prioridadeFilter, setPrioridadeFilter] = useState<'todos' | 'urgente' | 'medio' | 'suave'>('todos');
   const [selectedSolicitacao, setSelectedSolicitacao] = useState<SolicitacaoDocumento | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   
@@ -44,6 +45,16 @@ const SolicitacoesDocumentos = () => {
     urgente: pendentes.filter(s => s.prioridade === 'urgente').length,
     medio: pendentes.filter(s => s.prioridade === 'medio').length,
     suave: pendentes.filter(s => s.prioridade === 'suave').length,
+  };
+
+  // Filtrar por prioridade
+  const pendentesIdsByPrioridade = new Map(pendentes.map(p => [p.id, p.prioridade]));
+  const filteredSolicitacoes = prioridadeFilter === 'todos'
+    ? solicitacoes
+    : solicitacoes.filter(s => pendentesIdsByPrioridade.get(s.id) === prioridadeFilter);
+
+  const handlePrioridadeClick = (prioridade: 'urgente' | 'medio' | 'suave') => {
+    setPrioridadeFilter(prev => prev === prioridade ? 'todos' : prioridade);
   };
 
   useEffect(() => {
@@ -87,7 +98,10 @@ const SolicitacoesDocumentos = () => {
           {/* Cards de Prioridade Pendentes */}
           {pendentes.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Card className="p-4 border-l-4 border-l-red-500">
+              <Card 
+                className={`p-4 border-l-4 border-l-red-500 cursor-pointer transition-all hover:shadow-md ${prioridadeFilter === 'urgente' ? 'ring-2 ring-red-500 bg-red-50/50 dark:bg-red-950/20' : ''}`}
+                onClick={() => handlePrioridadeClick('urgente')}
+              >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/30">
                     <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -98,7 +112,10 @@ const SolicitacoesDocumentos = () => {
                   </div>
                 </div>
               </Card>
-              <Card className="p-4 border-l-4 border-l-yellow-500">
+              <Card 
+                className={`p-4 border-l-4 border-l-yellow-500 cursor-pointer transition-all hover:shadow-md ${prioridadeFilter === 'medio' ? 'ring-2 ring-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20' : ''}`}
+                onClick={() => handlePrioridadeClick('medio')}
+              >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
                     <Clock className="h-5 w-5 text-yellow-600" />
@@ -109,7 +126,10 @@ const SolicitacoesDocumentos = () => {
                   </div>
                 </div>
               </Card>
-              <Card className="p-4 border-l-4 border-l-green-500">
+              <Card 
+                className={`p-4 border-l-4 border-l-green-500 cursor-pointer transition-all hover:shadow-md ${prioridadeFilter === 'suave' ? 'ring-2 ring-green-500 bg-green-50/50 dark:bg-green-950/20' : ''}`}
+                onClick={() => handlePrioridadeClick('suave')}
+              >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/30">
                     <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -152,26 +172,26 @@ const SolicitacoesDocumentos = () => {
                 </>
               )}
             </div>
-          ) : solicitacoes.length === 0 ? (
+          ) : filteredSolicitacoes.length === 0 ? (
             <div className="text-center py-12 bg-card rounded-lg border">
               <FileCheck className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Nenhuma solicitação encontrada
               </h3>
               <p className="text-muted-foreground">
-                {search || statusFilter !== 'todos' || tipoFilter !== 'todos'
+                {search || statusFilter !== 'todos' || tipoFilter !== 'todos' || prioridadeFilter !== 'todos'
                   ? 'Tente ajustar os filtros de busca'
                   : 'Novas solicitações aparecerão aqui quando forem recebidas'}
               </p>
             </div>
           ) : viewMode === 'grid' ? (
             <SolicitacoesCards
-              solicitacoes={solicitacoes}
+              solicitacoes={filteredSolicitacoes}
               onViewDetails={handleViewDetails}
             />
           ) : (
             <SolicitacoesTable
-              solicitacoes={solicitacoes}
+              solicitacoes={filteredSolicitacoes}
               onUpdateStatus={updateStatus}
               onDelete={deleteSolicitacao}
               onViewDetails={handleViewDetails}
