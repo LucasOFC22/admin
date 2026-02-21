@@ -30,7 +30,7 @@ class ContatosService {
           const { data: ultimoChat } = await supabase
             .from('chats_whatsapp')
             .select('id, criadoem')
-            .eq('telefone', contato.telefone)
+            .eq('usuarioid', contato.id)
             .order('criadoem', { ascending: false })
             .limit(1)
             .single();
