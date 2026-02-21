@@ -60,7 +60,7 @@ const NotificationBell = () => {
 
   const handleCotacaoClick = (quoteId: string) => {
     setOpen(false);
-    navigate(`/cotacoes/cotacao=${quoteId}`);
+    navigate(`/cotacoes?orcamento=${quoteId}`);
   };
 
   const hasWhatsApp = whatsapp.length > 0;
