@@ -116,7 +116,7 @@ export const mapSupabaseCotacao = (cotacao: SupabaseCotacao): MappedQuote => {
       ? 'CIF'
       : (cotacao.tipo_frete || (cotacao as any).descTabela || cotacao.descricao || 'N/A'),
     weight: cotacao.peso ? `${cotacao.peso} kg` : 'N/A',
-    value: cotacao.valor_declarado ?? (cotacao as any).vlrTotal ?? 0,
+    value: (cotacao as any).vlrTotal ?? cotacao.valor_declarado ?? 0,
     status: cotacao.status || 'pendente',
     createdAt: formatDate(cotacao.criado_em || (cotacao as any).emissao),
     validUntil: 'N/A',
