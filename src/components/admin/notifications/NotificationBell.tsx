@@ -58,9 +58,9 @@ const NotificationBell = () => {
     navigate(`/solicitacoes-documentos`);
   };
 
-  const handleCotacaoClick = (quoteId: string) => {
+  const handleCotacaoClick = (nroOrcamento: string) => {
     setOpen(false);
-    navigate(`/cotacoes?orcamento=${quoteId}`);
+    navigate(`/cotacoes?orcamento=${nroOrcamento}`);
   };
 
   const hasWhatsApp = whatsapp.length > 0;
@@ -324,7 +324,7 @@ const NotificationBell = () => {
                     {cotacoesPendentes.map((cot) => (
                       <button
                         key={cot.id}
-                        onClick={() => handleCotacaoClick(cot.id)}
+                        onClick={() => handleCotacaoClick(cot.quoteId)}
                         className="w-full p-3 hover:bg-muted/50 transition-colors text-left flex items-start gap-3"
                       >
                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
