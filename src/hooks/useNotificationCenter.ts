@@ -4,6 +4,9 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useUserFilas } from '@/hooks/useUserFilas';
 import { formatMessagePreview } from '@/utils/messagePreview';
 import { SolicitacaoPendente } from '@/hooks/useSolicitacoesPendentes';
+import { CotacaoPendente } from '@/hooks/useCotacoesPendentes';
+import { backendService } from '@/services/api/backendService';
+import { mapSupabaseCotacoes } from '@/utils/cotacaoMapper';
 
 export interface WhatsAppUnreadChat {
   chatId: number;
@@ -58,6 +61,7 @@ export interface NotificationCenterData {
   pendingChats: WhatsAppPendingChat[];
   priorityChats: WhatsAppPriorityChat[];
   solicitacoesPendentes: SolicitacaoPendente[];
+  cotacoesPendentes: CotacaoPendente[];
   totalCount: number;
   isLoading: boolean;
 }
@@ -101,6 +105,7 @@ export const useNotificationCenter = () => {
   const [pendingChats, setPendingChats] = useState<WhatsAppPendingChat[]>([]);
   const [priorityChats, setPriorityChats] = useState<WhatsAppPriorityChat[]>([]);
   const [solicitacoesPendentes, setSolicitacoesPendentes] = useState<SolicitacaoPendente[]>([]);
+  const [cotacoesPendentes, setCotacoesPendentes] = useState<CotacaoPendente[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   
@@ -293,6 +298,37 @@ export const useNotificationCenter = () => {
     }
   }, []);
 
+  const fetchCotacoesPendentes = useCallback(async () => {
+    try {
+      const response = await backendService.buscarCotacoes({});
+      if (!response.success) return;
+
+      const responseData = response.data || [];
+      const quotesArray = Array.isArray(responseData) && responseData[0]?.data
+        ? responseData[0].data
+        : Array.isArray(responseData) ? responseData : [];
+
+      const mapped = mapSupabaseCotacoes(quotesArray as any);
+      const agora = new Date();
+
+      const pendentes: CotacaoPendente[] = mapped
+        .filter(q => q.value === 0 || q.value === null || q.value === undefined)
+        .map(q => {
+          const criado = new Date(q.criadoEm);
+          const horasPendente = Math.round(((agora.getTime() - criado.getTime()) / (1000 * 60 * 60)) * 10) / 10;
+          let prioridade: CotacaoPendente['prioridade'] = 'suave';
+          if (horasPendente > 48) prioridade = 'urgente';
+          else if (horasPendente > 24) prioridade = 'medio';
+          return { ...q, prioridade, horasPendente };
+        })
+        .sort((a, b) => b.horasPendente - a.horasPendente);
+
+      setCotacoesPendentes(pendentes);
+    } catch {
+      // Silent fail
+    }
+  }, []);
+
   const markAllAsRead = useCallback(async () => {
     if (!user?.supabase_id) return;
 
@@ -321,10 +357,11 @@ export const useNotificationCenter = () => {
       fetchChatInternoUnread(),
       fetchPendingChats(),
       fetchPriorityChats(),
-      fetchSolicitacoesPendentes()
+      fetchSolicitacoesPendentes(),
+      fetchCotacoesPendentes()
     ]);
     setIsLoading(false);
-  }, [fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats, fetchSolicitacoesPendentes]);
+  }, [fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats, fetchSolicitacoesPendentes, fetchCotacoesPendentes]);
 
   useEffect(() => {
     fetchAll();
@@ -440,7 +477,7 @@ export const useNotificationCenter = () => {
       realtimeClient.removeChannel(chatInternoChannel);
       realtimeClient.removeChannel(solicitacoesChannel);
     };
-  }, [user?.id, user?.supabase_id, fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats, fetchSolicitacoesPendentes]);
+  }, [user?.id, user?.supabase_id, fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats, fetchSolicitacoesPendentes, fetchCotacoesPendentes]);
 
   const totalCount = useMemo(() => {
     const whatsappTotal = whatsappChats.reduce((sum, c) => sum + c.unreadCount, 0);
@@ -458,10 +495,12 @@ export const useNotificationCenter = () => {
     pendingChats,
     priorityChats,
     solicitacoesPendentes,
+    cotacoesPendentes,
     totalCount,
     criticalCount,
     pendingCount: pendingChats.length,
     solicitacoesPendentesCount: solicitacoesPendentes.length,
+    cotacoesPendentesCount: cotacoesPendentes.length,
     isLoading,
     realtimeStatus,
     refresh: fetchAll,
