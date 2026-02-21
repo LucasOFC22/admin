@@ -3,6 +3,7 @@ import { requireAuthenticatedClient, getRealtimeClient } from '@/config/supabase
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useUserFilas } from '@/hooks/useUserFilas';
 import { formatMessagePreview } from '@/utils/messagePreview';
+import { SolicitacaoPendente } from '@/hooks/useSolicitacoesPendentes';
 
 export interface WhatsAppUnreadChat {
   chatId: number;
@@ -56,6 +57,7 @@ export interface NotificationCenterData {
   chatInterno: ChatInternoUnread[];
   pendingChats: WhatsAppPendingChat[];
   priorityChats: WhatsAppPriorityChat[];
+  solicitacoesPendentes: SolicitacaoPendente[];
   totalCount: number;
   isLoading: boolean;
 }
@@ -98,6 +100,7 @@ export const useNotificationCenter = () => {
   const [chatInternoChats, setChatInternoChats] = useState<ChatInternoUnread[]>([]);
   const [pendingChats, setPendingChats] = useState<WhatsAppPendingChat[]>([]);
   const [priorityChats, setPriorityChats] = useState<WhatsAppPriorityChat[]>([]);
+  const [solicitacoesPendentes, setSolicitacoesPendentes] = useState<SolicitacaoPendente[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   
@@ -277,6 +280,19 @@ export const useNotificationCenter = () => {
     }
   }, [user?.id]);
 
+  const fetchSolicitacoesPendentes = useCallback(async () => {
+    try {
+      const client = requireAuthenticatedClient();
+      const { data, error } = await client.rpc('get_solicitacoes_documentos_pendentes');
+
+      if (error) return;
+
+      setSolicitacoesPendentes((data || []) as SolicitacaoPendente[]);
+    } catch {
+      // Silent fail
+    }
+  }, []);
+
   const markAllAsRead = useCallback(async () => {
     if (!user?.supabase_id) return;
 
@@ -304,10 +320,11 @@ export const useNotificationCenter = () => {
       fetchWhatsAppUnread(), 
       fetchChatInternoUnread(),
       fetchPendingChats(),
-      fetchPriorityChats()
+      fetchPriorityChats(),
+      fetchSolicitacoesPendentes()
     ]);
     setIsLoading(false);
-  }, [fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats]);
+  }, [fetchWhatsAppUnread, fetchChatInternoUnread, fetchPendingChats, fetchPriorityChats, fetchSolicitacoesPendentes]);
 
   useEffect(() => {
     fetchAll();
@@ -419,9 +436,11 @@ export const useNotificationCenter = () => {
     chatInterno: chatInternoChats,
     pendingChats,
     priorityChats,
+    solicitacoesPendentes,
     totalCount,
     criticalCount,
     pendingCount: pendingChats.length,
+    solicitacoesPendentesCount: solicitacoesPendentes.length,
     isLoading,
     realtimeStatus,
     refresh: fetchAll,

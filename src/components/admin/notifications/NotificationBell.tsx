@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, MessageSquare, Phone, ChevronRight, CheckCheck, Wifi, WifiOff, AlertTriangle, Clock } from 'lucide-react';
+import { Bell, MessageSquare, Phone, ChevronRight, CheckCheck, Wifi, WifiOff, AlertTriangle, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -14,6 +14,7 @@ import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getPriorityColor, getPriorityLabel } from '@/hooks/useWhatsAppPriorityChats';
+import { getPrioridadeDocColor, getPrioridadeDocLabel } from '@/hooks/useSolicitacoesPendentes';
 
 const NotificationBell = () => {
   const { 
@@ -21,6 +22,7 @@ const NotificationBell = () => {
     chatInterno, 
     pendingChats,
     priorityChats,
+    solicitacoesPendentes,
     totalCount, 
     isLoading, 
     markAllAsRead, 
@@ -49,15 +51,22 @@ const NotificationBell = () => {
     navigate(`/whatsapp/${contactId}`);
   };
 
+  const handleSolicitacaoClick = (id: string) => {
+    setOpen(false);
+    navigate(`/solicitacoes-documentos`);
+  };
+
   const hasWhatsApp = whatsapp.length > 0;
   const hasChatInterno = chatInterno.length > 0;
   const hasPriorityChats = priorityChats.length > 0;
   const hasPendingChats = pendingChats.length > 0;
-  const hasNotifications = hasWhatsApp || hasChatInterno || hasPriorityChats || hasPendingChats;
+  const hasSolicitacoes = solicitacoesPendentes.length > 0;
+  const hasNotifications = hasWhatsApp || hasChatInterno || hasPriorityChats || hasPendingChats || hasSolicitacoes;
 
   // Contar chats críticos para o badge
   const criticalCount = priorityChats.filter(c => c.priorityLevel === 'critico').length;
-  const displayCount = totalCount + criticalCount + pendingChats.length;
+  const urgentSolicitacoes = solicitacoesPendentes.filter(s => s.prioridade === 'urgente').length;
+  const displayCount = totalCount + criticalCount + pendingChats.length + solicitacoesPendentes.length;
 
   const formatWaitTime = (minutes: number) => {
     if (minutes < 60) return `${minutes}min`;
@@ -236,6 +245,52 @@ const NotificationBell = () => {
                           <p className="text-[10px] text-muted-foreground/70 mt-1 flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {formatWaitTime(chat.waitingTimeMinutes)} aguardando
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Solicitações de Documentos Pendentes */}
+              {hasSolicitacoes && (
+                <div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border-b border-t">
+                    <FileText className="h-4 w-4 text-amber-600" />
+                    <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                      Documentos Pendentes
+                    </span>
+                    <Badge variant="outline" className="ml-auto text-xs h-5 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border-amber-300">
+                      {solicitacoesPendentes.length}
+                    </Badge>
+                  </div>
+                  <div className="divide-y">
+                    {solicitacoesPendentes.slice(0, 5).map((sol) => (
+                      <button
+                        key={sol.id}
+                        onClick={() => handleSolicitacaoClick(sol.id)}
+                        className="w-full p-3 hover:bg-muted/50 transition-colors text-left flex items-start gap-3"
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                          <FileText className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium text-sm truncate">
+                              {sol.tipo_documento || 'Documento'}
+                            </span>
+                            <Badge className={`flex-shrink-0 h-5 text-[10px] ${getPrioridadeDocColor(sol.prioridade)}`}>
+                              {getPrioridadeDocLabel(sol.prioridade)}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {sol.numero_cte ? `CTE: ${sol.numero_cte}` : sol.numero_nfe ? `NFe: ${sol.numero_nfe}` : sol.cpf_cnpj || 'Sem identificação'}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground/70 mt-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {sol.horas_pendente < 1 ? '<1h' : `${Math.floor(sol.horas_pendente)}h`} pendente
                           </p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
