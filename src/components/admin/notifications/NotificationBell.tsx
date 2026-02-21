@@ -320,8 +320,8 @@ const NotificationBell = () => {
                       {cotacoesPendentes.length}
                     </Badge>
                   </div>
-                  <div className="divide-y">
-                    {cotacoesPendentes.slice(0, 5).map((cot) => (
+                  <div className="divide-y max-h-[300px] overflow-y-auto">
+                    {cotacoesPendentes.map((cot) => (
                       <button
                         key={cot.id}
                         onClick={() => handleCotacaoClick(cot.id)}
