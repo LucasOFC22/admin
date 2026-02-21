@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, MessageSquare, Phone, ChevronRight, CheckCheck, Wifi, WifiOff, AlertTriangle, Clock, FileText } from 'lucide-react';
+import { Bell, MessageSquare, Phone, ChevronRight, CheckCheck, Wifi, WifiOff, AlertTriangle, Clock, FileText, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getPriorityColor, getPriorityLabel } from '@/hooks/useWhatsAppPriorityChats';
 import { getPrioridadeDocColor, getPrioridadeDocLabel } from '@/hooks/useSolicitacoesPendentes';
+import { getPrioridadeCotacaoColor, getPrioridadeCotacaoLabel } from '@/hooks/useCotacoesPendentes';
 
 const NotificationBell = () => {
   const { 
@@ -23,6 +24,7 @@ const NotificationBell = () => {
     pendingChats,
     priorityChats,
     solicitacoesPendentes,
+    cotacoesPendentes,
     totalCount, 
     isLoading, 
     markAllAsRead, 
@@ -56,17 +58,23 @@ const NotificationBell = () => {
     navigate(`/solicitacoes-documentos`);
   };
 
+  const handleCotacaoClick = (quoteId: string) => {
+    setOpen(false);
+    navigate(`/cotacoes/cotacao=${quoteId}`);
+  };
+
   const hasWhatsApp = whatsapp.length > 0;
   const hasChatInterno = chatInterno.length > 0;
   const hasPriorityChats = priorityChats.length > 0;
   const hasPendingChats = pendingChats.length > 0;
   const hasSolicitacoes = solicitacoesPendentes.length > 0;
-  const hasNotifications = hasWhatsApp || hasChatInterno || hasPriorityChats || hasPendingChats || hasSolicitacoes;
+  const hasCotacoes = cotacoesPendentes.length > 0;
+  const hasNotifications = hasWhatsApp || hasChatInterno || hasPriorityChats || hasPendingChats || hasSolicitacoes || hasCotacoes;
 
   // Contar chats críticos para o badge
   const criticalCount = priorityChats.filter(c => c.priorityLevel === 'critico').length;
   const urgentSolicitacoes = solicitacoesPendentes.filter(s => s.prioridade === 'urgente').length;
-  const displayCount = totalCount + criticalCount + pendingChats.length + solicitacoesPendentes.length;
+  const displayCount = totalCount + criticalCount + pendingChats.length + solicitacoesPendentes.length + cotacoesPendentes.length;
 
   const formatWaitTime = (minutes: number) => {
     if (minutes < 60) return `${minutes}min`;
@@ -291,6 +299,52 @@ const NotificationBell = () => {
                           <p className="text-[10px] text-muted-foreground/70 mt-1 flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {sol.horas_pendente < 1 ? '<1h' : `${Math.floor(sol.horas_pendente)}h`} pendente
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cotações Pendentes Section */}
+              {hasCotacoes && (
+                <div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/30 border-b border-t">
+                    <Package className="h-4 w-4 text-indigo-600" />
+                    <span className="text-xs font-medium text-indigo-700 dark:text-indigo-400">
+                      Cotações Sem Valor
+                    </span>
+                    <Badge variant="outline" className="ml-auto text-xs h-5 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border-indigo-300">
+                      {cotacoesPendentes.length}
+                    </Badge>
+                  </div>
+                  <div className="divide-y">
+                    {cotacoesPendentes.slice(0, 5).map((cot) => (
+                      <button
+                        key={cot.id}
+                        onClick={() => handleCotacaoClick(cot.id)}
+                        className="w-full p-3 hover:bg-muted/50 transition-colors text-left flex items-start gap-3"
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                          <Package className="h-5 w-5 text-indigo-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium text-sm truncate">
+                              {cot.senderName || 'Sem remetente'}
+                            </span>
+                            <Badge className={`flex-shrink-0 h-5 text-[10px] ${getPrioridadeCotacaoColor(cot.prioridade)}`}>
+                              {getPrioridadeCotacaoLabel(cot.prioridade)}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {cot.origin} → {cot.destination}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground/70 mt-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {cot.horasPendente < 1 ? '<1h' : `${Math.floor(cot.horasPendente)}h`} sem valor
                           </p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
