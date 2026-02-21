@@ -156,14 +156,20 @@ const fetchCotacoesStats = async () => {
 
   if (!response.success || !response.data) return null;
 
-  const cotacoes = Array.isArray(response.data) ? response.data : [];
+  const responseData = response.data || [];
+  const cotacoes = Array.isArray(responseData) && responseData[0]?.data
+    ? responseData[0].data
+    : Array.isArray(responseData) ? responseData : [];
   const total = cotacoes.length;
-  const pendentes = cotacoes.filter((c: any) => 
-    c.status === 'Pendente' || c.status === 'pendente' || c.status === 'analise'
-  ).length;
-  const aprovadas = cotacoes.filter((c: any) => 
-    c.status === 'aprovada' || c.status === 'aceita'
-  ).length;
+  const pendentes = cotacoes.filter((c: any) => {
+    const status = (c.status || '').toUpperCase();
+    const vlrTotal = c.vlrTotal ?? c.valor_declarado ?? 0;
+    return status === 'PENDENTE' || vlrTotal === 0;
+  }).length;
+  const aprovadas = cotacoes.filter((c: any) => {
+    const status = (c.status || '').toUpperCase();
+    return status === 'APROVADA' || status === 'ACEITA' || status === 'FINALIZADA';
+  }).length;
 
   return { total, pendentes, aprovadas, trend: 0 };
 };
