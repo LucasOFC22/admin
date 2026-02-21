@@ -88,31 +88,13 @@ Deno.serve(async (req) => {
 
     console.log(`⏰ Buscando chats inativos há mais de ${timeoutMinutes} minutos (desde ${cutoffTime})`);
 
-    // 2. Buscar chats ativos com inatividade do cliente
-    const chatsQuery = {
-      tabela: 'chats_whatsapp',
-      campos: 'id, usuarioid, adminid, last_customer_message_at',
-      filtros: {
-        'ativo': true,
-        'resolvido': false,
-        'last_customer_message_at': 'NOT NULL',
-        'last_customer_message_at <': cutoffTime
-      }
-    };
-    console.log('📊 [QUERY 2] Chats inativos:', JSON.stringify(chatsQuery));
-
-    const { data: inactiveChats, error: chatsError } = await supabase
+    // 2. Buscar TODOS os chats ativos (não apenas os com last_customer_message_at)
+    console.log('📊 [QUERY 2] Buscando todos os chats ativos...');
+    const { data: activeChats, error: chatsError } = await supabase
       .from('chats_whatsapp')
       .select('id, usuarioid, adminid, last_customer_message_at')
       .eq('ativo', true)
-      .eq('resolvido', false)
-      .not('last_customer_message_at', 'is', null)
-      .lt('last_customer_message_at', cutoffTime);
-
-    console.log('📊 [RESULT 2] Chats encontrados:', inactiveChats?.length, 'registros');
-    if (inactiveChats && inactiveChats.length > 0) {
-      console.log('📊 [RESULT 2] Primeiros 5 chats:', JSON.stringify(inactiveChats.slice(0, 5)));
-    }
+      .eq('resolvido', false);
 
     if (chatsError) {
       console.error('Erro ao buscar chats:', JSON.stringify(chatsError));
@@ -122,16 +104,61 @@ Deno.serve(async (req) => {
       );
     }
 
-    const chats = inactiveChats as InactiveChat[];
+    console.log(`📊 [RESULT 2] Chats ativos encontrados: ${activeChats?.length || 0}`);
 
-    if (!chats || chats.length === 0) {
-      console.log('✅ Nenhum chat inativo encontrado');
+    if (!activeChats || activeChats.length === 0) {
+      console.log('✅ Nenhum chat ativo encontrado');
+      return new Response(
+        JSON.stringify({ success: true, message: 'Nenhum chat ativo', closedChats: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 3. Para cada chat ativo, buscar a última mensagem em mensagens_whatsapp
+    const chatsToClose: InactiveChat[] = [];
+
+    for (const chat of activeChats) {
+      const { data: lastMsg, error: msgError } = await supabase
+        .from('mensagens_whatsapp')
+        .select('id, send, criadoem')
+        .eq('chatId', chat.id)
+        .order('criadoem', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (msgError) {
+        console.error(`Erro ao buscar última mensagem do chat ${chat.id}:`, msgError.message);
+        continue;
+      }
+
+      if (!lastMsg) {
+        console.log(`⏭️ Chat ${chat.id}: sem mensagens, ignorando`);
+        continue;
+      }
+
+      const lastMsgTime = new Date(lastMsg.criadoem).getTime();
+      const cutoffMs = new Date(cutoffTime).getTime();
+      const isOld = lastMsgTime < cutoffMs;
+      const isFromAttendant = lastMsg.send === 'atendente';
+
+      console.log(`📊 Chat ${chat.id}: última msg de "${lastMsg.send}" em ${lastMsg.criadoem} | antiga=${isOld} | do_atendente=${isFromAttendant}`);
+
+      // Encerra se a última mensagem é antiga E foi do atendente (cliente não respondeu)
+      if (isOld && isFromAttendant) {
+        console.log(`🔴 Chat ${chat.id}: inativo - última msg do atendente há mais de ${timeoutMinutes} min`);
+        chatsToClose.push(chat as InactiveChat);
+      }
+    }
+
+    if (chatsToClose.length === 0) {
+      console.log('✅ Nenhum chat inativo para encerrar');
       return new Response(
         JSON.stringify({ success: true, message: 'Nenhum chat inativo', closedChats: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const chats = chatsToClose;
     console.log(`📋 Encontrados ${chats.length} chats inativos para encerrar`);
 
     // 3. Buscar dados dos contatos para enviar mensagens
