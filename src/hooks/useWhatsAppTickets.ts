@@ -916,6 +916,22 @@ export const useWhatsAppTickets = (options?: {
             }
           }
 
+          // Criar registro de avaliação (somente se NÃO for silencioso)
+          if (!silent && ticket?.chatId) {
+            try {
+              const token = crypto.randomUUID();
+              await bgClient
+                .from('avaliacoes_whatsapp')
+                .insert({
+                  chat_id: ticket.chatId,
+                  token
+                });
+              console.log('✅ Avaliação criada para chat', ticket.chatId);
+            } catch (avalErr) {
+              console.error('❌ Erro ao criar avaliação:', avalErr);
+            }
+          }
+
           // Registrar log detalhado
           await logsWhatsAppService.registrarLog({
             acao: 'ticket_encerrado',
