@@ -119,9 +119,9 @@ Deno.serve(async (req) => {
     for (const chat of activeChats) {
       const { data: lastMsg, error: msgError } = await supabase
         .from('mensagens_whatsapp')
-        .select('id, send, criadoem')
+        .select('id, send, created_at')
         .eq('chatId', chat.id)
-        .order('criadoem', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -135,12 +135,12 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const lastMsgTime = new Date(lastMsg.criadoem).getTime();
+      const lastMsgTime = new Date(lastMsg.created_at).getTime();
       const cutoffMs = new Date(cutoffTime).getTime();
       const isOld = lastMsgTime < cutoffMs;
       const isFromAttendant = lastMsg.send === 'atendente';
 
-      console.log(`📊 Chat ${chat.id}: última msg de "${lastMsg.send}" em ${lastMsg.criadoem} | antiga=${isOld} | do_atendente=${isFromAttendant}`);
+      console.log(`📊 Chat ${chat.id}: última msg de "${lastMsg.send}" em ${lastMsg.created_at} | antiga=${isOld} | do_atendente=${isFromAttendant}`);
 
       // Encerra se a última mensagem é antiga E foi do atendente (cliente não respondeu)
       if (isOld && isFromAttendant) {
