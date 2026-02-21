@@ -1,0 +1,61 @@
+export interface SupabaseCotacao {
+  id: string;
+  status?: string;
+  tipo_solicitante?: string;
+  descricao?: string;
+  tipo_frete?: string;
+  valor_declarado?: number;
+  peso?: number;
+  comprimento?: number;
+  altura?: number;
+  profundidade?: number;
+  coleta_rua?: string;
+  coleta_numero?: string;
+  coleta_complemento?: string;
+  coleta_bairro?: string;
+  coleta_cidade?: string;
+  coleta_estado?: string;
+  coleta_cep?: string;
+  horario_inicio?: string;
+  horario_fim?: string;
+  almoco_inicio?: string;
+  almoco_fim?: string;
+  necessita_coleta?: boolean;
+  remetente_nome?: string;
+  remetente_documento?: string;
+  remetente_rua?: string;
+  remetente_numero?: string;
+  remetente_complemento?: string;
+  remetente_bairro?: string;
+  remetente_cidade?: string;
+  remetente_estado?: string;
+  remetente_cep?: string;
+  destinatario_nome?: string;
+  destinatario_documento?: string;
+  destinatario_rua?: string;
+  destinatario_numero?: string;
+  destinatario_complemento?: string;
+  destinatario_bairro?: string;
+  destinatario_cidade?: string;
+  destinatario_estado?: string;
+  destinatario_cep?: string;
+  origem?: string;
+  destino?: string;
+  contato_nome?: string;
+  contato_email?: string;
+  contato_telefone?: string;
+  contato_mensagem?: string;
+  obs_interna?: string;
+  criado_em?: string;
+  adminQuoteLink?: string;
+}
+
+export interface CotacaoStats {
+  total: number;
+  pendentes: number;
+  analise: number;
+  proposta_enviada: number;
+  aprovadas: number;
+  rejeitadas: number;
+  canceladas: number;
+}

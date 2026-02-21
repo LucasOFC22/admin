@@ -1,0 +1,101 @@
+
+/* Estilos específicos para sidebar responsiva */
+.sidebar-container {
+  /* Garantir que a sidebar sempre mantenha sua estrutura */
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 4rem); /* Subtraindo altura do header superior */
+}
+
+/* Media queries para comportamento robusto */
+@media (max-width: 767px) {
+  .sidebar-container {
+    /* Mobile: comportamento overlay */
+    position: fixed !important;
+    z-index: 110 !important;
+    top: 4rem; /* Posicionar abaixo do header superior */
+    height: calc(100vh - 4rem);
+  }
+  
+  .sidebar-container.sidebar-hidden {
+    transform: translateX(-100%) !important;
+  }
+  
+  .sidebar-container.sidebar-visible {
+    transform: translateX(0) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .sidebar-container {
+    /* Desktop: comportamento lateral fixo - sem margem extra */
+    position: relative !important;
+    z-index: 30 !important;
+    flex-shrink: 0; /* Evita que a sidebar encolha */
+  }
+  
+  .sidebar-container.sidebar-collapsed {
+    width: 4rem !important;
+  }
+  
+  .sidebar-container.sidebar-expanded {
+    width: 14rem !important;
+  }
+  
+  /* Garantir que ícones sejam sempre visíveis no desktop */
+  .sidebar-container .sidebar-icon {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+  }
+  
+  /* Botão de toggle sempre visível no desktop quando colapsado */
+  .sidebar-container .sidebar-toggle-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+  }
+}
+
+/* Animações otimizadas */
+.sidebar-container {
+  transition: width 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+}
+
+/* Mobile: animação de transform */
+@media (max-width: 767px) {
+  .sidebar-container {
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  }
+}
+
+/* Fallback para situações de erro */
+.sidebar-container[data-broken="true"] {
+  width: 4rem !important;
+  transform: translateX(0) !important;
+}
+
+.sidebar-container[data-broken="true"] .sidebar-icon {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
+/* Performance: reduzir repaints */
+.sidebar-container * {
+  will-change: auto;
+}
+
+.sidebar-container:not(:hover) * {
+  will-change: auto;
+}
+
+/* Ajustar para o novo layout com header superior */
+.admin-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+}
+
+.admin-layout .sidebar-container {
+  height: calc(100vh - 4rem); /* Altura total menos header superior */
+}

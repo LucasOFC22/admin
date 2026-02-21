@@ -1,0 +1,177 @@
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Search, ChevronUp, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+
+interface ChatWhatsApp {
+  id: number;
+  criadoem: string;
+}
+
+interface SelectChatWhatsAppModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (chat: ChatWhatsApp) => void;
+  chats: ChatWhatsApp[];
+  title?: string;
+}
+
+type SortField = 'id' | 'criadoem';
+type SortDirection = 'asc' | 'desc';
+
+export const SelectChatWhatsAppModal = ({ 
+  open, 
+  onOpenChange, 
+  onSelect, 
+  chats,
+  title = "Selecionar Chat" 
+}: SelectChatWhatsAppModalProps) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<SortField>('criadoem');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const handleSelectChat = (chat: ChatWhatsApp) => {
+    onSelect(chat);
+    onOpenChange(false);
+    setSearchTerm('');
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const filteredChats = chats.filter(c => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      c.id.toString().includes(term) ||
+      format(new Date(c.criadoem), 'dd/MM/yyyy').includes(term)
+    );
+  });
+
+  const sortedChats = [...filteredChats].sort((a, b) => {
+    if (sortField === 'id') {
+      return sortDirection === 'asc' ? a.id - b.id : b.id - a.id;
+    }
+    const dateA = new Date(a.criadoem).getTime();
+    const dateB = new Date(b.criadoem).getTime();
+    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? 
+      <ChevronUp className="w-4 h-4 inline ml-1" /> : 
+      <ChevronDown className="w-4 h-4 inline ml-1" />;
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl h-[95vh] sm:h-[70vh] flex flex-col p-4 sm:p-6">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="text-base sm:text-lg">
+            {title}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4 flex-1 overflow-hidden">
+          {/* Campo de busca */}
+          <div className="space-y-2 flex-shrink-0">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Buscar por ID ou data..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+              <Button variant="outline" onClick={() => setSearchTerm('')} disabled={!searchTerm}>
+                Limpar
+              </Button>
+            </div>
+          </div>
+
+          {/* Resultados */}
+          <div className="flex-1 min-h-0">
+            {sortedChats.length > 0 ? (
+              <div className="border rounded-lg h-full overflow-hidden">
+                <div className="h-full overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead 
+                          className={cn(
+                            "cursor-pointer select-none hover:bg-muted/50 transition-colors",
+                            "text-xs sm:text-sm"
+                          )}
+                          onClick={() => handleSort('id')}
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            <span>Chat ID</span>
+                            {renderSortIcon('id')}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className={cn(
+                            "cursor-pointer select-none hover:bg-muted/50 transition-colors",
+                            "text-xs sm:text-sm"
+                          )}
+                          onClick={() => handleSort('criadoem')}
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            <span>Data de Criação</span>
+                            {renderSortIcon('criadoem')}
+                          </div>
+                        </TableHead>
+                        <TableHead className="w-24 text-xs sm:text-sm sticky right-0 bg-background">
+                          Ação
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sortedChats.map((chat) => (
+                        <TableRow key={chat.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium text-xs sm:text-sm p-2 sm:p-4">
+                            #{chat.id}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm p-2 sm:p-4">
+                            {format(new Date(chat.criadoem), 'dd/MM/yyyy HH:mm')}
+                          </TableCell>
+                          <TableCell className="p-2 sm:p-4 w-24 sticky right-0 bg-background">
+                            <Button
+                              size="sm"
+                              onClick={() => handleSelectChat(chat)}
+                              className="text-xs px-2 py-1 w-full"
+                            >
+                              Selecionar
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground px-4">
+                <Search className="w-8 h-8 sm:w-12 sm:h-12 mb-4 opacity-50" />
+                <p className="text-sm sm:text-base">Nenhum chat encontrado.</p>
+                <p className="text-xs sm:text-sm mt-1">
+                  {chats.length === 0 ? 'Selecione um contato primeiro.' : 'Tente ajustar os termos da pesquisa.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

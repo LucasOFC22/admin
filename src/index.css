@@ -1,0 +1,775 @@
+#lovable-badge {
+  display: none !important;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html {
+  height: 100%;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+
+/* Otimizações para performance e responsividade */
+* {
+  box-sizing: border-box;
+}
+
+/* Allow natural horizontal scroll; removed overflow-x hidden that caused navbar to overlap the scroll area */
+
+/* Ensure containers don't cause overflow */
+.container {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Melhor performance para animações */
+.sidebar-transition {
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Conteúdo principal com layout natural */
+.main-content {
+  min-height: 100vh;
+}
+
+/* Otimizações para overlays do Radix */
+.radix-dropdown-content,
+.radix-dialog-content,
+.radix-popover-content {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Fix para Select dropdown - evita interferir com scroll da página */
+[data-radix-select-content] {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+/* Prevenir interferência do Select com scroll e layout */
+body:has([data-radix-select-content][data-state="open"]) {
+  overflow: visible !important;
+  overflow-y: auto !important;
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Header positioning is now controlled by header.css */
+
+/* Performance optimizations for animations */
+.animate-pulse {
+  animation-duration: 3s;
+}
+
+.blur-3xl {
+  filter: blur(60px);
+}
+
+.blur-2xl {
+  filter: blur(40px);
+}
+
+  /* Touch targets para mobile */
+  @media (max-width: 768px) {
+    button, 
+    a[role="button"], 
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* Accessibility improvements */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* High contrast mode */
+  .high-contrast {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --primary: 240 100% 50%;
+    --border: 0 0% 50%;
+  }
+
+  /* Reduced motion */
+  .reduce-motion *, 
+  .reduce-motion *::before, 
+  .reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Font size adjustments */
+  .font-small { font-size: 87.5%; }
+  .font-normal { font-size: 100%; }
+  .font-large { font-size: 112.5%; }
+
+  /* Keyboard navigation focus */
+  .keyboard-navigation *:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 218 91% 58%; /* #2563eb */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 218 91% 96%; /* Versão clara do azul da empresa */
+    --accent-foreground: 218 91% 58%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 214.3 31.8% 91.4%; /* matches border color */
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    
+    /* Sidebar - Dark theme (Admin) */
+    --sidebar: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 218 91% 58%;
+    
+    /* Client Sidebar - Light theme */
+    --client-sidebar: 0 0% 100%;
+    --client-sidebar-foreground: 222 47% 11%;
+    --client-sidebar-accent: 218 91% 96%;
+    --client-sidebar-accent-foreground: 218 91% 35%;
+    --client-sidebar-border: 214 32% 91%;
+    --client-sidebar-muted: 215 20% 65%;
+    
+    /* Cotação Form Colors */
+    --add-item-blue: 210 100% 50%;
+    --add-item-blue-foreground: 0 0% 100%;
+    --icms-light-red: 0 85% 95%;
+    --icms-light-red-foreground: 0 70% 45%;
+    --total-light-green: 120 60% 92%;
+    --total-light-green-foreground: 120 50% 30%;
+    
+    /* Cookie System Colors - Light Mode */
+    --cookie-primary: 218 91% 58%; /* #2563eb */
+    --cookie-primary-foreground: 0 0% 100%;
+    --cookie-secondary: 218 91% 96%;
+    --cookie-secondary-foreground: 218 91% 15%;
+    --cookie-accent: 218 91% 90%;
+    --cookie-accent-foreground: 218 91% 20%;
+    
+    /* Cookie Category Colors */
+    --cookie-essential: 120 61% 50%;
+    --cookie-functional: 218 91% 58%; /* Azul da empresa */
+    --cookie-analytics: 260 100% 50%;
+    --cookie-marketing: 30 100% 50%;
+    --cookie-personalization: 300 100% 50%;
+    
+    /* Email System Colors */
+    --email-sidebar: 220 14% 96%;
+    --email-sidebar-foreground: 222 47% 11%;
+    --email-sidebar-hover: 220 14% 92%;
+    --email-sidebar-active: 218 91% 95%;
+    --email-sidebar-active-foreground: 218 91% 50%;
+    --email-unread: 218 91% 58%;
+    --email-starred: 45 93% 47%;
+    --email-important: 0 84% 60%;
+    --email-border: 220 13% 91%;
+    --email-search-bg: 214 83% 95%;
+    --email-compose-fab: 218 91% 95%;
+    --email-compose-fab-foreground: 218 91% 40%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 218 91% 70%; /* Versão mais clara do azul da empresa para dark mode */
+    --primary-foreground: 218 91% 15%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 218 91% 25%; /* Versão escura do azul da empresa */
+    --accent-foreground: 218 91% 85%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217.2 32.6% 17.5%; /* matches border color */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    
+    /* Cookie System Colors - Dark Mode */
+    --cookie-primary: 218 91% 70%; /* Azul da empresa para dark mode */
+    --cookie-primary-foreground: 218 91% 15%;
+    --cookie-secondary: 218 30% 20%;
+    --cookie-secondary-foreground: 218 91% 85%;
+    --cookie-accent: 218 30% 25%;
+    --cookie-accent-foreground: 218 91% 80%;
+    
+    /* Email System Colors - Dark Mode */
+    --email-sidebar: 222 47% 8%;
+    --email-sidebar-foreground: 210 40% 98%;
+    --email-sidebar-hover: 222 47% 12%;
+    --email-sidebar-active: 218 50% 15%;
+    --email-sidebar-active-foreground: 218 91% 70%;
+    --email-unread: 218 91% 70%;
+    --email-starred: 45 93% 55%;
+    --email-important: 0 84% 65%;
+    --email-border: 217 32% 17%;
+    --email-search-bg: 217 32% 15%;
+    --email-compose-fab: 218 50% 20%;
+    --email-compose-fab-foreground: 218 91% 85%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Layout específico para admin - CORRIGIDO para permitir scroll */
+.admin-layout {
+  height: 100vh;
+  overflow-x: hidden; /* Apenas esconder overflow horizontal */
+}
+
+/* Layout público - permite scroll normal */
+.public-layout {
+  min-height: 100vh;
+}
+
+
+/* Classes utilitárias responsivas */
+@layer utilities {
+  .text-responsive {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+  
+  .heading-responsive {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+  }
+  
+  .padding-responsive {
+    @apply p-4 sm:p-6 md:p-8;
+  }
+  
+  .gap-responsive {
+    @apply gap-4 sm:gap-6 md:gap-8;
+  }
+  
+  /* Cookie System Utilities */
+  .cookie-gradient {
+    background: linear-gradient(135deg, hsl(var(--cookie-primary) / 0.1), hsl(var(--cookie-accent) / 0.1));
+  }
+  
+  .cookie-banner-blur {
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+  
+  .cookie-glow {
+    box-shadow: 0 0 20px hsl(var(--cookie-primary) / 0.15);
+  }
+  
+  .cookie-card-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
+  }
+
+  /* Novas animações para scroll */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+  
+  .animate-blink {
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { 
+      transform: translateY(0px) rotate(0deg); 
+    }
+    50% { 
+      transform: translateY(-20px) rotate(5deg); 
+    }
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* Animações de entrada suaves */
+  .animate-slide-up {
+    animation: slideUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .animate-slide-in-left {
+    animation: slideInLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Hide scrollbar but keep scrolling functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Flip Card 3D */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  .flip-card-container {
+    cursor: pointer;
+  }
+}
+
+/* ReactFlow Handle Styles - Garantir seleção correta de conectores */
+.react-flow__handle {
+  pointer-events: auto !important;
+  cursor: crosshair !important;
+}
+
+/* Melhorar área de clique dos handles PRINCIPAIS (grupo) - área maior */
+.react-flow__handle::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border-radius: 50%;
+}
+
+/* Handle principal do grupo (azul) - prioridade alta */
+.react-flow__handle[data-handlepos="bottom"],
+.react-flow__handle[data-handlepos="top"] {
+  z-index: 35 !important;
+}
+
+/* Handles laterais "tight" - área de clique cirúrgica (sem expansão) */
+.flow-handle-tight::before {
+  content: none !important;
+}
+
+.flow-handle-tight {
+  z-index: 15 !important;
+}
+
+/* Wrapper de handles laterais - não captura cliques fora do círculo */
+.flow-handle-wrapper {
+  pointer-events: none !important;
+  z-index: 15 !important;
+}
+
+.flow-handle-wrapper .react-flow__handle {
+  pointer-events: auto !important;
+}
+
+/* Handle de erro HTTP Request - MÍNIMO z-index e SEM área expandida */
+.react-flow__handle.http-error-handle,
+.react-flow__handle[data-handleid*="-error"] {
+  z-index: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Remove expanded click area completely for error handles */
+.react-flow__handle.http-error-handle::before,
+.react-flow__handle[data-handleid*="-error"]::before {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Handle bottom (azul) - MÁXIMA prioridade */
+.react-flow__node .react-flow__handle[data-handlepos="bottom"] {
+  z-index: 200 !important;
+  pointer-events: auto !important;
+}
+
+/* Expanded click area only for bottom handles */
+.react-flow__node .react-flow__handle[data-handlepos="bottom"]::before {
+  content: '' !important;
+  position: absolute !important;
+  width: 20px !important;
+  height: 20px !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: auto !important;
+}
+
+/* Feedback visual ao hover em handles */
+.react-flow__handle:hover {
+  transform: scale(1.15);
+  transition: transform 0.15s ease-out;
+}
+
+/* Evitar que elementos decorativos interfiram com cliques */
+.react-flow__handle > * {
+  pointer-events: none;
+}
+
+/* ========== RICH TEXT EDITOR - DRAG & DROP DE IMAGENS ========== */
+.rich-text-editor-content img,
+.rich-text-editor-content .editor-image {
+  cursor: grab;
+  user-select: none;
+  max-width: 100%;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  border-radius: 4px;
+}
+
+.rich-text-editor-content img:hover {
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.3);
+}
+
+.rich-text-editor-content img:active {
+  cursor: grabbing;
+}
+
+.rich-text-editor-content img.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+/* Indicador visual durante drag */
+.rich-text-editor-content.drag-over {
+  background: hsl(var(--primary) / 0.05);
+}
+
+/* ========== AUTH PAGE VISUAL STYLES ========== */
+.auth-visual-gradient {
+  background: linear-gradient(135deg, 
+    hsl(221 83% 53%) 0%, 
+    hsl(230 70% 45%) 50%, 
+    hsl(235 60% 35%) 100%
+  );
+}
+
+.auth-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%);
+}
+
+.auth-shape-1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  right: -100px;
+  animation: auth-float 20s ease-in-out infinite;
+}
+
+.auth-shape-2 {
+  width: 300px;
+  height: 300px;
+  bottom: 20%;
+  left: -80px;
+  animation: auth-float 25s ease-in-out infinite reverse;
+}
+
+.auth-shape-3 {
+  width: 200px;
+  height: 200px;
+  bottom: -50px;
+  right: 20%;
+  animation: auth-float 18s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+.auth-line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+  animation: auth-slide 15s linear infinite;
+}
+
+.auth-line-1 {
+  width: 60%;
+  top: 25%;
+  left: 10%;
+  transform: rotate(-5deg);
+}
+
+.auth-line-2 {
+  width: 40%;
+  top: 55%;
+  right: 5%;
+  animation-delay: -5s;
+  animation-direction: reverse;
+}
+
+.auth-line-3 {
+  width: 50%;
+  bottom: 20%;
+  left: 20%;
+  transform: rotate(3deg);
+  animation-delay: -10s;
+}
+
+.auth-hero-block {
+  text-align: center;
+}
+
+.auth-hero-card {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 32px 48px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.auth-hero-title {
+  color: white;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+}
+
+.auth-slide-frame {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,0.15);
+  max-width: 320px;
+}
+
+.auth-slide-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.auth-slide-caption {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
+  color: white;
+}
+
+.auth-slide-media {
+  width: 200px;
+  height: 160px;
+}
+
+.auth-slide-lottie {
+  width: 100%;
+  height: 100%;
+}
+
+.auth-slide-lottie--xl {
+  width: 100%;
+  height: 100%;
+}
+
+/* Auth Slide Carousel */
+.auth-slide-icon-box {
+  width: 120px;
+  height: 120px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.auth-slide-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-slide-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+
+.auth-slide-subtitle {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+}
+
+.auth-slide-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.4);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.auth-slide-dot:hover {
+  background: rgba(255,255,255,0.6);
+}
+
+.auth-slide-dot--active {
+  width: 28px;
+  background: white;
+}
+
+@keyframes auth-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(5deg);
+  }
+}
+
+@keyframes auth-slide {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}

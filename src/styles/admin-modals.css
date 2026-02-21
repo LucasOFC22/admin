@@ -1,0 +1,237 @@
+/* Estilos padronizados e responsivos para modais do painel administrativo */
+
+/* Overlay com animação suave e z-index otimizado */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: overlay-enter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity;
+}
+
+/* Mobile optimization - reduced blur for performance */
+@media (max-width: 640px) {
+  .admin-modal-overlay {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+}
+
+/* Conteúdo do modal com animações otimizadas e responsividade */
+.admin-modal-content {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 51;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  animation: content-enter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+  will-change: transform, opacity;
+  /* Responsive width */
+  width: 95vw;
+  max-width: 32rem;
+}
+
+/* Mobile optimization for modals */
+@media (max-width: 640px) {
+  .admin-modal-content {
+    max-height: 90vh;
+    width: 95vw;
+    border-radius: 8px;
+  }
+}
+
+/* Size variants */
+.admin-modal-sm {
+  max-width: 28rem;
+}
+
+.admin-modal-md {
+  max-width: 42rem;
+}
+
+.admin-modal-lg {
+  max-width: 56rem;
+}
+
+.admin-modal-xl {
+  max-width: 72rem;
+}
+
+/* Responsive size variants for mobile */
+@media (max-width: 640px) {
+  .admin-modal-sm,
+  .admin-modal-md,
+  .admin-modal-lg,
+  .admin-modal-xl {
+    width: 95vw;
+    max-width: 95vw;
+  }
+}
+
+/* Popover com z-index otimizado */
+.admin-popover-content {
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  box-shadow: 
+    0 4px 20px -4px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+/* Color picker popover deve ficar acima de modais (Dialog usa z-[10003]) */
+[data-radix-popper-content-wrapper]:has(.color-picker-popover) {
+  z-index: 99999 !important;
+}
+
+/* Animações otimizadas para performance */
+@keyframes overlay-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes content-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) translateY(0);
+  }
+}
+
+/* Animações de saída */
+@keyframes overlay-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes content-exit {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.98) translateY(-8px);
+  }
+}
+
+/* Estilo para dropdown menus no painel admin */
+.admin-dropdown-content {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  box-shadow: 
+    0 4px 16px -4px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  z-index: 50;
+}
+
+/* Toast específico para painel admin */
+.admin-toast {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+/* Dark mode support - Otimizado */
+@media (prefers-color-scheme: dark) {
+  .admin-modal-overlay {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .admin-modal-content {
+    background: rgba(24, 24, 27, 0.97);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .admin-popover-content {
+    background: rgba(24, 24, 27, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .admin-dropdown-content {
+    background: rgba(24, 24, 27, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .admin-toast {
+    background: rgba(24, 24, 27, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* Classes utilitárias para animações */
+.modal-enter {
+  animation: content-enter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-exit {
+  animation: content-exit 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.overlay-enter {
+  animation: overlay-enter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overlay-exit {
+  animation: overlay-exit 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Responsive utilities for modal content */
+.admin-modal-footer-responsive {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+  padding-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .admin-modal-footer-responsive {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+}
+
+/* Touch target optimization for mobile */
+@media (max-width: 640px) {
+  .admin-modal-content button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .admin-modal-content input,
+  .admin-modal-content textarea,
+  .admin-modal-content select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
