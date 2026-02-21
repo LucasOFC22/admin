@@ -67,7 +67,7 @@ export const useCotacoesPendentes = () => {
 
       // Filtrar: valor = 0 significa sem valor (pendente de precificação)
       const pendentes = mapped
-        .filter(q => q.value === 0 || q.value === null || q.value === undefined)
+        .filter(q => q.value === 0 || q.value === null || q.value === undefined || (q.status || '').toUpperCase() === 'PENDENTE')
         .map(q => {
           const { prioridade, horasPendente } = calcularPrioridade(q.criadoEm);
           return { ...q, prioridade, horasPendente } as CotacaoPendente;

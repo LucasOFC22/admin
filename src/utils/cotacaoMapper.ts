@@ -1,6 +1,7 @@
 
 import { SupabaseCotacao } from '@/types/supabase-cotacao';
 import { format } from 'date-fns';
+import { formatDateTime } from '@/utils/dateFormatters';
 
 export interface MappedQuote {
   id: string;
@@ -88,8 +89,11 @@ export const mapSupabaseCotacao = (cotacao: SupabaseCotacao): MappedQuote => {
   // Formatar data para exibição
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    const { formatDateTime } = require('@/utils/dateFormatters');
-    return formatDateTime(dateString);
+    try {
+      return formatDateTime(dateString);
+    } catch {
+      return 'N/A';
+    }
   };
 
   // Montar endereço origem e destino para exibição simples (Supabase ou legado)
