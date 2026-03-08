@@ -712,8 +712,9 @@ serve(async (req) => {
         }
       }
 
-      // Processamento assíncrono do flow
-      if (!isAtendimentoHumano) {
+      // Processamento assíncrono do flow (skip se fora do horário em novo chat)
+      const skipFlow = isOutsideBusinessHours && isNewChat;
+      if (!isAtendimentoHumano && !skipFlow) {
         const flowPayload = { 
           phoneNumber: from, 
           messageText, 
@@ -736,6 +737,8 @@ serve(async (req) => {
         });
         
         EdgeRuntime.waitUntil(flowPromise);
+      } else if (skipFlow) {
+        console.log(`[Webhook] 🕐 Flow skipped - fora do horário de atendimento (novo chat ${chat?.id})`);
       }
 
       // Notificar N8N em background
