@@ -480,6 +480,24 @@ const WhatsAppKanbanConfig = () => {
             onCheckedChange={(checked) => handleToggle('accept_call_whatsapp', checked)}
           />
         )}
+
+        {renderSettingRow(
+          "Desativar Assinatura",
+          "Permite ao atendente desativar assinaturas nas mensagens",
+          <Switch
+            checked={config?.disable_signature ?? false}
+            onCheckedChange={(checked) => handleToggle('disable_signature', checked)}
+          />
+        )}
+
+        {renderSettingRow(
+          "Ocultar Tickets ChatBot",
+          "Somente admins (cargo ID 1) visualizam tickets em interação com bots",
+          <Switch
+            checked={config?.hide_chatbot_tickets ?? false}
+            onCheckedChange={(checked) => handleToggle('hide_chatbot_tickets', checked)}
+          />
+        )}
       </div>
 
       {/* Messages Section */}

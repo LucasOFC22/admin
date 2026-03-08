@@ -1,14 +1,23 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { FilterState } from '../types';
 import { isWhatsAppDebugEnabled } from '@/utils/whatsappDebug';
+import { whatsappConfigService } from '@/services/supabase/whatsappConfigService';
 
 // Aceita tanto user.id (interno) quanto user.supabase_id (UUID) para compatibilidade
 export interface UserIdPair {
   id: string | null;  // usuarios.id (interno)
   supabase_id: string | null;  // UUID do auth.users
+  cargo?: string | number | null; // cargo ID do usuário
 }
 
 export const useTicketsFilters = (tickets: any[], filas: any[], currentUser?: UserIdPair | null, canViewAllTickets: boolean = false) => {
+  const [hideChatbotTickets, setHideChatbotTickets] = useState(false);
+
+  useEffect(() => {
+    whatsappConfigService.getConfig().then(cfg => {
+      setHideChatbotTickets(cfg.hide_chatbot_tickets ?? false);
+    }).catch(() => {});
+  }, []);
   const [filters, setFilters] = useState<FilterState>({
     searchParam: '',
     searchInMessages: false,
