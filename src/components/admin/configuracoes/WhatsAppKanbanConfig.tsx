@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Save, RefreshCw, User, FileText, Settings, Check, X, Phone, Plus, MoreVertical, MessageCircle, Copy, ExternalLink, ShieldCheck, AlertCircle, CheckCircle2, Pencil, Variable, Info } from 'lucide-react';
+import { Save, RefreshCw, User, FileText, Settings, Check, X, Phone, Plus, MoreVertical, MessageCircle, Copy, ExternalLink, ShieldCheck, AlertCircle, CheckCircle2, Pencil, Variable, Info, Clock } from 'lucide-react';
 import { whatsappConfigService, WhatsAppConfig, TemplateVariableMapping } from '@/services/supabase/whatsappConfigService';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -31,8 +31,9 @@ import { MessageTemplateSelector } from './WhatsAppTemplateSelector';
 import { MessagePreview } from './MessagePreview';
 import { MessageConfigCard } from './MessageConfigCard';
 import { InactivityConfigCard } from './InactivityConfigCard';
+import { WhatsAppBusinessHoursConfig } from './WhatsAppBusinessHoursConfig';
 
-type TabType = 'conta' | 'modelos' | 'config' | 'create' | 'edit';
+type TabType = 'conta' | 'modelos' | 'config' | 'horario' | 'create' | 'edit';
 
 interface Conexao {
   id: string;
@@ -89,7 +90,7 @@ interface MessageTemplate {
   rejected_reason?: string;
 }
 
-const validSubTabs: TabType[] = ['conta', 'modelos', 'config', 'create', 'edit'];
+const validSubTabs: TabType[] = ['conta', 'modelos', 'config', 'horario', 'create', 'edit'];
 
 const WhatsAppKanbanConfig = () => {
   const location = useLocation();
@@ -125,6 +126,7 @@ const WhatsAppKanbanConfig = () => {
     { id: 'conta' as TabType, label: 'Conta', icon: User },
     { id: 'modelos' as TabType, label: 'Modelos de Mensagem', icon: FileText },
     { id: 'config' as TabType, label: 'Config', icon: Settings },
+    { id: 'horario' as TabType, label: 'Horário', icon: Clock },
   ];
 
   const fetchBusinessInfo = async (conexaoId: string) => {
@@ -789,6 +791,8 @@ const WhatsAppKanbanConfig = () => {
         return renderModelosTab();
       case 'config':
         return renderConfigTab();
+      case 'horario':
+        return <WhatsAppBusinessHoursConfig />;
       case 'create':
         return (
           <CreateTemplatePage 
