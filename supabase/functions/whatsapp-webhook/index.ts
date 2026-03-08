@@ -307,6 +307,7 @@ serve(async (req) => {
 
       // Chat - buscar apenas chats NÃO resolvidos
       let chat: { id: number; mododeatendimento?: string; [key: string]: any } | null = null;
+      let isNewChat = false;
       if (contato) {
         const { data: existingChat } = await supabase
           .from("chats_whatsapp")
