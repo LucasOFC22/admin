@@ -488,6 +488,7 @@ serve(async (req) => {
             .select().single();
           if (newChat) {
             chat = newChat;
+            isNewChat = true;
             console.log(`[Webhook] 🆕 Novo chat criado: ${newChat.id}, campanha_flow_id: ${campanhaFlowId || 'nenhum'}`);
             
             // Buscar foto de perfil via Meta Graph API (apenas se contato não tiver foto)
