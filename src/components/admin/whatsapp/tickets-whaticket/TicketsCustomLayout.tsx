@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ScrollToMessageProvider } from '@/contexts/ScrollToMessageContext';
 import { TicketsManagerTabs } from './TicketsManagerTabs';
