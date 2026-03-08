@@ -74,10 +74,21 @@ export const useTicketsFilters = (tickets: any[], filas: any[], currentUser?: Us
     const modoSet = hasModoFilter ? new Set(filters.selectedModoAtendimento) : null;
     const usersSet = hasUsersFilter ? new Set(filters.selectedUsers) : null;
 
+    // Verificar se deve ocultar tickets chatbot para não-admins
+    const userCargoId = currentUser?.cargo ? Number(currentUser.cargo) : null;
+    const isAdmin = userCargoId === 1;
+    const shouldHideChatbot = hideChatbotTickets && !isAdmin;
+
     const filtered: any[] = [];
 
     for (let i = 0; i < tickets.length; i++) {
       const t = tickets[i];
+
+      // Ocultar tickets chatbot para não-admins se configuração ativa
+      if (shouldHideChatbot) {
+        const modo = (t.modoDeAtendimento || '').toLowerCase();
+        if (modo === 'bot') continue;
+      }
 
       // Filtro por status de resolução
       if (filters.showResolved) {
