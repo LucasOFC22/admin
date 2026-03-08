@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, LogOut, FileText, Truck, Package, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,7 @@ const ClientHeader = () => {
             onClick={() => navigate('/')}
           >
             <img 
-              src="https://fptranscargas.com.br/imags/logo.png" 
+              src={logoFpTranscargas} 
               alt="FP Trans Cargas" 
               className="h-10 w-auto min-w-[140px]"
               style={{ flexShrink: 0 }}

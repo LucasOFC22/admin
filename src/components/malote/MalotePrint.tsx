@@ -1,4 +1,5 @@
 import { Malote, calcularTotais } from "@/types/malote";
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 
 interface MalotePrintProps {
   malote: Malote;
@@ -13,7 +14,7 @@ const MalotePrint = ({ malote }: MalotePrintProps) => {
       <div className="flex items-center justify-between border-b border-gray-300 pb-3 mb-4">
         <div className="flex items-center gap-3">
           <img 
-            src="https://fptranscargas.com.br/imags/logo.png" 
+            src={logoFpTranscargas} 
             alt="FP Transcargas" 
             className="h-10 w-auto print:h-10" 
           />

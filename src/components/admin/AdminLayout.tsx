@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 import AdminSidebar from './sidebar/AdminSidebar';
 import AdminTopHeader from './AdminTopHeader';
 import { useSidebarStore } from '@/stores/sidebarStore';
@@ -44,7 +45,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
               <img 
                 alt="FP Transcargas Logo" 
                 className={`object-contain cursor-pointer transition-all duration-300 ${sidebarOpen ? 'h-8' : 'h-6 w-8'}`}
-                src="https://fptranscargas.com.br/imags/logo.png"
+                src={logoFpTranscargas}
                 onClick={() => sidebarOpen ? navigate('/') : toggleSidebar()}
                 title={sidebarOpen ? undefined : "Expandir sidebar"}
               />

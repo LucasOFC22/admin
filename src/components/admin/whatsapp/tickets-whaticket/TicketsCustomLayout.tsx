@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ScrollToMessageProvider } from '@/contexts/ScrollToMessageContext';
 import { TicketsManagerTabs } from './TicketsManagerTabs';
@@ -146,7 +147,7 @@ export const TicketsCustomLayout: React.FC<TicketsCustomLayoutProps> = ({
                     {/* Placeholder content */}
                     <div className="flex-1 flex flex-col items-center justify-center text-center">
                       <img 
-                        src="https://fptranscargas.com.br/imags/logo.png" 
+                        src={logoFpTranscargas} 
                         alt="Logo"
                         className="max-h-32 max-w-full object-contain mb-4"
                       />
