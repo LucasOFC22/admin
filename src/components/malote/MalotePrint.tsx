@@ -1,4 +1,5 @@
 import { Malote, calcularTotais } from "@/types/malote";
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 
 interface MalotePrintProps {
   malote: Malote;
