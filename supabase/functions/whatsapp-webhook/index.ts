@@ -383,6 +383,94 @@ serve(async (req) => {
             }
           }
           
+          // ============================================
+          // 🕐 VERIFICAR HORÁRIO DE ATENDIMENTO (apenas para novos chats)
+          // ============================================
+          let isOutsideBusinessHours = false;
+          let absenceMessage = '';
+          
+          try {
+            const { data: businessHoursData } = await supabase
+              .from("whatsapp_business_hours")
+              .select("*")
+              .is("fila_id", null)
+              .limit(1)
+              .maybeSingle();
+            
+            if (businessHoursData) {
+              const bhConfig = {
+                ...businessHoursData,
+                days: typeof businessHoursData.days === 'string' 
+                  ? JSON.parse(businessHoursData.days) 
+                  : businessHoursData.days
+              };
+              
+              // Verificar feriados
+              const now = new Date();
+              const dateStr = now.toISOString().split('T')[0];
+              const { data: holidaysData } = await supabase
+                .from("whatsapp_holidays")
+                .select("*")
+                .eq("date", dateStr);
+              
+              const holidays = holidaysData || [];
+              const todayHoliday = holidays.find((h: any) => h.date === dateStr);
+              
+              if (todayHoliday) {
+                if (todayHoliday.start_time && todayHoliday.end_time) {
+                  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                  if (currentTime >= todayHoliday.start_time && currentTime <= todayHoliday.end_time) {
+                    isOutsideBusinessHours = true;
+                    absenceMessage = todayHoliday.message || bhConfig.absence_message || '';
+                  }
+                } else {
+                  isOutsideBusinessHours = true;
+                  absenceMessage = todayHoliday.message || bhConfig.absence_message || '';
+                }
+              }
+              
+              if (!isOutsideBusinessHours && bhConfig.days) {
+                const dayIndex = now.getDay();
+                const dayConfig = bhConfig.days[dayIndex];
+                
+                if (dayConfig) {
+                  if (dayConfig.status === 'closed') {
+                    isOutsideBusinessHours = true;
+                    absenceMessage = bhConfig.absence_message || '';
+                  } else if (dayConfig.status === 'hours') {
+                    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                    const inPeriod1 = currentTime >= dayConfig.start1 && currentTime <= dayConfig.end1;
+                    const inPeriod2 = currentTime >= dayConfig.start2 && currentTime <= dayConfig.end2;
+                    if (!inPeriod1 && !inPeriod2) {
+                      isOutsideBusinessHours = true;
+                      absenceMessage = bhConfig.absence_message || '';
+                    }
+                  }
+                }
+              }
+            }
+          } catch (bhError) {
+            console.error("[Webhook] Erro ao verificar horário de atendimento:", bhError);
+            // Em caso de erro, prossegue normalmente (não bloqueia)
+          }
+          
+          // Se estiver fora do horário, envia mensagem de ausência e NÃO cria chat
+          if (isOutsideBusinessHours && absenceMessage && conexao?.whatsapp_token && conexao?.whatsapp_phone_id) {
+            try {
+              await fetch(`https://graph.facebook.com/v21.0/${conexao.whatsapp_phone_id}/messages`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${conexao.whatsapp_token}`, 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({ messaging_product: 'whatsapp', to: from, type: 'text', text: { body: normalizeUtf8(absenceMessage) } })
+              });
+              console.log(`[Webhook] 🕐 Fora do horário de atendimento. Mensagem de ausência enviada para ${from}`);
+            } catch (err) {
+              console.error("[Webhook] Erro ao enviar mensagem de ausência:", err);
+            }
+            
+            // Salvar mensagem recebida e resposta no banco mesmo fora do horário
+            // Criar chat temporário para registrar a mensagem
+          }
+
           // Cria novo chat
           const { data: newChat } = await supabase
             .from("chats_whatsapp")
