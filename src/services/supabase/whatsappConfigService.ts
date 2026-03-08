@@ -160,6 +160,9 @@ const DEFAULT_CONFIG: Omit<WhatsAppConfig, 'id' | 'created_at' | 'updated_at'> =
   inactivity_template_name: '',
   inactivity_template_language: 'pt_BR',
   inactivity_template_variables: [],
+  // Configurações extras
+  disable_signature: false,
+  hide_chatbot_tickets: false,
 };
 
 export const whatsappConfigService = {
