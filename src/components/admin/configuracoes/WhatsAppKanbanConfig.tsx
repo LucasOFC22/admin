@@ -31,8 +31,9 @@ import { MessageTemplateSelector } from './WhatsAppTemplateSelector';
 import { MessagePreview } from './MessagePreview';
 import { MessageConfigCard } from './MessageConfigCard';
 import { InactivityConfigCard } from './InactivityConfigCard';
+import { WhatsAppBusinessHoursConfig } from './WhatsAppBusinessHoursConfig';
 
-type TabType = 'conta' | 'modelos' | 'config' | 'create' | 'edit';
+type TabType = 'conta' | 'modelos' | 'config' | 'horario' | 'create' | 'edit';
 
 interface Conexao {
   id: string;
