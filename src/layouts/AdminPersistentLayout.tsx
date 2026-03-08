@@ -40,7 +40,7 @@ const AdminPersistentLayout: React.FC = () => {
                   <img 
                     alt="FP Transcargas Logo" 
                     className="h-8 object-contain cursor-pointer transition-all duration-300 ease-out"
-                    src="https://fptranscargas.com.br/imags/logo.png"
+                    src={logoFpTranscargas}
                     onClick={() => navigate('/')}
                   />
                   

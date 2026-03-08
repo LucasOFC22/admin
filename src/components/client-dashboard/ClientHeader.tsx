@@ -76,7 +76,7 @@ const ClientHeader = () => {
             onClick={() => navigate('/')}
           >
             <img 
-              src="https://fptranscargas.com.br/imags/logo.png" 
+              src={logoFpTranscargas} 
               alt="FP Trans Cargas" 
               className="h-10 w-auto min-w-[140px]"
               style={{ flexShrink: 0 }}
