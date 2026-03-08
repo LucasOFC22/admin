@@ -1,6 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { X, ChevronLeft, Menu } from 'lucide-react';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 
 interface AdminSidebarHeaderProps {
   sidebarOpen: boolean;
