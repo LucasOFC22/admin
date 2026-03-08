@@ -81,6 +81,9 @@ export interface WhatsAppConfig {
   inactivity_template_name: string;
   inactivity_template_language: string;
   inactivity_template_variables: TemplateVariableMapping[];
+  // Configurações extras
+  disable_signature: boolean;
+  hide_chatbot_tickets: boolean;
   created_at?: string;
   updated_at?: string;
 }
