@@ -182,7 +182,7 @@ export const useTicketsFilters = (tickets: any[], filas: any[], currentUser?: Us
     });
 
     return filtered;
-  }, [tickets, filters]);
+  }, [tickets, filters, hideChatbotTickets, currentUser]);
 
   // Contadores otimizados - respeitam permissão e estado do showAll
   const { openCount, pendingCount } = useMemo(() => {
