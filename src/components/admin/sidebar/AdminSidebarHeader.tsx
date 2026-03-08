@@ -26,7 +26,7 @@ const AdminSidebarHeader = ({ sidebarOpen, isMobile, setSidebarOpen }: AdminSide
         <div className="flex items-center justify-between w-full">
           <img 
             alt="FP Transcargas Logo" 
-            className="w-48 h-16 object-contain cursor-pointer" 
+            className="w-56 h-14 object-contain cursor-pointer" 
             src={logoFpTranscargas}
             onClick={handleLogoClick}
           />
