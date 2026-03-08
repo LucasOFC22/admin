@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Save, RefreshCw, User, FileText, Settings, Check, X, Phone, Plus, MoreVertical, MessageCircle, Copy, ExternalLink, ShieldCheck, AlertCircle, CheckCircle2, Pencil, Variable, Info } from 'lucide-react';
+import { Save, RefreshCw, User, FileText, Settings, Check, X, Phone, Plus, MoreVertical, MessageCircle, Copy, ExternalLink, ShieldCheck, AlertCircle, CheckCircle2, Pencil, Variable, Info, Clock } from 'lucide-react';
 import { whatsappConfigService, WhatsAppConfig, TemplateVariableMapping } from '@/services/supabase/whatsappConfigService';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
