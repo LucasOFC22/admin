@@ -791,6 +791,8 @@ const WhatsAppKanbanConfig = () => {
         return renderModelosTab();
       case 'config':
         return renderConfigTab();
+      case 'horario':
+        return <WhatsAppBusinessHoursConfig />;
       case 'create':
         return (
           <CreateTemplatePage 
