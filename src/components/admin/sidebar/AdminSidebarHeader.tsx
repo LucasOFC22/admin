@@ -21,7 +21,7 @@ const AdminSidebarHeader = ({ sidebarOpen, isMobile, setSidebarOpen }: AdminSide
   };
 
   return (
-    <div className="h-20 flex items-center justify-between px-4 border-b border-gray-200 flex-shrink-0">
+    <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 flex-shrink-0">
       {sidebarOpen ? (
         <div className="flex items-center justify-between w-full">
           <img 
