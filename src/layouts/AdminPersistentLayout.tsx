@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
