@@ -1,14 +1,23 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { FilterState } from '../types';
 import { isWhatsAppDebugEnabled } from '@/utils/whatsappDebug';
+import { whatsappConfigService } from '@/services/supabase/whatsappConfigService';
 
 // Aceita tanto user.id (interno) quanto user.supabase_id (UUID) para compatibilidade
 export interface UserIdPair {
   id: string | null;  // usuarios.id (interno)
   supabase_id: string | null;  // UUID do auth.users
+  cargo?: string | number | null; // cargo ID do usuário
 }
 
 export const useTicketsFilters = (tickets: any[], filas: any[], currentUser?: UserIdPair | null, canViewAllTickets: boolean = false) => {
+  const [hideChatbotTickets, setHideChatbotTickets] = useState(false);
+
+  useEffect(() => {
+    whatsappConfigService.getConfig().then(cfg => {
+      setHideChatbotTickets(cfg.hide_chatbot_tickets ?? false);
+    }).catch(() => {});
+  }, []);
   const [filters, setFilters] = useState<FilterState>({
     searchParam: '',
     searchInMessages: false,
@@ -65,10 +74,21 @@ export const useTicketsFilters = (tickets: any[], filas: any[], currentUser?: Us
     const modoSet = hasModoFilter ? new Set(filters.selectedModoAtendimento) : null;
     const usersSet = hasUsersFilter ? new Set(filters.selectedUsers) : null;
 
+    // Verificar se deve ocultar tickets chatbot para não-admins
+    const userCargoId = currentUser?.cargo ? Number(currentUser.cargo) : null;
+    const isAdmin = userCargoId === 1;
+    const shouldHideChatbot = hideChatbotTickets && !isAdmin;
+
     const filtered: any[] = [];
 
     for (let i = 0; i < tickets.length; i++) {
       const t = tickets[i];
+
+      // Ocultar tickets chatbot para não-admins se configuração ativa
+      if (shouldHideChatbot) {
+        const modo = (t.modoDeAtendimento || '').toLowerCase();
+        if (modo === 'bot') continue;
+      }
 
       // Filtro por status de resolução
       if (filters.showResolved) {
@@ -162,7 +182,7 @@ export const useTicketsFilters = (tickets: any[], filas: any[], currentUser?: Us
     });
 
     return filtered;
-  }, [tickets, filters]);
+  }, [tickets, filters, hideChatbotTickets, currentUser]);
 
   // Contadores otimizados - respeitam permissão e estado do showAll
   const { openCount, pendingCount } = useMemo(() => {

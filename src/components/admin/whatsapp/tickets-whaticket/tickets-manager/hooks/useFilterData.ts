@@ -14,9 +14,10 @@ export const useFilterData = () => {
     if (!user) return null;
     return {
       id: user.id || null,
-      supabase_id: user.supabase_id || null
+      supabase_id: user.supabase_id || null,
+      cargo: user.cargo || null
     };
-  }, [user?.id, user?.supabase_id]);
+  }, [user?.id, user?.supabase_id, user?.cargo]);
 
   useEffect(() => {
     const loadFilterData = async () => {
