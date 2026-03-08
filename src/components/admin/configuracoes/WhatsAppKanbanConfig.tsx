@@ -126,7 +126,7 @@ const WhatsAppKanbanConfig = () => {
     { id: 'conta' as TabType, label: 'Conta', icon: User },
     { id: 'modelos' as TabType, label: 'Modelos de Mensagem', icon: FileText },
     { id: 'config' as TabType, label: 'Config', icon: Settings },
-    { id: 'horario' as TabType, label: 'Horário', icon: Phone },
+    { id: 'horario' as TabType, label: 'Horário', icon: Clock },
   ];
 
   const fetchBusinessInfo = async (conexaoId: string) => {
