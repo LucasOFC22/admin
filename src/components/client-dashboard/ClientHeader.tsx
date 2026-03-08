@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, LogOut, FileText, Truck, Package, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
