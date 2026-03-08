@@ -27,7 +27,7 @@ const AdminSidebarHeader = ({ sidebarOpen, isMobile, setSidebarOpen }: AdminSide
           <img 
             alt="FP Transcargas Logo" 
             className="w-48 h-16 object-contain cursor-pointer" 
-            src="https://fptranscargas.com.br/imags/logo.png"
+            src={logoFpTranscargas}
             onClick={handleLogoClick}
           />
           <Button

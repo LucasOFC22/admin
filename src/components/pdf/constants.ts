@@ -1,5 +1,6 @@
 
 // PDF constants
+// For PDF rendering, we keep the external URL as @react-pdf/renderer requires a URL
 export const LOGO_IMAGE = "https://fptranscargas.com.br/imags/favicon.png";
 
 // A4 dimensions in points (72 points per inch)
