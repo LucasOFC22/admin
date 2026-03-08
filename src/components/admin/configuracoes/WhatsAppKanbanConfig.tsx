@@ -90,7 +90,7 @@ interface MessageTemplate {
   rejected_reason?: string;
 }
 
-const validSubTabs: TabType[] = ['conta', 'modelos', 'config', 'create', 'edit'];
+const validSubTabs: TabType[] = ['conta', 'modelos', 'config', 'horario', 'create', 'edit'];
 
 const WhatsAppKanbanConfig = () => {
   const location = useLocation();
