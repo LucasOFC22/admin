@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import logoFpTranscargas from '@/assets/logo-fptranscargas.png';
 import AdminSidebar from './sidebar/AdminSidebar';
 import AdminTopHeader from './AdminTopHeader';
 import { useSidebarStore } from '@/stores/sidebarStore';
