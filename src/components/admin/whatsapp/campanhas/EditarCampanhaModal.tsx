@@ -769,6 +769,7 @@ const EditarCampanhaModal = ({ open, onOpenChange, campanha, onSuccess }: Editar
                                 isSelected={selectedContatos.has(contato.id)}
                                 jaAdicionado={jaAdicionado}
                                 onToggle={handleSelectContato}
+                                displayPhone={displayPhone}
                               />
                             );
                           })}
