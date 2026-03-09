@@ -605,7 +605,7 @@ const EditarCampanhaModal = ({ open, onOpenChange, campanha, onSuccess }: Editar
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium truncate">{contato.nome || 'Sem nome'}</p>
-                                <p className="text-[10px] text-muted-foreground">{contato.telefone}</p>
+                                <p className="text-[10px] text-muted-foreground">{displayPhone(contato.telefone)}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0">
