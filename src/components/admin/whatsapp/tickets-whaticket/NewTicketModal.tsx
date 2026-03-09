@@ -331,7 +331,7 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
                       <User className="h-5 w-5 text-muted-foreground shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{contato.nome || 'Sem nome'}</p>
-                        <p className="text-sm text-muted-foreground">{contato.telefone}</p>
+                        <p className="text-sm text-muted-foreground">{displayPhone(contato.telefone)}</p>
                       </div>
                     </button>
                   ))}
