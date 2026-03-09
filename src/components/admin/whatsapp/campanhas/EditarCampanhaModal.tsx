@@ -116,6 +116,7 @@ const EditarCampanhaModal = ({ open, onOpenChange, campanha, onSuccess }: Editar
   const { updateCampanha, addContatos, removeContatos, getContatos } = useCampanhas();
   const { canAccess, isLoadingCargoPermissions } = usePermissionGuard();
   const { flows, loading: loadingFlows } = useFlowSelect();
+  const { displayPhone } = usePhoneVisibility();
   
   // Verificar permissões
   const canEdit = canAccess('admin.campanhas.editar');
