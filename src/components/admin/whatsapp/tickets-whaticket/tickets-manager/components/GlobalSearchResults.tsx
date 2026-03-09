@@ -41,6 +41,8 @@ export const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
   onSelectChat,
   onSelectMessage
 }) => {
+  const { displayPhone } = usePhoneVisibility();
+  
   if (isSearching) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12">
