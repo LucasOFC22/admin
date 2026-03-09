@@ -55,6 +55,7 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
   const [queueId, setQueueId] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { displayPhone } = usePhoneVisibility();
 
   // Carregar contatos ao abrir
   useEffect(() => {
