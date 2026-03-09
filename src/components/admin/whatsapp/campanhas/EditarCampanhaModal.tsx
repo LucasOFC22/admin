@@ -53,12 +53,14 @@ const ContatoRow = React.memo(({
   contato, 
   isSelected,
   jaAdicionado,
-  onToggle 
+  onToggle,
+  displayPhone
 }: { 
   contato: ContatoWhatsApp; 
   isSelected: boolean;
   jaAdicionado: boolean;
   onToggle: (id: string) => void;
+  displayPhone: (phone: string | undefined | null) => string;
 }) => {
   const handleToggle = useCallback(() => {
     if (!jaAdicionado) {
@@ -93,7 +95,7 @@ const ContatoRow = React.memo(({
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{contato.nome || 'Sem nome'}</p>
-        <p className="text-xs text-muted-foreground">{contato.telefone}</p>
+        <p className="text-xs text-muted-foreground">{displayPhone(contato.telefone)}</p>
       </div>
       {jaAdicionado && (
         <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
