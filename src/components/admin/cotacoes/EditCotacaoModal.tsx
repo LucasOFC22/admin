@@ -772,13 +772,34 @@ const Step1Clientes = ({
           <CardTitle>Solicitante</CardTitle>
         </CardHeader>
         <CardContent>
-          <div>
-            <Label>Solicitante da Cotação *</Label>
-            <Input
-              placeholder="Nome do solicitante"
-              value={formData.solicitante}
-              onChange={(e) => setFormData(prev => ({ ...prev, solicitante: e.target.value }))}
-            />
+          <div className="space-y-3">
+            <div>
+              <Label>Solicitante da Cotação *</Label>
+              <Input
+                placeholder="Nome do solicitante"
+                value={formData.solicitante}
+                onChange={(e) => setFormData(prev => ({ ...prev, solicitante: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>Telefone Solicitante</Label>
+                <Input
+                  placeholder="Telefone do solicitante"
+                  value={formData.telefoneSolicitante}
+                  onChange={(e) => setFormData(prev => ({ ...prev, telefoneSolicitante: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Email Solicitante</Label>
+                <Input
+                  type="email"
+                  placeholder="Email do solicitante"
+                  value={formData.emailSolicitante}
+                  onChange={(e) => setFormData(prev => ({ ...prev, emailSolicitante: e.target.value }))}
+                />
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
