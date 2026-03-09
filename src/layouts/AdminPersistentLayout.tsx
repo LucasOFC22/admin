@@ -33,17 +33,17 @@ const AdminPersistentLayout: React.FC = () => {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           headerContent={
-            <div className="flex items-center justify-between w-full px-3 py-4 overflow-hidden">
+            <div className="flex items-center justify-between w-full px-3 py-2 overflow-hidden">
               {sidebarOpen ? (
                 <>
                   {/* Logo - só visível quando expandido */}
-                  <img 
-                    alt="FP Transcargas Logo" 
-                    className="h-8 object-contain cursor-pointer transition-all duration-300 ease-out"
+                  <img
+                    alt="FP Transcargas Logo"
+                    className="h-12 w-auto max-w-[10.5rem] object-contain cursor-pointer transition-all duration-300 ease-out"
                     src={logoFpTranscargas}
                     onClick={() => navigate('/')}
                   />
-                  
+
                   {/* Botão minimizar - só visível quando expandido */}
                   {!isMobile && (
                     <Button
