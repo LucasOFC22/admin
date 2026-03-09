@@ -503,6 +503,31 @@ const WhatsAppKanbanConfig = () => {
         )}
       </div>
 
+      {/* Limite de Tickets Section */}
+      <div className="border-t pt-6">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
+          Limites de Atendimento
+        </h3>
+
+        <div className="space-y-1">
+          {renderSettingRow(
+            "Limite de Tickets Simultâneos",
+            "Número máximo de tickets que cada atendente pode atender ao mesmo tempo. Impede sobrecarga da equipe.",
+            <Input
+              type="number"
+              min={1}
+              max={50}
+              className="w-20 text-center"
+              value={config?.max_tickets_per_agent ?? 3}
+              onChange={(e) => {
+                const value = Math.max(1, Math.min(50, parseInt(e.target.value) || 1));
+                setConfig(prev => prev ? { ...prev, max_tickets_per_agent: value } : null);
+              }}
+            />
+          )}
+        </div>
+      </div>
+
       {/* Messages Section */}
       <div className="border-t pt-6">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
