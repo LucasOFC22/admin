@@ -9,6 +9,8 @@ interface CotacaoFormData {
   remetenteEhTomador: boolean;
   destinatarioEhTomador: boolean;
   solicitante: string;
+  telefoneSolicitante: string;
+  emailSolicitante: string;
   cidadeOrigem: { idCidade: number; cidade: string; uf: string } | null;
   cidadeDestino: { idCidade: number; cidade: string; uf: string } | null;
   km: string;
