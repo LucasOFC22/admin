@@ -29,12 +29,14 @@ const ContatoItem = React.memo(({
   contato, 
   isSelected, 
   onToggle,
-  disabled 
+  disabled,
+  displayPhone
 }: { 
   contato: Contato; 
   isSelected: boolean; 
   onToggle: (id: string) => void;
   disabled: boolean;
+  displayPhone: (phone: string | undefined | null) => string;
 }) => (
   <div 
     className={cn(
@@ -56,7 +58,7 @@ const ContatoItem = React.memo(({
       </div>
       <div className="flex items-center gap-2 mt-0.5">
         <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-        <span className="text-xs text-muted-foreground">{contato.telefone}</span>
+        <span className="text-xs text-muted-foreground">{displayPhone(contato.telefone)}</span>
       </div>
     </div>
   </div>
