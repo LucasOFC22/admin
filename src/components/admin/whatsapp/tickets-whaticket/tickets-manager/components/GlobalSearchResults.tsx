@@ -145,7 +145,7 @@ export const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                           {msg.nome}
                         </span>
                         <span className="text-xs text-muted-foreground flex-shrink-0">
-                          {msg.telefone}
+                          {displayPhone(msg.telefone)}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground flex-shrink-0">
