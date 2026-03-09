@@ -3,6 +3,7 @@ import { MessageCircle, Search, Loader2 } from 'lucide-react';
 import { ChatSearchResult, MessageSearchResult } from '@/hooks/useGlobalMessageSearch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface GlobalSearchResultsProps {
   searchTerm: string;
