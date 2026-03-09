@@ -84,6 +84,8 @@ export interface WhatsAppConfig {
   // Configurações extras
   disable_signature: boolean;
   hide_chatbot_tickets: boolean;
+  // Limite de tickets simultâneos por atendente
+  max_tickets_per_agent: number;
   created_at?: string;
   updated_at?: string;
 }
