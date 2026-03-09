@@ -256,6 +256,8 @@ export const EditCotacaoModal = ({
           remetenteEhTomador: dados.idRemetente === dados.idCliente,
           destinatarioEhTomador: dados.idDestinatario === dados.idCliente,
           solicitante: dados.solicitante || dados.contato || '',
+          telefoneSolicitante: dados.telefoneSolicitante || '',
+          emailSolicitante: dados.emailSolicitante || '',
           cidadeOrigem: dados.idCidadeOrigem ? {
             idCidade: dados.idCidadeOrigem,
             cidade: dados.cidadeOrigem || '',
