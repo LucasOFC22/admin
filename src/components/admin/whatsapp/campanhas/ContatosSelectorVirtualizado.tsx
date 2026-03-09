@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Search, User, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface Contato {
   id: string;
