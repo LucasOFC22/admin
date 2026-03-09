@@ -164,6 +164,8 @@ export const EditCotacaoModal = ({
     remetenteEhTomador: true,
     destinatarioEhTomador: false,
     solicitante: '',
+    telefoneSolicitante: '',
+    emailSolicitante: '',
     cidadeOrigem: null,
     cidadeDestino: null,
     km: '',
