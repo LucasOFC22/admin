@@ -137,10 +137,11 @@ export const ContatosSelectorVirtualizado: React.FC<ContatosSelectorVirtualizado
           isSelected={selectedSet.has(contato.id)}
           onToggle={handleToggle}
           disabled={disabled}
+          displayPhone={displayPhone}
         />
       </div>
     );
-  }, [filteredContatos, selectedSet, handleToggle, disabled]);
+  }, [filteredContatos, selectedSet, handleToggle, disabled, displayPhone]);
 
   const listHeight = Math.min(filteredContatos.length * ITEM_HEIGHT, maxHeight);
 
