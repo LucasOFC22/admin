@@ -165,6 +165,8 @@ const DEFAULT_CONFIG: Omit<WhatsAppConfig, 'id' | 'created_at' | 'updated_at'> =
   // Configurações extras
   disable_signature: false,
   hide_chatbot_tickets: false,
+  // Limite padrão de 3 tickets simultâneos por atendente
+  max_tickets_per_agent: 3,
 };
 
 export const whatsappConfigService = {
