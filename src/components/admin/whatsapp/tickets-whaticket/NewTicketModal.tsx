@@ -359,7 +359,7 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
                 <User className="h-5 w-5 text-primary shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{selectedContato.nome || 'Sem nome'}</p>
-                  <p className="text-sm text-muted-foreground">{selectedContato.telefone}</p>
+                  <p className="text-sm text-muted-foreground">{displayPhone(selectedContato.telefone)}</p>
                 </div>
               </div>
             )}
