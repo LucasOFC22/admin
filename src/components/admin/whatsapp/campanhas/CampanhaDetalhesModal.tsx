@@ -281,7 +281,7 @@ const CampanhaDetalhesModal = ({ open, onOpenChange, campanha, onRefresh }: Camp
                               <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                               <span className="font-medium truncate">{contato.nome || 'Sem nome'}</span>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-0.5">{contato.telefone}</p>
+                            <p className="text-sm text-muted-foreground mt-0.5">{displayPhone(contato.telefone)}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             {getStatusBadge(contato.status)}
