@@ -103,7 +103,7 @@ const WhatsAppKanbanConfig = () => {
       const subTab = hash.replace('whatsapp-', '') as TabType;
       if (validSubTabs.includes(subTab)) return subTab;
     }
-    return 'conta';
+    return 'perfil';
   };
 
   const activeTab = getActiveTab();
