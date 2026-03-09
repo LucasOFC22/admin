@@ -129,3 +129,32 @@ export const isValidBrazilianPhone = (phone: string): boolean => {
   // Sem código do país: 10 ou 11 dígitos
   return cleaned.length === 10 || cleaned.length === 11;
 };
+
+/**
+ * Mascara número de telefone para usuários sem permissão de visualização completa
+ * @example maskPhoneNumber("+55 (11) 99999-9999") => "+55 (11) 9****-9999"
+ * @example maskPhoneNumber("+55 (11) 2222-2222") => "+55 (11) 2***-2222"
+ */
+export const maskPhoneNumber = (phone: string | undefined | null): string => {
+  if (!phone) return '';
+
+  const formatted = formatPhone(phone);
+
+  if (!formatted) return '';
+
+  // Formato com +55: +55 (11) 99999-9999 → +55 (11) 9****-9999
+  if (formatted.startsWith('+55')) {
+    // Mantém prefixo "+55 (XX) ", mascara dígitos do meio, preserva últimos 4
+    return formatted.replace(
+      /^(\+55 \(\d{2}\) \d)[\d]*([\d]{4})$/,
+      (_, prefix, last4) => `${prefix}****-${last4}`
+    );
+  }
+
+  // Formato local sem código de país
+  // Mantém primeiro dígito, mascara meio, preserva últimos 4
+  return formatted.replace(
+    /^(\d)[\d-]*([\d]{4})$/,
+    (_, first, last4) => `${first}****-${last4}`
+  );
+};
