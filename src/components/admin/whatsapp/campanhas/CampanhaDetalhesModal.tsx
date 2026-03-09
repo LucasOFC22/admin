@@ -349,7 +349,7 @@ const CampanhaDetalhesModal = ({ open, onOpenChange, campanha, onRefresh }: Camp
                         {getStatusIcon(contato.status)}
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">{contato.nome || 'Sem nome'}</p>
-                          <p className="text-xs text-muted-foreground">{contato.telefone}</p>
+                          <p className="text-xs text-muted-foreground">{displayPhone(contato.telefone)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
