@@ -11,6 +11,7 @@ import { AlertCircle, CheckCircle, Clock, Loader2, RefreshCw, RotateCcw, BarChar
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import CampanhaReportCharts from './CampanhaReportCharts';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface CampanhaDetalhesModalProps {
   open: boolean;
