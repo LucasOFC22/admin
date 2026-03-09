@@ -23,6 +23,7 @@ import { User, UserPlus, Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { whatsappConfigService } from '@/services/supabase/whatsappConfigService';
 import { sendAutoMessage, createMessageContext } from '@/utils/whatsappAutoMessages';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface ContatoWhatsApp {
   id: string;
@@ -54,6 +55,7 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
   const [queueId, setQueueId] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { displayPhone } = usePhoneVisibility();
 
   // Carregar contatos ao abrir
   useEffect(() => {
@@ -330,7 +332,7 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
                       <User className="h-5 w-5 text-muted-foreground shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{contato.nome || 'Sem nome'}</p>
-                        <p className="text-sm text-muted-foreground">{contato.telefone}</p>
+                        <p className="text-sm text-muted-foreground">{displayPhone(contato.telefone)}</p>
                       </div>
                     </button>
                   ))}
@@ -358,7 +360,7 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
                 <User className="h-5 w-5 text-primary shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{selectedContato.nome || 'Sem nome'}</p>
-                  <p className="text-sm text-muted-foreground">{selectedContato.telefone}</p>
+                  <p className="text-sm text-muted-foreground">{displayPhone(selectedContato.telefone)}</p>
                 </div>
               </div>
             )}

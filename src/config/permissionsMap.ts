@@ -369,6 +369,15 @@ export const permissionsMap: PermissionGroup[] = [
         resource: 'whatsapp',
         category: 'Atendimento',
         enabled: true
+      },
+      {
+        id: 'admin.whatsapp.ver_telefones_completos',
+        name: 'Ver Telefones Completos',
+        description: 'Visualizar números de telefone completos dos contatos (sem mascaramento)',
+        action: 'view',
+        resource: 'whatsapp',
+        category: 'Atendimento',
+        enabled: true
       }
     ]
   },

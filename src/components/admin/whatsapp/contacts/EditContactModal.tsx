@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, EyeOff } from 'lucide-react';
 import { requireAuthenticatedClient } from '@/config/supabaseAuth';
 import { toast } from '@/lib/toast';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface AdditionalInfo {
   key: string;
@@ -43,6 +44,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { canViewFullPhone, displayPhone } = usePhoneVisibility();
   const [formData, setFormData] = useState<ContactData>({
     id: '',
     nome: '',
@@ -211,14 +213,24 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="telefone">Telefone</Label>
+                  {!canViewFullPhone && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <EyeOff className="h-3 w-3" />
+                      Mascarado
+                    </span>
+                  )}
+                </div>
                 <Input
                   id="telefone"
-                  value={formData.telefone}
+                  value={canViewFullPhone ? formData.telefone : displayPhone(formData.telefone)}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, telefone: e.target.value }))
                   }
                   placeholder="5511999999999"
+                  disabled={!canViewFullPhone}
+                  className={!canViewFullPhone ? 'bg-muted cursor-not-allowed' : ''}
                 />
               </div>
             </div>

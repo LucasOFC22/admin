@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Search, User, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface Contato {
   id: string;
@@ -28,12 +29,14 @@ const ContatoItem = React.memo(({
   contato, 
   isSelected, 
   onToggle,
-  disabled 
+  disabled,
+  displayPhone
 }: { 
   contato: Contato; 
   isSelected: boolean; 
   onToggle: (id: string) => void;
   disabled: boolean;
+  displayPhone: (phone: string | undefined | null) => string;
 }) => (
   <div 
     className={cn(
@@ -55,7 +58,7 @@ const ContatoItem = React.memo(({
       </div>
       <div className="flex items-center gap-2 mt-0.5">
         <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-        <span className="text-xs text-muted-foreground">{contato.telefone}</span>
+        <span className="text-xs text-muted-foreground">{displayPhone(contato.telefone)}</span>
       </div>
     </div>
   </div>
@@ -73,6 +76,7 @@ export const ContatosSelectorVirtualizado: React.FC<ContatosSelectorVirtualizado
   searchPlaceholder = 'Buscar contatos...'
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const { displayPhone } = usePhoneVisibility();
 
   // Filtrar contatos com debounce implícito via useMemo
   const filteredContatos = useMemo(() => {
@@ -133,10 +137,11 @@ export const ContatosSelectorVirtualizado: React.FC<ContatosSelectorVirtualizado
           isSelected={selectedSet.has(contato.id)}
           onToggle={handleToggle}
           disabled={disabled}
+          displayPhone={displayPhone}
         />
       </div>
     );
-  }, [filteredContatos, selectedSet, handleToggle, disabled]);
+  }, [filteredContatos, selectedSet, handleToggle, disabled, displayPhone]);
 
   const listHeight = Math.min(filteredContatos.length * ITEM_HEIGHT, maxHeight);
 

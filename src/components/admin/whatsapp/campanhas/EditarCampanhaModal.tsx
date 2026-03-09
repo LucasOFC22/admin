@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useFlowSelect } from '@/hooks/useFlowSelect';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface EditarCampanhaModalProps {
   open: boolean;
@@ -52,12 +53,14 @@ const ContatoRow = React.memo(({
   contato, 
   isSelected,
   jaAdicionado,
-  onToggle 
+  onToggle,
+  displayPhone
 }: { 
   contato: ContatoWhatsApp; 
   isSelected: boolean;
   jaAdicionado: boolean;
   onToggle: (id: string) => void;
+  displayPhone: (phone: string | undefined | null) => string;
 }) => {
   const handleToggle = useCallback(() => {
     if (!jaAdicionado) {
@@ -92,7 +95,7 @@ const ContatoRow = React.memo(({
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{contato.nome || 'Sem nome'}</p>
-        <p className="text-xs text-muted-foreground">{contato.telefone}</p>
+        <p className="text-xs text-muted-foreground">{displayPhone(contato.telefone)}</p>
       </div>
       {jaAdicionado && (
         <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
@@ -113,6 +116,7 @@ const EditarCampanhaModal = ({ open, onOpenChange, campanha, onSuccess }: Editar
   const { updateCampanha, addContatos, removeContatos, getContatos } = useCampanhas();
   const { canAccess, isLoadingCargoPermissions } = usePermissionGuard();
   const { flows, loading: loadingFlows } = useFlowSelect();
+  const { displayPhone } = usePhoneVisibility();
   
   // Verificar permissões
   const canEdit = canAccess('admin.campanhas.editar');
@@ -601,7 +605,7 @@ const EditarCampanhaModal = ({ open, onOpenChange, campanha, onSuccess }: Editar
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium truncate">{contato.nome || 'Sem nome'}</p>
-                                <p className="text-[10px] text-muted-foreground">{contato.telefone}</p>
+                                <p className="text-[10px] text-muted-foreground">{displayPhone(contato.telefone)}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0">
@@ -765,6 +769,7 @@ const EditarCampanhaModal = ({ open, onOpenChange, campanha, onSuccess }: Editar
                                 isSelected={selectedContatos.has(contato.id)}
                                 jaAdicionado={jaAdicionado}
                                 onToggle={handleSelectContato}
+                                displayPhone={displayPhone}
                               />
                             );
                           })}

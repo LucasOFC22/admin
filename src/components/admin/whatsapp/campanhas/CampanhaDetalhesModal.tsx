@@ -11,6 +11,7 @@ import { AlertCircle, CheckCircle, Clock, Loader2, RefreshCw, RotateCcw, BarChar
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import CampanhaReportCharts from './CampanhaReportCharts';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface CampanhaDetalhesModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface CampanhaDetalhesModalProps {
 
 const CampanhaDetalhesModal = ({ open, onOpenChange, campanha, onRefresh }: CampanhaDetalhesModalProps) => {
   const { getContatos, reenviarContato } = useCampanhas();
+  const { displayPhone } = usePhoneVisibility();
   const [contatos, setContatos] = useState<CampanhaContato[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
@@ -279,7 +281,7 @@ const CampanhaDetalhesModal = ({ open, onOpenChange, campanha, onRefresh }: Camp
                               <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                               <span className="font-medium truncate">{contato.nome || 'Sem nome'}</span>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-0.5">{contato.telefone}</p>
+                            <p className="text-sm text-muted-foreground mt-0.5">{displayPhone(contato.telefone)}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             {getStatusBadge(contato.status)}
@@ -347,7 +349,7 @@ const CampanhaDetalhesModal = ({ open, onOpenChange, campanha, onRefresh }: Camp
                         {getStatusIcon(contato.status)}
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">{contato.nome || 'Sem nome'}</p>
-                          <p className="text-xs text-muted-foreground">{contato.telefone}</p>
+                          <p className="text-xs text-muted-foreground">{displayPhone(contato.telefone)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

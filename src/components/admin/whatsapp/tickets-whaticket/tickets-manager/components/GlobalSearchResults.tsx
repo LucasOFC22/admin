@@ -3,6 +3,7 @@ import { MessageCircle, Search, Loader2 } from 'lucide-react';
 import { ChatSearchResult, MessageSearchResult } from '@/hooks/useGlobalMessageSearch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface GlobalSearchResultsProps {
   searchTerm: string;
@@ -40,6 +41,8 @@ export const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
   onSelectChat,
   onSelectMessage
 }) => {
+  const { displayPhone } = usePhoneVisibility();
+  
   if (isSearching) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12">
@@ -142,7 +145,7 @@ export const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                           {msg.nome}
                         </span>
                         <span className="text-xs text-muted-foreground flex-shrink-0">
-                          {msg.telefone}
+                          {displayPhone(msg.telefone)}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground flex-shrink-0">
