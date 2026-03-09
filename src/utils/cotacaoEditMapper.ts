@@ -9,6 +9,8 @@ interface CotacaoFormData {
   remetenteEhTomador: boolean;
   destinatarioEhTomador: boolean;
   solicitante: string;
+  telefoneSolicitante: string;
+  emailSolicitante: string;
   cidadeOrigem: { idCidade: number; cidade: string; uf: string } | null;
   cidadeDestino: { idCidade: number; cidade: string; uf: string } | null;
   km: string;
@@ -70,6 +72,8 @@ interface CotacaoEditPayload {
   idOrcamento: number;
   situacao: string;
   contato: string;
+  telefoneSolicitante: string;
+  emailSolicitante: string;
   idEmpresa: number;
   idCliente: number;
   idRemetente: number;
@@ -205,6 +209,8 @@ export function mapFormDataToEditPayload(
     idOrcamento: cotacaoOriginal.idOrcamento || cotacaoOriginal.id,
     situacao: cotacaoOriginal.situacao || cotacaoOriginal.status || 'PENDENTE',
     contato: formData.solicitante || cotacaoOriginal.contato || '',
+    telefoneSolicitante: formData.telefoneSolicitante || cotacaoOriginal.telefoneSolicitante || '',
+    emailSolicitante: formData.emailSolicitante || cotacaoOriginal.emailSolicitante || '',
     idEmpresa: cotacaoOriginal.idEmpresa || 1,
     idCliente: formData.tomador?.idCliente || cotacaoOriginal.idCliente || 0,
     idRemetente: formData.remetente?.idCliente || cotacaoOriginal.idRemetente || 0,
