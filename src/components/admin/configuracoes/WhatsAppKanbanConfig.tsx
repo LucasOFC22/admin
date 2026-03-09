@@ -123,9 +123,9 @@ const WhatsAppKanbanConfig = () => {
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
 
   const tabs = [
-    { id: 'conta' as TabType, label: 'Conta', icon: User },
-    { id: 'modelos' as TabType, label: 'Modelos de Mensagem', icon: FileText },
-    { id: 'config' as TabType, label: 'Config', icon: Settings },
+    { id: 'perfil' as TabType, label: 'Perfil', icon: User },
+    { id: 'templates' as TabType, label: 'Templates', icon: FileText },
+    { id: 'config' as TabType, label: 'Configurações', icon: Settings },
     { id: 'horario' as TabType, label: 'Horário', icon: Clock },
   ];
 
