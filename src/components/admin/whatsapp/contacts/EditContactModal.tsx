@@ -44,6 +44,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { canViewFullPhone, displayPhone } = usePhoneVisibility();
   const [formData, setFormData] = useState<ContactData>({
     id: '',
     nome: '',
