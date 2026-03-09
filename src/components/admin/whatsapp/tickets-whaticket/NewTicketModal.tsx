@@ -23,6 +23,7 @@ import { User, UserPlus, Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { whatsappConfigService } from '@/services/supabase/whatsappConfigService';
 import { sendAutoMessage, createMessageContext } from '@/utils/whatsappAutoMessages';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface ContatoWhatsApp {
   id: string;
