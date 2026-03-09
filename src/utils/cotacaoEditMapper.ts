@@ -72,6 +72,8 @@ interface CotacaoEditPayload {
   idOrcamento: number;
   situacao: string;
   contato: string;
+  telefoneSolicitante: string;
+  emailSolicitante: string;
   idEmpresa: number;
   idCliente: number;
   idRemetente: number;
