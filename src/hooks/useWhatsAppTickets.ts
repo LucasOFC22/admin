@@ -658,6 +658,15 @@ export const useWhatsAppTickets = (options?: {
 
   const acceptTicket = useCallback(async (ticketId: string, adminId: string) => {
     try {
+      // Verificar limite de tickets antes de aceitar
+      const { ticketLimitService } = await import('@/services/whatsapp/ticketLimitService');
+      const limitCheck = await ticketLimitService.checkTicketLimit(adminId);
+      
+      if (!limitCheck.canAccept) {
+        toast.error(limitCheck.errorMessage || 'Limite de tickets atingido');
+        return;
+      }
+
       const authClient = getSupabase();
       // ticketId agora é o ID do contato, precisamos do chatId
       const ticket = allTickets.find(t => t.id === ticketId || t.chatId?.toString() === ticketId);
