@@ -785,9 +785,9 @@ const WhatsAppKanbanConfig = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'conta':
+      case 'perfil':
         return renderContaTab();
-      case 'modelos':
+      case 'templates':
         return renderModelosTab();
       case 'config':
         return renderConfigTab();
@@ -800,7 +800,7 @@ const WhatsAppKanbanConfig = () => {
               name: businessInfo?.phone?.verified_name || businessInfo?.connection?.nome,
               profilePicture: businessInfo?.profile_picture_url || undefined,
             }}
-            onBack={() => navigate('#whatsapp-modelos', { replace: true })}
+            onBack={() => navigate('#whatsapp-templates', { replace: true })}
           />
         );
       case 'edit':
@@ -812,7 +812,7 @@ const WhatsAppKanbanConfig = () => {
             }}
             onBack={() => {
               setEditingTemplate(null);
-              navigate('#whatsapp-modelos', { replace: true });
+              navigate('#whatsapp-templates', { replace: true });
             }}
             editMode={true}
             templateToEdit={editingTemplate}
