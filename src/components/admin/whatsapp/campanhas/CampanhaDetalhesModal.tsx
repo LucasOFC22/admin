@@ -22,6 +22,7 @@ interface CampanhaDetalhesModalProps {
 
 const CampanhaDetalhesModal = ({ open, onOpenChange, campanha, onRefresh }: CampanhaDetalhesModalProps) => {
   const { getContatos, reenviarContato } = useCampanhas();
+  const { displayPhone } = usePhoneVisibility();
   const [contatos, setContatos] = useState<CampanhaContato[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
