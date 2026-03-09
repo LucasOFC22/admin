@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -33,7 +34,7 @@ import { MessageConfigCard } from './MessageConfigCard';
 import { InactivityConfigCard } from './InactivityConfigCard';
 import { WhatsAppBusinessHoursConfig } from './WhatsAppBusinessHoursConfig';
 
-type TabType = 'conta' | 'modelos' | 'config' | 'horario' | 'create' | 'edit';
+type TabType = 'perfil' | 'templates' | 'config' | 'horario' | 'create' | 'edit';
 
 interface Conexao {
   id: string;
@@ -90,20 +91,20 @@ interface MessageTemplate {
   rejected_reason?: string;
 }
 
-const validSubTabs: TabType[] = ['conta', 'modelos', 'config', 'horario', 'create', 'edit'];
+const validSubTabs: TabType[] = ['perfil', 'templates', 'config', 'horario', 'create', 'edit'];
 
 const WhatsAppKanbanConfig = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Extrair sub-aba do hash (ex: #whatsapp-conta -> conta)
+  // Extrair sub-aba do hash (ex: #whatsapp-perfil -> perfil)
   const getActiveTab = (): TabType => {
     const hash = location.hash.replace('#', '');
     if (hash.startsWith('whatsapp-')) {
       const subTab = hash.replace('whatsapp-', '') as TabType;
       if (validSubTabs.includes(subTab)) return subTab;
     }
-    return 'conta';
+    return 'perfil';
   };
 
   const activeTab = getActiveTab();
@@ -123,9 +124,9 @@ const WhatsAppKanbanConfig = () => {
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
 
   const tabs = [
-    { id: 'conta' as TabType, label: 'Conta', icon: User },
-    { id: 'modelos' as TabType, label: 'Modelos de Mensagem', icon: FileText },
-    { id: 'config' as TabType, label: 'Config', icon: Settings },
+    { id: 'perfil' as TabType, label: 'Perfil', icon: User },
+    { id: 'templates' as TabType, label: 'Templates', icon: FileText },
+    { id: 'config' as TabType, label: 'Configurações', icon: Settings },
     { id: 'horario' as TabType, label: 'Horário', icon: Clock },
   ];
 
@@ -502,6 +503,31 @@ const WhatsAppKanbanConfig = () => {
         )}
       </div>
 
+      {/* Limite de Tickets Section */}
+      <div className="border-t pt-6">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
+          Limites de Atendimento
+        </h3>
+
+        <div className="space-y-1">
+          {renderSettingRow(
+            "Limite de Tickets Simultâneos",
+            "Número máximo de tickets que cada atendente pode atender ao mesmo tempo. Impede sobrecarga da equipe.",
+            <Input
+              type="number"
+              min={1}
+              max={50}
+              className="w-20 text-center"
+              value={config?.max_tickets_per_agent ?? 3}
+              onChange={(e) => {
+                const value = Math.max(1, Math.min(50, parseInt(e.target.value) || 1));
+                setConfig(prev => prev ? { ...prev, max_tickets_per_agent: value } : null);
+              }}
+            />
+          )}
+        </div>
+      </div>
+
       {/* Messages Section */}
       <div className="border-t pt-6">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
@@ -785,9 +811,9 @@ const WhatsAppKanbanConfig = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'conta':
+      case 'perfil':
         return renderContaTab();
-      case 'modelos':
+      case 'templates':
         return renderModelosTab();
       case 'config':
         return renderConfigTab();
@@ -800,7 +826,7 @@ const WhatsAppKanbanConfig = () => {
               name: businessInfo?.phone?.verified_name || businessInfo?.connection?.nome,
               profilePicture: businessInfo?.profile_picture_url || undefined,
             }}
-            onBack={() => navigate('#whatsapp-modelos', { replace: true })}
+            onBack={() => navigate('#whatsapp-templates', { replace: true })}
           />
         );
       case 'edit':
@@ -812,7 +838,7 @@ const WhatsAppKanbanConfig = () => {
             }}
             onBack={() => {
               setEditingTemplate(null);
-              navigate('#whatsapp-modelos', { replace: true });
+              navigate('#whatsapp-templates', { replace: true });
             }}
             editMode={true}
             templateToEdit={editingTemplate}
