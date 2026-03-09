@@ -76,6 +76,7 @@ export const ContatosSelectorVirtualizado: React.FC<ContatosSelectorVirtualizado
   searchPlaceholder = 'Buscar contatos...'
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const { displayPhone } = usePhoneVisibility();
 
   // Filtrar contatos com debounce implícito via useMemo
   const filteredContatos = useMemo(() => {
