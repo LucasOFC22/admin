@@ -97,7 +97,7 @@ const WhatsAppKanbanConfig = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Extrair sub-aba do hash (ex: #whatsapp-conta -> conta)
+  // Extrair sub-aba do hash (ex: #whatsapp-perfil -> perfil)
   const getActiveTab = (): TabType => {
     const hash = location.hash.replace('#', '');
     if (hash.startsWith('whatsapp-')) {
