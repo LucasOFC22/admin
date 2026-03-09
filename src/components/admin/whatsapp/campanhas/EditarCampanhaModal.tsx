@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useFlowSelect } from '@/hooks/useFlowSelect';
+import { usePhoneVisibility } from '@/hooks/usePhoneVisibility';
 
 interface EditarCampanhaModalProps {
   open: boolean;
