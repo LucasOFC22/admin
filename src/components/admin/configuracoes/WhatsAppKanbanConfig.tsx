@@ -33,7 +33,7 @@ import { MessageConfigCard } from './MessageConfigCard';
 import { InactivityConfigCard } from './InactivityConfigCard';
 import { WhatsAppBusinessHoursConfig } from './WhatsAppBusinessHoursConfig';
 
-type TabType = 'conta' | 'modelos' | 'config' | 'horario' | 'create' | 'edit';
+type TabType = 'perfil' | 'templates' | 'config' | 'horario' | 'create' | 'edit';
 
 interface Conexao {
   id: string;
