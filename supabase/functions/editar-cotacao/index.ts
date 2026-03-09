@@ -20,10 +20,7 @@ async function getToken() {
   const agora = new Date();
   const atualizadoEm = registro.atualizado_em ? new Date(registro.atualizado_em) : new Date(0);
 
-  // Se token expirou ou não existe (1 hora)
   if (!registro.token || (agora.getTime() - atualizadoEm.getTime()) > 60 * 60 * 1000) {
-    console.log("🔐 Renovando token DB Frete...");
-
     const response = await fetch(dbfreteLoginUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -54,18 +51,13 @@ async function getToken() {
       })
       .eq("id", registro.id);
 
-    console.log("✅ Token renovado com sucesso");
     return data.token;
   }
 
   return registro.token;
 }
 
-// Buscar cotação existente pelo ID (usando idColeta conforme API)
 async function fetchCotacaoExistente(idOrcamento: number, token: string): Promise<any> {
-  console.log(`🔍 Buscando cotação existente: ${idOrcamento}`);
-  
-  // A API de cotação usa o endpoint /tms/cotacao/:idColeta para buscar
   const url = `${dbfreteCotacaoUrl}/${idOrcamento}`;
   const resp = await fetch(url, {
     method: "GET",
@@ -83,14 +75,10 @@ async function fetchCotacaoExistente(idOrcamento: number, token: string): Promis
   }
 
   const data = await resp.json();
-  console.log(`📦 Cotação encontrada:`, JSON.stringify(data));
   return data;
 }
 
-// Envia cotação para atualização (POST com idOrcamento > 0 = atualização)
 async function sendCotacaoUpdate(payload: any, token: string) {
-  console.log("📤 Enviando atualização de cotação para DB Frete:", JSON.stringify(payload, null, 2));
-
   const resp = await fetch(dbfreteCotacaoUrl, {
     method: "POST",
     headers: {
@@ -101,7 +89,6 @@ async function sendCotacaoUpdate(payload: any, token: string) {
   });
 
   const text = await resp.text();
-  console.log("📨 Resposta DB Frete:", text);
 
   try {
     return JSON.parse(text);
@@ -112,18 +99,15 @@ async function sendCotacaoUpdate(payload: any, token: string) {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const body = await req.json();
-    console.log("📥 Requisição de edição de cotação recebida:", JSON.stringify(body, null, 2));
 
     const { idOrcamento, ...dadosParaAtualizar } = body;
 
-    // Validação obrigatória: idOrcamento deve existir e ser maior que 0
     if (!idOrcamento || idOrcamento <= 0) {
       return new Response(JSON.stringify({ 
         success: false,
@@ -134,28 +118,18 @@ serve(async (req) => {
       });
     }
 
-    // Busca token válido
     const token = await getToken();
 
-    // Buscar cotação existente
     const cotacaoExistente = await fetchCotacaoExistente(idOrcamento, token);
 
-    // Mesclar dados existentes com os novos dados (edição parcial)
-    // Os itens são substituídos completamente se enviados
     const cotacaoPayload = {
       ...cotacaoExistente,
       ...dadosParaAtualizar,
-      idOrcamento, // Garantir que o ID está presente para a API entender como atualização
-      // Se itens foram enviados, usar os novos; senão, manter os existentes
+      idOrcamento,
       itens: dadosParaAtualizar.itens || cotacaoExistente.itens || [],
     };
 
-    console.log("📤 Payload final para atualização:", JSON.stringify(cotacaoPayload, null, 2));
-    
-    // Envia atualização para DB Frete
     const cotacaoResp = await sendCotacaoUpdate(cotacaoPayload, token);
-
-    console.log("✅ Cotação atualizada com sucesso:", cotacaoResp);
 
     return new Response(JSON.stringify({
       success: true,
@@ -168,7 +142,6 @@ serve(async (req) => {
   } catch (err: any) {
     console.error("❌ Erro na função editar-cotacao:", err);
 
-    // Salva o erro na tabela erros
     try {
       const bodyClone = await req.clone().json().catch(() => ({}));
       await supabase.from("erros").insert({
@@ -186,7 +159,6 @@ serve(async (req) => {
         resolvido: false,
         data_ocorrencia: new Date().toISOString()
       });
-      console.log("📝 Erro salvo na tabela erros");
     } catch (logErr) {
       console.error("❌ Falha ao salvar erro na tabela:", logErr);
     }
