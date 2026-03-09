@@ -1,112 +1,130 @@
 
-# Remoção de Console.log do Projeto
+# Plano de Implementação: Ocultar Telefones para Usuários Não-Administradores
 
-## Resumo
+## Análise do Sistema Atual
 
-Serão removidas todas as instruções `console.log` de debug/desenvolvimento que estão poluindo o console do navegador. O projeto possui um utilitário de logging condicional em `src/utils/logger.ts`, mas ele não está sendo usado - os logs estão diretamente no código.
+Analisei o sistema de permissões existente e identifiquei os seguintes pontos:
 
-## Escopo da Remoção
+1. **Sistema de Permissões**: O projeto usa um sistema baseado em `permissionsMap.ts` com permissões categorizadas
+2. **Exibição de Telefones**: Números são exibidos principalmente em:
+   - `TicketListItemCustom.tsx` (lista de tickets do WhatsApp) 
+   - `EditContactModal.tsx` (modal de edição de contatos)
+   - Outros componentes que mostram dados de contatos
+3. **Gerador de SQL**: O arquivo `PermissionsConfig.tsx` já possui um sistema para gerar scripts SQL das permissões
 
-Total estimado: **mais de 1000 console.log** em **60+ arquivos**.
+## Solução Proposta
 
-### Arquivos Principais (por categoria)
+### 1. Nova Permissão no Sistema
 
-**Configuração e Auth (15 logs)**
-- `src/config/supabaseAuth.ts` - 3 console.log do Realtime Auth
-
-**Hooks (423 logs em 18 arquivos)**
-- `src/hooks/useGlobalWhatsAppNotifications.ts` - ~15 logs de notificações
-- `src/hooks/useWhatsAppMessages.ts` - ~10 logs de mensagens
-- `src/hooks/useWhatsApp.ts` - ~10 logs de realtime
-- `src/hooks/useEmailThread.ts` - logs de emails
-- `src/hooks/use-supabase-pickup-submission.ts` - logs de coletas
-- E outros 13 arquivos
-
-**Services (114 logs em 10 arquivos)**
-- `src/services/n8n/usersService.ts` - logs de debug de API
-- `src/services/whatsappMediaService.ts` - logs de mídia
-- `src/services/supabaseConfigService.ts` - logs de conexão
-- E outros 7 arquivos
-
-**Components (409 logs em 24 arquivos)**
-- `src/components/admin/whatsapp/tickets-whaticket/MessageInput.tsx` - ~40 logs
-- `src/components/admin/email/EmailInbox.tsx` - logs de email
-- `src/components/flowbuilder/FlowBuilderGroupEditor.tsx` - logs de flowbuilder
-- E outros 21 arquivos
-
-**Pages (35 logs em 4 arquivos)**
-- `src/pages/admin/WhatsAppKanban.tsx` - logs de Kanban
-- `src/pages/WhatsAppKanban.tsx` - logs de movimentação
-- E outros 2 arquivos
-
-## Abordagem
-
-Remover **todos** os `console.log` de cada arquivo. Manter apenas:
-- `console.error` para erros reais de runtime
-- `console.warn` em casos específicos de alerta ao desenvolvedor
-
-## Arquivos Específicos a Modificar
-
-1. `src/config/supabaseAuth.ts`
-2. `src/hooks/useGlobalWhatsAppNotifications.ts`
-3. `src/hooks/useWhatsAppMessages.ts`
-4. `src/hooks/useWhatsApp.ts`
-5. `src/hooks/useEmailThread.ts`
-6. `src/hooks/use-supabase-pickup-submission.ts`
-7. `src/hooks/useAdminSidebarNavigation.ts`
-8. `src/hooks/useContatosActions.ts`
-9. `src/services/n8n/usersService.ts`
-10. `src/services/n8n/errorService.ts`
-11. `src/services/whatsappMediaService.ts`
-12. `src/services/supabaseConfigService.ts`
-13. `src/services/ticketService.ts`
-14. `src/services/logger/apiInterceptor.ts`
-15. `src/services/kanbanWhatsAppService.ts`
-16. `src/services/databasePermissionsService.ts`
-17. `src/services/supabase/solicitacaoAcessoService.ts`
-18. `src/components/admin/whatsapp/tickets-whaticket/MessageInput.tsx`
-19. `src/components/admin/whatsapp/tickets-whaticket/SessionWindowAlert.tsx`
-20. `src/components/admin/whatsapp/tickets-whaticket/NewTicketModal.tsx`
-21. `src/components/admin/whatsapp/tickets-whaticket/MessageOptionsMenu.tsx`
-22. `src/components/admin/email/EmailInbox.tsx`
-23. `src/components/admin/cotacoes/CotacoesList.tsx`
-24. `src/components/admin/cotacoes/CotacoesPageV3.tsx`
-25. `src/components/admin/configuracoes/CreateTemplatePage.tsx`
-26. `src/components/admin/configuracoes/PermissionsConfig.tsx`
-27. `src/components/admin/cargos/CreateCargoModal.tsx`
-28. `src/components/admin/kanban/KanbanBoard.tsx`
-29. `src/components/flowbuilder/FlowBuilderGroupEditor.tsx`
-30. `src/components/ui/sonner.tsx`
-31. `src/pages/admin/WhatsAppKanban.tsx`
-32. `src/pages/WhatsAppKanban.tsx`
-33. `src/pages/admin/Coletas.tsx`
-34. `src/pages/admin-content/CotacoesContent.tsx`
-35. + ~26 arquivos adicionais identificados na busca
-
----
-
-## Detalhes Técnicos
-
-### Padrão de Remoção
-
-Para cada arquivo, serão removidas linhas como:
+**Adicionar nova permissão:**
 ```typescript
-// REMOVER:
-console.log('[Realtime:Auth] 🔐 getRealtimeClient chamado', {...});
-console.log('[MessageInput] Buscando telefone...');
-console.log('📤 Enviando dados...');
-
-// MANTER:
-console.error('[Component] Erro crítico:', error);
-console.warn('[Component] Aviso importante');
+{
+  id: 'admin.whatsapp.ver_telefones_completos',
+  name: 'Ver Telefones Completos',
+  description: 'Visualizar números de telefone completos (apenas admins e supervisores)',
+  action: 'view',
+  resource: 'whatsapp',
+  category: 'Atendimento',
+  enabled: true
+}
 ```
 
-### Arquivo logger.ts Existente
+### 2. Função Utilitária de Mascaramento
 
-O projeto já possui `src/utils/logger.ts` com `isDevelopment = false`, então mesmo se usássemos `devLog.log()`, os logs seriam suprimidos. A estratégia é simplesmente remover os `console.log` ao invés de substituí-los.
+**Criar nova função em `src/utils/phone/index.ts`:**
+```typescript
+/**
+ * Mascara telefone para usuários sem permissão
+ * @example maskPhoneNumber("+55 (11) 99999-9999") => "+55 (11) 9****-****"
+ */
+export const maskPhoneNumber = (phone: string): string => {
+  if (!phone) return '';
+  const formatted = formatPhone(phone);
+  
+  // Detectar formato e aplicar máscara
+  if (formatted.includes('+55')) {
+    // +55 (11) 99999-9999 → +55 (11) 9****-****
+    return formatted.replace(/(\+55 \(\d{2}\) \d)[\d-]*(\d{4})$/, '$1****-$2');
+  }
+  
+  // Outros formatos mantêm apenas primeiros e últimos dígitos
+  return formatted.replace(/\d(?=.*\d{4})/g, '*');
+};
+```
 
-### Impacto
+### 3. Hook de Verificação de Permissão
 
-- **Performance**: Leve melhoria por não serializar objetos para o console
-- **Segurança**: Não expõe dados sensíveis (tokens, IDs, estruturas internas)
-- **Manutenção**: Console mais limpo para debugging real em produção
+**Criar `src/hooks/usePhoneVisibility.ts`:**
+```typescript
+import { usePermissionGuard } from '@/hooks/usePermissionGuard';
+import { maskPhoneNumber } from '@/utils/phone';
+
+export const usePhoneVisibility = () => {
+  const { canAccess } = usePermissionGuard();
+  
+  const canViewFullPhone = canAccess('admin.whatsapp.ver_telefones_completos');
+  
+  const displayPhone = (phone: string): string => {
+    if (!phone) return '';
+    return canViewFullPhone ? phone : maskPhoneNumber(phone);
+  };
+  
+  return {
+    canViewFullPhone,
+    displayPhone
+  };
+};
+```
+
+### 4. Aplicar Mascaramento nos Componentes
+
+**TicketListItemCustom.tsx:**
+- Substituir `ticket.contact?.number` por `displayPhone(ticket.contact?.number)`
+- Aplicar em qualquer lugar onde o telefone é exibido
+
+**EditContactModal.tsx:**
+- Aplicar máscara no campo de exibição do telefone
+- Manter funcionalidade de edição apenas para usuários com permissão
+
+### 5. Atualizar Gerador de SQL
+
+**PermissionsConfig.tsx:**
+- A nova permissão será automaticamente incluída no script SQL gerado
+- Adicionar a permissão aos cargos de Administrador (ID 1) e Supervisor por padrão
+
+### 6. Estrutura Técnica Detalhada
+
+**Arquivos a modificar:**
+
+1. `src/config/permissionsMap.ts` - Adicionar nova permissão
+2. `src/utils/phone/index.ts` - Nova função de mascaramento
+3. `src/hooks/usePhoneVisibility.ts` - Novo hook (criar)
+4. `src/components/admin/whatsapp/tickets-whaticket/TicketListItemCustom.tsx` - Aplicar máscara
+5. `src/components/admin/whatsapp/contacts/EditContactModal.tsx` - Aplicar máscara
+6. Outros componentes que exibem telefones conforme necessário
+
+**Script SQL Gerado:**
+```sql
+-- A permissão será incluída automaticamente no INSERT
+INSERT INTO permissions (id, name, description, category, action, resource, active, critical) VALUES
+('admin.whatsapp.ver_telefones_completos', 'Ver Telefones Completos', 'Visualizar números de telefone completos (apenas admins e supervisores)', 'Atendimento', 'view', 'whatsapp', true, false);
+
+-- Adicionar aos cargos administrativos
+UPDATE cargos SET permissoes = array_append(permissoes, 'admin.whatsapp.ver_telefones_completos') 
+WHERE id IN (1) AND NOT ('admin.whatsapp.ver_telefones_completos' = ANY(permissoes));
+```
+
+## Benefícios
+
+1. **Segurança**: Protege dados sensíveis de contatos
+2. **Flexibilidade**: Sistema baseado em permissões, configurável
+3. **Compatibilidade**: Não quebra funcionalidade existente
+4. **Manutenibilidade**: Centraliza lógica de mascaramento
+5. **Auditoria**: Integra com sistema de logs existente
+
+## Considerações
+
+- Telefones mascarados ainda permitem identificação do DDD e últimos dígitos
+- Sistema mantém usabilidade para operações básicas
+- Administradores e supervisores mantêm visibilidade completa
+- Implementação progressiva permite ajustes por componente
