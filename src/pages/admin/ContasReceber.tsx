@@ -375,7 +375,8 @@ const ContasReceber = () => {
       }
     });
     
-    const pdfUrl = `https://kong.fptranscargas.com.br/functions/v1/pdf-boleto/${conta.idBoleto}`;
+    const baseUrl2 = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    const pdfUrl = `${baseUrl2}/functions/v1/pdf-boleto/${conta.idBoleto}`;
     downloadPdf({ 
       url: pdfUrl, 
       fileName: `Boleto_${conta.doc}.pdf`,

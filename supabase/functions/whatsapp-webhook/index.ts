@@ -20,7 +20,8 @@ const corsHeaders = {
 const N8N_MEDIA_WEBHOOK_URL = "https://n8n.fptranscargas.com.br/webhook/546c51d7-e082-481b-8819-16236d901700";
 
 // URL base do Storage
-const STORAGE_BASE_URL = `https://kong.fptranscargas.com.br/storage/v1/object/public/whatsapp-media`;
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+const STORAGE_BASE_URL = `${SUPABASE_URL}/storage/v1/object/public/whatsapp-media`;
 
 // ============================================
 // 🔤 UTF-8 ENCODING HELPER (ROBUST VERSION)

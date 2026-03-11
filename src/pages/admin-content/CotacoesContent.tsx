@@ -307,8 +307,9 @@ const CotacoesContent = () => {
       detalhes: { orcamento_id: idOrcamento }
     });
     
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
     downloadFromApi(
-      `https://kong.fptranscargas.com.br/functions/v1/imprimir-cotacao/${idOrcamento}`,
+      `${baseUrl}/functions/v1/imprimir-cotacao/${idOrcamento}`,
       `cotacao-${idOrcamento}.pdf`,
       { method: 'POST' }
     );

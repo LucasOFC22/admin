@@ -173,7 +173,7 @@ const ConsultarNFe = () => {
       }
     });
     
-    const pdfUrl = `https://kong.fptranscargas.com.br/functions/v1/pdf-cte/${idConhecimento}`;
+    const pdfUrl = `${baseUrl}/functions/v1/pdf-cte/${idConhecimento}`;
     downloadPdf({ url: pdfUrl, fileName: `CTE_${nroConhec}.pdf` });
   };
 

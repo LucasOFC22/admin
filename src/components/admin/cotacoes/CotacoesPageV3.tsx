@@ -92,8 +92,9 @@ export default function CotacoesPageV3() {
   };
 
   const handlePrint = (id: string) => {
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
     downloadFromApi(
-      `https://kong.fptranscargas.com.br/functions/v1/imprimir-cotacao/${id}`,
+      `${baseUrl}/functions/v1/imprimir-cotacao/${id}`,
       `Cotacao_${id}.pdf`,
       { method: 'POST' }
     );

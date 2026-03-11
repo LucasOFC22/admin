@@ -32,8 +32,9 @@ export const ManifestoCard = ({
   onCancelar 
 }: ManifestoCardProps) => {
   const handleDownloadMdfe = () => {
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
     downloadFromApi(
-      `https://kong.fptranscargas.com.br/functions/v1/imprimir-mdfe/${manifesto.chaveMdfe}`,
+      `${baseUrl}/functions/v1/imprimir-mdfe/${manifesto.chaveMdfe}`,
       `MDF-e_${manifesto.chaveMdfe}.pdf`
     );
   };

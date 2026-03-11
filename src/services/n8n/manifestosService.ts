@@ -75,8 +75,9 @@ class N8nManifestosService {
 
   async encerrarManifesto(manifesto: Manifesto): Promise<void> {
     try {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
       const response = await fetch(
-        `https://kong.fptranscargas.com.br/functions/v1/encerrar-mdfe/${manifesto.chaveMdfe}`,
+        `${baseUrl}/functions/v1/encerrar-mdfe/${manifesto.chaveMdfe}`,
         {
           method: 'POST',
           headers: {
