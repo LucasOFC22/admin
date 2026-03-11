@@ -108,8 +108,9 @@ export const CotacoesSection = () => {
   }, [selectedDocument]);
 
   const handlePrint = (cotacao: any) => {
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
     downloadFromApi(
-      `https://kong.fptranscargas.com.br/functions/v1/imprimir-cotacao/${cotacao.idOrcamento}`,
+      `${baseUrl}/functions/v1/imprimir-cotacao/${cotacao.idOrcamento}`,
       `Cotacao_${cotacao.idOrcamento}.pdf`,
       { method: 'POST' }
     );
