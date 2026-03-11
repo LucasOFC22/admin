@@ -110,7 +110,7 @@ serve(async (req) => {
       return jsonResponse({ error: "Credenciais do WhatsApp não configuradas" }, 400);
     }
 
-    const phoneInfoUrl = `https://graph.facebook.com/v21.0/${whatsapp_phone_id}?fields=verified_name,code_verification_status,display_phone_number,quality_rating,platform_type,throughput,is_official_business_account,name_status,messaging_limit_tier,whatsapp_business_account`;
+    const phoneInfoUrl = `https://graph.facebook.com/v21.0/${whatsapp_phone_id}?fields=verified_name,code_verification_status,display_phone_number,quality_rating,platform_type,throughput,is_official_business_account,name_status,messaging_limit_tier`;
     const { response: phoneInfoResponse, data: phoneInfoData } = await fetchWithTimeout(phoneInfoUrl, whatsapp_token);
 
     if (!phoneInfoResponse.ok) {
@@ -142,7 +142,7 @@ serve(async (req) => {
     }
 
     let accountInfo: Record<string, any> | null = null;
-    const wabaId = whatsapp_business_account_id || phoneInfo?.whatsapp_business_account?.id;
+    const wabaId = whatsapp_business_account_id;
 
     if (wabaId) {
       try {
