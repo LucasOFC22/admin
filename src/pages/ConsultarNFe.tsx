@@ -154,7 +154,8 @@ const ConsultarNFe = () => {
       }
     });
 
-    const xmlUrl = `https://kong.fptranscargas.com.br/functions/v1/xml-cte/${idConhecimento}`;
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    const xmlUrl = `${baseUrl}/functions/v1/xml-cte/${idConhecimento}`;
     
     await downloadXml({
       url: xmlUrl,
@@ -172,7 +173,8 @@ const ConsultarNFe = () => {
       }
     });
     
-    const pdfUrl = `https://kong.fptranscargas.com.br/functions/v1/pdf-cte/${idConhecimento}`;
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    const pdfUrl = `${baseUrl}/functions/v1/pdf-cte/${idConhecimento}`;
     downloadPdf({ url: pdfUrl, fileName: `CTE_${nroConhec}.pdf` });
   };
 

@@ -116,7 +116,8 @@ serve(async (req) => {
 
     // Substituir URL interna pela URL publica externa
     let publicUrl = publicUrlData.publicUrl;
-    publicUrl = publicUrl.replace('http://kong:8000', 'https://kong.fptranscargas.com.br');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    publicUrl = publicUrl.replace('http://kong:8000', supabaseUrl);
     
     console.log('[whatsapp-upload-media] URL publica (corrigida):', publicUrl);
 

@@ -51,7 +51,7 @@ export class SecurityConfig {
       isSecure = false;
     }
     
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     if (!supabaseKey) {
       warnings.push('SUPABASE_ANON_KEY not configured');
       isSecure = false;

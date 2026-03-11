@@ -17,7 +17,8 @@ const ConsultarNFeContent = () => {
       return;
     }
 
-    const xmlUrl = `https://kong.fptranscargas.com.br/functions/v1/xml-cte/${idConhecimento}`;
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    const xmlUrl = `${baseUrl}/functions/v1/xml-cte/${idConhecimento}`;
     
     await downloadXml({
       url: xmlUrl,
