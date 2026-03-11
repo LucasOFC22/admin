@@ -146,8 +146,8 @@ export async function attemptTokenRefresh(): Promise<boolean> {
           if (rawSession) {
             const parsed = JSON.parse(rawSession);
             if (parsed.refresh_token) {
-              const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-              const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+              const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+              const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsa3BwdWNkbm12eWZzbmFycHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNDEzNTQsImV4cCI6MjA4ODgxNzM1NH0.MCR1rdDr9CNgfzlpqPFp2sfLMpyfxFKeEcgFOFdTXVs';
               const tempClient = createClient(supabaseUrl, supabaseAnonKey);
               const { data: refreshData } = await tempClient.auth.setSession({
                 access_token: parsed.access_token || '',
