@@ -343,7 +343,8 @@ const ContasReceber = () => {
       }
     });
     
-    const pdfUrl = `https://kong.fptranscargas.com.br/functions/v1/pdf-fatura/${conta.idTitulo}`;
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    const pdfUrl = `${baseUrl}/functions/v1/pdf-fatura/${conta.idTitulo}`;
     downloadPdf({ 
       url: pdfUrl, 
       fileName: `Fatura_${conta.doc}.pdf`,
