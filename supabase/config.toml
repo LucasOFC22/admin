@@ -1,1 +1,217 @@
 project_id = "ulkppucdnmvyfsnarpth"
+
+[functions.admin-calendario-financeiro]
+verify_jwt = false
+
+[functions.admin-dre]
+verify_jwt = false
+
+[functions.assinar-malote]
+verify_jwt = false
+
+[functions.atualizar-fotos-perfil]
+verify_jwt = false
+
+[functions.buscar-boletos-cliente]
+verify_jwt = false
+
+[functions.buscar-cidades]
+verify_jwt = false
+
+[functions.buscar-clientes]
+verify_jwt = false
+
+[functions.buscar-coleta]
+verify_jwt = false
+
+[functions.buscar-manifestos]
+verify_jwt = false
+
+[functions.buscar-nfe-cliente]
+verify_jwt = false
+
+[functions.buscar-tabelas]
+verify_jwt = false
+
+[functions.carddav-contacts]
+verify_jwt = false
+
+[functions.cleanup-expired-media]
+verify_jwt = false
+
+[functions.coleta]
+verify_jwt = false
+
+[functions.consultar-cotacao-cliente]
+verify_jwt = false
+
+[functions.consultar-cotacao]
+verify_jwt = false
+
+[functions.consultar-nfe]
+verify_jwt = false
+
+[functions.contas-a-receber]
+verify_jwt = false
+
+[functions.cotacao]
+verify_jwt = false
+
+[functions.criar-usuario-cliente]
+verify_jwt = false
+
+[functions.detalhes-coleta]
+verify_jwt = false
+
+[functions.detalhes-cotacao]
+verify_jwt = false
+
+[functions.dre-ia]
+verify_jwt = false
+
+[functions.editar-coleta]
+verify_jwt = false
+
+[functions.editar-cotacao]
+verify_jwt = false
+
+[functions.email-archive]
+verify_jwt = false
+
+[functions.email-delete]
+verify_jwt = false
+
+[functions.email-download-attachment]
+verify_jwt = false
+
+[functions.email-empty-trash]
+verify_jwt = false
+
+[functions.email-encrypt]
+verify_jwt = false
+
+[functions.email-fetch-body]
+verify_jwt = false
+
+[functions.email-mark-flags]
+verify_jwt = false
+
+[functions.email-move]
+verify_jwt = false
+
+[functions.email-save-draft]
+verify_jwt = false
+
+[functions.email-search]
+verify_jwt = false
+
+[functions.email-send]
+verify_jwt = false
+
+[functions.email-snoozed]
+verify_jwt = false
+
+[functions.email-starred]
+verify_jwt = false
+
+[functions.email-sync]
+verify_jwt = false
+
+[functions.email-test-connection]
+verify_jwt = false
+
+[functions.email-unread-counts]
+verify_jwt = false
+
+[functions.encerrar-mdfe]
+verify_jwt = false
+
+[functions.enviar-assinatura-malote]
+verify_jwt = false
+
+[functions.flow-processor-blocks]
+verify_jwt = false
+
+[functions.flow-processor-external]
+verify_jwt = false
+
+[functions.flow-processor-interactive]
+verify_jwt = false
+
+[functions.flow-processor-main]
+verify_jwt = false
+
+[functions.flow-whatsapp-sender]
+verify_jwt = false
+
+[functions.gerar-pdf-malote]
+verify_jwt = false
+
+[functions.hello]
+verify_jwt = false
+
+[functions.imprimir-coleta]
+verify_jwt = false
+
+[functions.imprimir-cotacao]
+verify_jwt = false
+
+[functions.imprimir-mdfe]
+verify_jwt = false
+
+[functions.main]
+verify_jwt = false
+
+[functions.pdf-boleto]
+verify_jwt = false
+
+[functions.pdf-cte]
+verify_jwt = false
+
+[functions.pdf-fatura]
+verify_jwt = false
+
+[functions.process-whatsapp-flow]
+verify_jwt = false
+
+[functions.rastreamento]
+verify_jwt = false
+
+[functions.redefinir-senha]
+verify_jwt = false
+
+[functions.verificar-email-usuario]
+verify_jwt = false
+
+[functions.whatsapp-business-info]
+verify_jwt = false
+
+[functions.whatsapp-campanha-disparar]
+verify_jwt = false
+
+[functions.whatsapp-enviar-template]
+verify_jwt = false
+
+[functions.whatsapp-inactivity-check]
+verify_jwt = false
+
+[functions.whatsapp-message-reply]
+verify_jwt = false
+
+[functions.whatsapp-modelos-buscar]
+verify_jwt = false
+
+[functions.whatsapp-modelos-criar]
+verify_jwt = false
+
+[functions.whatsapp-modelos-editar]
+verify_jwt = false
+
+[functions.whatsapp-upload-media]
+verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.xml-cte]
+verify_jwt = false
