@@ -28,3 +28,6 @@ export const supabaseConfig = {
   url: SUPABASE_URL,
   anonKey: SUPABASE_ANON_KEY
 };
+
+/** URL base do Supabase para construir URLs de edge functions, storage, etc. */
+export const SUPABASE_BASE_URL = SUPABASE_URL;
