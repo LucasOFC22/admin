@@ -2,117 +2,155 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, prefer, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Max-Age": "86400",
+};
+
+const jsonResponse = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
+  });
+
+const getRequiredEnv = (key: string) => {
+  const value = Deno.env.get(key);
+
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+
+  return value;
+};
+
+const fetchWithTimeout = async (url: string, token: string, timeoutMs = 15000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort("timeout"), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    const raw = await response.text();
+    let parsed: unknown = null;
+
+    if (raw) {
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        parsed = raw;
+      }
+    }
+
+    return { response, data: parsed };
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
   try {
-    const { conexaoId } = await req.json();
+    let payload: { conexaoId?: string };
 
-    if (!conexaoId) {
-      console.error('conexaoId nÃÂÃÂ£o fornecido');
-      return new Response(
-        JSON.stringify({ error: 'conexaoId ÃÂÃÂ© obrigatÃÂÃÂ³rio' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    try {
+      payload = await req.json();
+    } catch {
+      return jsonResponse({ error: "Body JSON inválido" }, 400);
     }
 
-    // Criar cliente Supabase
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const conexaoId = payload?.conexaoId?.trim();
 
-    // Buscar credenciais da conexÃÂÃÂ£o
+    if (!conexaoId) {
+      return jsonResponse({ error: "conexaoId é obrigatório" }, 400);
+    }
+
+    console.info("[whatsapp-modelos-buscar] Buscando templates", { conexaoId });
+
+    const supabase = createClient(
+      getRequiredEnv("SUPABASE_URL"),
+      getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    );
+
     const { data: conexao, error: conexaoError } = await supabase
-      .from('conexoes')
-      .select('whatsapp_token, whatsapp_business_account_id, nome')
-      .eq('id', conexaoId)
-      .single();
+      .from("conexoes")
+      .select("id, nome, whatsapp_token, whatsapp_business_account_id")
+      .eq("id", conexaoId)
+      .maybeSingle();
 
-    if (conexaoError || !conexao) {
-      console.error('Erro ao buscar conexÃÂÃÂ£o:', conexaoError);
-      return new Response(
-        JSON.stringify({ error: 'ConexÃÂÃÂ£o nÃÂÃÂ£o encontrada', details: conexaoError?.message }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (conexaoError) {
+      console.error("[whatsapp-modelos-buscar] Erro ao buscar conexão", conexaoError);
+      return jsonResponse({ error: "Erro ao buscar conexão", details: conexaoError.message }, 500);
+    }
+
+    if (!conexao) {
+      return jsonResponse({ error: "Conexão não encontrada" }, 404);
     }
 
     if (!conexao.whatsapp_token) {
-      console.error('Token WhatsApp nÃÂÃÂ£o configurado');
-      return new Response(
-        JSON.stringify({ error: 'Token WhatsApp nÃÂÃÂ£o configurado para esta conexÃÂÃÂ£o' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: "Token WhatsApp não configurado para esta conexão" }, 400);
     }
 
     if (!conexao.whatsapp_business_account_id) {
-      console.error('WABA ID nÃÂÃÂ£o configurado');
-      return new Response(
-        JSON.stringify({ error: 'WhatsApp Business Account ID nÃÂÃÂ£o configurado' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: "WhatsApp Business Account ID não configurado" }, 400);
     }
 
-    // Buscar templates da API do Meta
-    const metaUrl = `https://graph.facebook.com/v21.0/${conexao.whatsapp_business_account_id}/message_templates?limit=100`;
-    
-    const metaResponse = await fetch(metaUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${conexao.whatsapp_token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const metaUrl = `https://graph.facebook.com/v21.0/${conexao.whatsapp_business_account_id}/message_templates?limit=100&fields=id,name,category,language,status,components,quality_score,rejected_reason`;
+    const { response: metaResponse, data: metaData } = await fetchWithTimeout(metaUrl, conexao.whatsapp_token);
 
     if (!metaResponse.ok) {
-      const errorData = await metaResponse.text();
-      console.error('Erro na API do Meta:', metaResponse.status, errorData);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Erro ao buscar templates do WhatsApp', 
+      console.error("[whatsapp-modelos-buscar] Erro na API do Meta", {
+        status: metaResponse.status,
+        details: metaData,
+      });
+
+      return jsonResponse(
+        {
+          error: "Erro ao buscar templates do WhatsApp",
           status: metaResponse.status,
-          details: errorData 
-        }),
-        { status: metaResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          details: metaData,
+        },
+        metaResponse.status,
       );
     }
 
-    const metaData = await metaResponse.json();
-
-    // Mapear templates para formato padronizado
-    const templates = (metaData.data || []).map((template: any) => ({
+    const templates = (((metaData as Record<string, any> | null)?.data ?? []) as any[]).map((template) => ({
       id: template.id,
       name: template.name,
-      category: template.category || 'UTILITY',
-      language: template.language || 'pt_BR',
-      status: template.status?.toLowerCase() || 'pending',
+      category: template.category || "UTILITY",
+      language: template.language || "pt_BR",
+      status: template.status?.toLowerCase() || "pending",
       components: template.components || [],
       quality_score: template.quality_score,
       rejected_reason: template.rejected_reason,
     }));
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        data: templates,
-        total: templates.length,
-        conexao: conexao.nome
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor';
-    console.error('Erro na funÃÂÃÂ§ÃÂÃÂ£o whatsapp-modelos-buscar:', errorMessage);
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({
+      success: true,
+      data: templates,
+      total: templates.length,
+      conexao: conexao.nome,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro interno do servidor";
+    console.error("[whatsapp-modelos-buscar] Erro não tratado", error);
+    return jsonResponse({ error: message }, 500);
   }
 });
