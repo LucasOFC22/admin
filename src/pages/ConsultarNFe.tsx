@@ -173,6 +173,7 @@ const ConsultarNFe = () => {
       }
     });
     
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
     const pdfUrl = `${baseUrl}/functions/v1/pdf-cte/${idConhecimento}`;
     downloadPdf({ url: pdfUrl, fileName: `CTE_${nroConhec}.pdf` });
   };
