@@ -52,15 +52,19 @@ async function getToken() {
 
 // --- Servidor ---
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     const url = new URL(req.url);
     const pathParts = url.pathname.split("/").filter(Boolean);
-    const idconhecimento = pathParts[pathParts.length - 1]; // ÃÂºltimo pedaÃÂ§o da URL
+    const idconhecimento = pathParts[pathParts.length - 1];
 
     if (!idconhecimento) {
-      return new Response(JSON.stringify({ error: "idconhecimento ÃÂ© obrigatÃÂ³rio" }), {
+      return new Response(JSON.stringify({ error: "idconhecimento é obrigatório" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -75,7 +79,7 @@ serve(async (req) => {
       const txt = await response.text();
       return new Response(JSON.stringify({ error: txt }), {
         status: response.status,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -84,6 +88,7 @@ serve(async (req) => {
     return new Response(pdfArrayBuffer, {
       status: 200,
       headers: {
+        ...corsHeaders,
         "Content-Type": "application/pdf",
         "Content-Disposition": `inline; filename=CTE_${idconhecimento}.pdf`,
       },
@@ -93,7 +98,7 @@ serve(async (req) => {
     const errorMessage = err instanceof Error ? err.message : "Erro desconhecido";
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
