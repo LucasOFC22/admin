@@ -516,7 +516,7 @@ async function handleLoopBlockInline(supabase: any, session: Session, flowData: 
         for (const targetBlock of [...targetGroup.blocks].sort((a, b) => (a.order || 0) - (b.order || 0))) {
           const bt = (targetBlock.type || '').toLowerCase().trim();
           if (bt === 'text') {
-            const msg = await replaceVariablesWithContactFallback(supabase, targetBlock.data?.description || targetBlock.data?.text || '', session.variables, session);
+            const msg = replaceVariables(targetBlock.data?.description || targetBlock.data?.text || '', session.variables, session);
             if (msg) await sendTextDirect(supabase, conexao, session.phone_number, session.chatId, msg);
           } else if (bt === 'interval') {
             const delay = Math.min((targetBlock.data?.delay || 1) * 1000, 10000);
