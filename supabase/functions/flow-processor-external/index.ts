@@ -25,15 +25,12 @@ function replaceVariables(text: string, variables: Record<string, any>, session?
   
   const resolvedName = contactName || session?.contact_name || '';
   
-  // Combine all variables: user variables + session data + predefined system variables
   const allVariables: Record<string, any> = {
     ...variables,
-    // Session-based variables
     telefone: session?.phone_number || '',
     phone: session?.phone_number || '',
     nome: resolvedName,
     name: resolvedName,
-    // Date/time variables
     data: new Date().toLocaleDateString('pt-BR'),
     date: new Date().toLocaleDateString('pt-BR'),
     hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -47,26 +44,21 @@ function replaceVariables(text: string, variables: Record<string, any>, session?
   });
 }
 
-// Busca o nome do contato com fallback para contatos_whatsapp
 async function resolveContactName(supabase: any, session: Session): Promise<string> {
-  // 1. Se já tem contact_name na sessão, usar
   if (session.contact_name && session.contact_name.trim() !== '') {
     return session.contact_name;
   }
   
-  // 2. Buscar na tabela de contatos pelo telefone
   try {
     const phoneDigits = (session.phone_number || '').replace(/\D/g, '');
     if (!phoneDigits) return '';
     
-    // Tentar busca exata primeiro
     let { data: contato } = await supabase
       .from('contatos_whatsapp')
       .select('nome')
       .eq('telefone', phoneDigits)
       .maybeSingle();
     
-    // Se não encontrou, tentar pelos últimos 8 dígitos (para lidar com variações de DDI)
     if (!contato && phoneDigits.length >= 8) {
       const last8 = phoneDigits.slice(-8);
       const { data: contatoFallback } = await supabase
@@ -80,9 +72,7 @@ async function resolveContactName(supabase: any, session: Session): Promise<stri
     }
     
     if (contato?.nome) {
-      console.log(`[External] 📇 Nome encontrado via fallback contatos_whatsapp: ${contato.nome}`);
-      
-      // Atualizar a sessão para evitar nova busca nas próximas mensagens
+      console.log(`[External] Nome encontrado via fallback: ${contato.nome}`);
       session.contact_name = contato.nome;
       await supabase.from('flow_sessions').update({
         contact_name: contato.nome,
@@ -92,13 +82,12 @@ async function resolveContactName(supabase: any, session: Session): Promise<stri
       return contato.nome;
     }
   } catch (error) {
-    console.error('[External] ⚠️ Erro ao buscar nome do contato:', error);
+    console.error('[External] Erro ao buscar nome do contato:', error);
   }
   
   return '';
 }
 
-// Versão assíncrona que resolve o nome antes de substituir - usar apenas onde mensagens são enviadas
 async function replaceVariablesWithContactFallback(supabase: any, text: string, variables: Record<string, any>, session: Session): Promise<string> {
   const contactName = await resolveContactName(supabase, session);
   return replaceVariables(text, variables, session, contactName);
@@ -108,12 +97,10 @@ function getNestedValue(obj: any, path: string): any {
   if (!path || path.trim() === '') return obj;
   if (!obj) return undefined;
   
-  // Handle wildcard paths
   if (path.includes('[*]')) {
     return getNestedValueWithWildcard(obj, path);
   }
   
-  // Normalize path: [0].json.field -> 0.json.field
   const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.').filter(k => k !== '');
   
   let current = obj;
@@ -128,7 +115,6 @@ function getNestedValue(obj: any, path: string): any {
 }
 
 function getNestedValueWithWildcard(obj: any, path: string): any {
-  
   const wildcardIndex = path.indexOf('[*]');
   const beforeWildcard = path.substring(0, wildcardIndex);
   const afterWildcard = path.substring(wildcardIndex + 3);
@@ -141,7 +127,7 @@ function getNestedValueWithWildcard(obj: any, path: string): any {
   }
   
   if (!Array.isArray(arrayValue)) {
-    console.log(`[External] ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ Expected array at path "${beforeWildcard}", got ${typeof arrayValue}`);
+    console.log(`[External] Expected array at path "${beforeWildcard}", got ${typeof arrayValue}`);
     return undefined;
   }
   
@@ -179,7 +165,7 @@ async function callSender(supabase: any, action: string, conexao: any, phoneNumb
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ¼ÃÂ­ÃÂ¼ÃÂ HTTP REQUEST BLOCK
+// HTTP REQUEST BLOCK
 // ============================================
 async function handleHttpRequestBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number) {
   const { url, method = 'GET', headers = [], body, outputMappings = [], responseFormat = 'json', waitForResponse = true, continueOnError = true } = block.data || {};
@@ -196,7 +182,7 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
   }
   
   if (!url) {
-    console.warn('[External] ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ HTTP Request: No URL provided');
+    console.warn('[External] HTTP Request: No URL provided');
     return { action: 'advance', blockIndex };
   }
   
@@ -216,17 +202,19 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
       const processedBody = replaceVariables(body, session.variables, session);
       fetchOptions.body = processedBody;
       
-      // Check for unreplaced variables
       const unreplacedVars = processedBody.match(/\{\{([^}]+)\}\}/g);
       if (unreplacedVars) {
-        console.warn(`[External] ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ Unreplaced variables in body:`, unreplacedVars);
-        console.log(`[External] ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ Available vars for substitution:`, Object.keys(session.variables));
+        console.warn(`[External] Unreplaced variables in body:`, unreplacedVars);
+        console.log(`[External] Available vars:`, Object.keys(session.variables));
       }
+      console.log(`[External] HTTP ${method} ${processedUrl} | body: ${processedBody.substring(0, 300)}`);
+    } else {
+      console.log(`[External] HTTP ${method} ${processedUrl}`);
     }
     
-    // Fazer a requisiÃÂÃÂ§ÃÂÃÂ£o com timeout
+    // Timeout de 90s para APIs externas lentas
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
     
     const response = await fetch(processedUrl, {
       ...fetchOptions,
@@ -234,6 +222,7 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     });
     
     clearTimeout(timeoutId);
+    console.log(`[External] HTTP Response: status=${response.status} url=${processedUrl.substring(0, 120)}`);
     
     let responseData: any;
     
@@ -250,7 +239,6 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     } else {
       const text = await response.text();
       
-      // Try to parse as JSON
       if (text && text.trim()) {
         try { 
           responseData = JSON.parse(text); 
@@ -258,18 +246,18 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
           responseData = text; 
         }
       } else {
-        // Empty response
         responseData = null;
       }
     }
     
-    // Debug: show structure of response
+    // Debug: log response structure
     if (Array.isArray(responseData)) {
+      console.log(`[External] Response is array with ${responseData.length} items`);
       if (responseData.length > 0) {
-        // Show sample of first element
-        const sample = JSON.stringify(responseData[0]).substring(0, 300);
+        console.log(`[External] First item sample: ${JSON.stringify(responseData[0]).substring(0, 300)}`);
       }
     } else if (responseData && typeof responseData === 'object') {
+      console.log(`[External] Response keys: ${Object.keys(responseData).join(', ')}`);
     }
     
     // Salvar status da resposta
@@ -280,13 +268,11 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     if (responseData && typeof responseData === 'object') {
       session.variables['_http_response'] = JSON.stringify(responseData);
       
-      
       if (responseData.boletos && Array.isArray(responseData.boletos)) {
         session.variables['_http_boletos_count'] = String(responseData.boletos.length);
         if (responseData.boletos.length > 0) {
           session.variables['_http_first_boleto'] = JSON.stringify(responseData.boletos[0]);
         }
-        // Save ALL boletos for sendAllFiles functionality
         session.variables['_http_all_boletos'] = JSON.stringify(responseData.boletos);
       }
       
@@ -306,12 +292,9 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
           const value = getNestedValue(responseData, mapping.path);
           if (value !== undefined) {
             session.variables[mapping.variable] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            console.log(`[External] Mapped ${mapping.path} -> ${mapping.variable} = ${String(value).substring(0, 100)}`);
           } else {
-            // Log available paths for debugging
-            if (typeof responseData === 'object' && responseData !== null) {
-              if (Array.isArray(responseData) && responseData.length > 0) {
-              }
-            }
+            console.warn(`[External] Mapping path "${mapping.path}" not found in response`);
           }
         }
       }
@@ -319,8 +302,6 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     
     await supabase.from('flow_sessions').update({ variables: session.variables }).eq('id', session.id);
     
-    // Return success_edge action so main processor can navigate via success edge (group-success-output)
-    // This handles httpRequest blocks that have both success and error edges
     return { 
       action: 'success_edge', 
       blockIndex, 
@@ -330,13 +311,13 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     };
     
   } catch (error) {
-    console.error('[External] ÃÂ¢ÃÂÃÂ HTTP error:', error);
+    console.error('[External] HTTP error:', error);
+    console.error(`[External] Failed URL: ${processedUrl}`);
     session.variables['_http_error'] = String(error);
     session.variables['_http_status'] = '0';
     session.variables['_http_ok'] = 'false';
     await supabase.from('flow_sessions').update({ variables: session.variables }).eq('id', session.id);
     
-    // Return error_edge action so main processor can navigate via error edge
     return { 
       action: 'error_edge', 
       blockIndex, 
@@ -349,7 +330,7 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ½ÃÂ­ÃÂ´ÃÂ WEBHOOK BLOCK
+// WEBHOOK BLOCK
 // ============================================
 async function handleWebhookBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number) {
   const webhookUrl = block.data?.url || block.data?.webhookUrl;
@@ -379,7 +360,7 @@ async function handleWebhookBlock(supabase: any, session: Session, block: FlowBl
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ¾ÃÂ­ÃÂ´ÃÂ OPENAI BLOCK
+// OPENAI BLOCK
 // ============================================
 async function handleOpenAIBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number, conexao: any) {
   const prompt = block.data?.prompt || block.data?.message || '';
@@ -430,7 +411,7 @@ async function handleOpenAIBlock(supabase: any, session: Session, block: FlowBlo
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ½ÃÂ­ÃÂ³ÃÂ LOCATION BLOCK
+// LOCATION BLOCK
 // ============================================
 async function handleLocationBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number, conexao: any) {
   const lat = block.data?.latitude || block.data?.lat;
@@ -451,10 +432,9 @@ async function handleLocationBlock(supabase: any, session: Session, block: FlowB
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ½ÃÂ­ÃÂ³ÃÂ DOCUMENT BLOCK (with sendAllFiles support)
+// DOCUMENT BLOCK (with sendAllFiles support)
 // ============================================
 
-// Helper: Upload base64 to WhatsApp Media API and send document
 async function uploadAndSendSingleDocument(
   supabase: any, 
   conexao: any, 
@@ -466,23 +446,19 @@ async function uploadAndSendSingleDocument(
   contentType: string = 'application/pdf'
 ): Promise<boolean> {
   try {
-    // Clean base64 if needed
     const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
     
-    // Convert to binary
     const binaryString = atob(cleanBase64);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
     
-    // Create file and form data
     const file = new File([bytes], filename, { type: contentType });
     const formData = new FormData();
     formData.append('file', file, filename);
     formData.append('messaging_product', 'whatsapp');
     
-    // Upload to WhatsApp Media API
     const mediaResponse = await fetch(
       `https://graph.facebook.com/v21.0/${conexao.whatsapp_phone_id}/media`,
       { 
@@ -498,13 +474,14 @@ async function uploadAndSendSingleDocument(
       await callSender(supabase, 'document', conexao, phoneNumber, chatId, {
         docData: { mediaId: mediaData.id, filename, caption }
       });
+      console.log(`[External] Document sent successfully: ${filename}`);
       return true;
     } else {
-      console.error(`[External] ÃÂ¢ÃÂÃÂ Media upload failed:`, mediaData);
+      console.error(`[External] Media upload failed:`, mediaData);
       return false;
     }
   } catch (error) {
-    console.error(`[External] ÃÂ¢ÃÂÃÂ Error uploading document:`, error);
+    console.error(`[External] Error uploading document:`, error);
     return false;
   }
 }
@@ -515,6 +492,7 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
   const caption = block.data?.caption;
   const sendAllFiles = block.data?.sendAllFiles === true;
   
+  console.log(`[External] Document block: sendAllFiles=${sendAllFiles}, url=${documentUrl?.substring(0, 100)}`);
   
   // Reload session variables from DB
   const { data: freshSession } = await supabase
@@ -531,28 +509,26 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
   const processedFilename = replaceVariables(filename, session.variables, session);
   const processedCaption = caption ? replaceVariables(caption, session.variables, session) : undefined;
   
+  console.log(`[External] Document processedUrl: ${processedUrl?.substring(0, 200)}`);
+  
   // Check if sendAllFiles is enabled and we have multiple boletos
   if (sendAllFiles) {
-    
-    // Check for _http_all_boletos first (auto-detected from HTTP response)
     let boletosArray: any[] = [];
     
     if (session.variables['_http_all_boletos']) {
       try {
         boletosArray = JSON.parse(session.variables['_http_all_boletos']);
       } catch (e) {
-        console.error(`[External] ÃÂ¢ÃÂÃÂ Error parsing _http_all_boletos:`, e);
+        console.error(`[External] Error parsing _http_all_boletos:`, e);
       }
     }
     
-    // Also check if the processed URL contains a JSON array
     if (boletosArray.length === 0 && processedUrl.startsWith('[')) {
       try {
         boletosArray = JSON.parse(processedUrl);
       } catch {}
     }
     
-    // Check if URL still has unreplaced variable (fallback to auto-detected)
     if (boletosArray.length === 0 && processedUrl.includes('{{')) {
       if (session.variables['_http_all_boletos']) {
         try {
@@ -561,17 +537,15 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
       }
     }
     
-    // Process array of boletos
     if (boletosArray.length > 0) {
+      console.log(`[External] Processing ${boletosArray.length} documents (sendAllFiles)`);
       
       let successCount = 0;
       let errorCount = 0;
       
       for (let i = 0; i < boletosArray.length; i++) {
         const boleto = boletosArray[i];
-        const boletoId = boleto.id || `doc_${i + 1}`;
         
-        // Skip failed boletos
         if (boleto.success === false) {
           errorCount++;
           continue;
@@ -579,22 +553,17 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
         
         const base64 = boleto.base64;
         if (!base64) {
+          console.warn(`[External] Boleto ${i} has no base64 data`);
           errorCount++;
           continue;
         }
         
-        // ALWAYS use configured filename from block, ignore any filename from n8n response
         const docFilename = processedFilename;
         const docCaption = processedCaption;
         
         const success = await uploadAndSendSingleDocument(
-          supabase,
-          conexao,
-          session.phone_number,
-          session.chatId,
-          base64,
-          docFilename,
-          docCaption,
+          supabase, conexao, session.phone_number, session.chatId,
+          base64, docFilename, docCaption,
           boleto.contentType || 'application/pdf'
         );
         
@@ -604,14 +573,13 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
           errorCount++;
         }
         
-        // Delay between sends to avoid rate limiting
         if (i < boletosArray.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
       
+      console.log(`[External] sendAllFiles result: ${successCount} sent, ${errorCount} errors`);
       
-      // Save results to variables
       session.variables['_docs_sent'] = String(successCount);
       session.variables['_docs_errors'] = String(errorCount);
       await supabase.from('flow_sessions').update({ variables: session.variables }).eq('id', session.id);
@@ -620,21 +588,17 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
     }
   }
   
-  // Single document processing (original logic)
+  // Single document processing
   
   // Check if URL is JSON with base64 (single document)
   try {
     if (processedUrl.startsWith('{')) {
       const fileData = JSON.parse(processedUrl);
       if (fileData.base64) {
-        const success = await uploadAndSendSingleDocument(
-          supabase,
-          conexao,
-          session.phone_number,
-          session.chatId,
-          fileData.base64,
-          processedFilename,
-          processedCaption,
+        console.log(`[External] Sending single document from JSON base64`);
+        await uploadAndSendSingleDocument(
+          supabase, conexao, session.phone_number, session.chatId,
+          fileData.base64, processedFilename, processedCaption,
           fileData.contentType || 'application/pdf'
         );
         return { action: 'advance', blockIndex };
@@ -642,20 +606,63 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
     }
   } catch {}
   
+  // Check _http_document (auto-detected single document from HTTP response)
+  if (session.variables['_http_document']) {
+    try {
+      const docData = JSON.parse(session.variables['_http_document']);
+      if (docData.base64) {
+        console.log(`[External] Sending document from _http_document`);
+        await uploadAndSendSingleDocument(
+          supabase, conexao, session.phone_number, session.chatId,
+          docData.base64, processedFilename, processedCaption,
+          docData.contentType || 'application/pdf'
+        );
+        return { action: 'advance', blockIndex };
+      }
+    } catch {}
+  }
+  
   // Check if we have _http_first_boleto when URL has unreplaced variable
   if (processedUrl.includes('{{') && session.variables['_http_first_boleto']) {
     try {
       const firstBoleto = JSON.parse(session.variables['_http_first_boleto']);
       if (firstBoleto.base64) {
-        const success = await uploadAndSendSingleDocument(
-          supabase,
-          conexao,
-          session.phone_number,
-          session.chatId,
-          firstBoleto.base64,
-          processedFilename,
-          processedCaption,
+        console.log(`[External] Sending document from _http_first_boleto`);
+        await uploadAndSendSingleDocument(
+          supabase, conexao, session.phone_number, session.chatId,
+          firstBoleto.base64, processedFilename, processedCaption,
           firstBoleto.contentType || 'application/pdf'
+        );
+        return { action: 'advance', blockIndex };
+      }
+    } catch {}
+  }
+  
+  // Check _http_response for base64 data (n8n format: array with json.base64)
+  if (session.variables['_http_response']) {
+    try {
+      const httpResponse = JSON.parse(session.variables['_http_response']);
+      
+      // n8n format: [{"json": {"base64": "...", "contentType": "..."}}]
+      if (Array.isArray(httpResponse)) {
+        for (const item of httpResponse) {
+          const jsonData = item?.json || item;
+          if (jsonData?.base64) {
+            console.log(`[External] Sending document from _http_response array item`);
+            await uploadAndSendSingleDocument(
+              supabase, conexao, session.phone_number, session.chatId,
+              jsonData.base64, processedFilename, processedCaption,
+              jsonData.contentType || 'application/pdf'
+            );
+            return { action: 'advance', blockIndex };
+          }
+        }
+      } else if (httpResponse?.base64) {
+        console.log(`[External] Sending document from _http_response object`);
+        await uploadAndSendSingleDocument(
+          supabase, conexao, session.phone_number, session.chatId,
+          httpResponse.base64, processedFilename, processedCaption,
+          httpResponse.contentType || 'application/pdf'
         );
         return { action: 'advance', blockIndex };
       }
@@ -664,16 +671,20 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
   
   // URL-based document
   if (processedUrl.startsWith('http')) {
+    console.log(`[External] Sending document via URL: ${processedUrl.substring(0, 120)}`);
     await callSender(supabase, 'document', conexao, session.phone_number, session.chatId, {
       docData: { url: processedUrl, filename: processedFilename, caption: processedCaption }
     });
+  } else {
+    console.warn(`[External] Document block: no valid document source found. processedUrl=${processedUrl?.substring(0, 100)}`);
+    console.log(`[External] Available vars: ${Object.keys(session.variables).filter(k => k.startsWith('_http')).join(', ')}`);
   }
   
   return { action: 'advance', blockIndex };
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ½ÃÂ­ÃÂ¶ÃÂ¼ÃÂ¯ÃÂ¸ÃÂ IMAGE BLOCK
+// IMAGE BLOCK
 // ============================================
 async function handleImageBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number, conexao: any) {
   const imageUrl = block.data?.imageUrl || block.data?.url;
@@ -692,7 +703,7 @@ async function handleImageBlock(supabase: any, session: Session, block: FlowBloc
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ½ÃÂ­ÃÂ´ÃÂ AUDIO BLOCK
+// AUDIO BLOCK
 // ============================================
 async function handleAudioBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number, conexao: any) {
   const audioUrl = block.data?.audioUrl || block.data?.url;
@@ -705,7 +716,7 @@ async function handleAudioBlock(supabase: any, session: Session, block: FlowBloc
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ¼ÃÂ­ÃÂ¾ÃÂ¬ VIDEO BLOCK
+// VIDEO BLOCK
 // ============================================
 async function handleVideoBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number, conexao: any) {
   const videoUrl = block.data?.videoUrl || block.data?.url;
@@ -720,7 +731,7 @@ async function handleVideoBlock(supabase: any, session: Session, block: FlowBloc
 }
 
 // ============================================
-// ÃÂ­ÃÂ ÃÂ½ÃÂ­ÃÂ´ÃÂ¥ MAIN HANDLER
+// MAIN HANDLER
 // ============================================
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -734,6 +745,7 @@ serve(async (req) => {
     );
 
     const { blockType, session, flowData, group, block, blockIndex, conexao } = await req.json();
+    console.log(`[External] Processing blockType=${blockType} blockId=${block?.id} session=${session?.id}`);
     
     let result;
     
@@ -765,6 +777,8 @@ serve(async (req) => {
       default:
         result = { action: 'advance', blockIndex };
     }
+    
+    console.log(`[External] Result: action=${result?.action}`);
     
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
