@@ -184,6 +184,14 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     return { action: 'advance', blockIndex };
   }
 
+  const isFileLikeResponse = responseFormat === 'base64' || responseFormat === 'binary' || responseFormat === 'file';
+  if (isFileLikeResponse) {
+    delete session.variables['_http_document'];
+    if (fileVariable) {
+      delete session.variables[fileVariable];
+    }
+  }
+
   const processedUrl = replaceVariables(url, session.variables, session);
 
   const processedHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
