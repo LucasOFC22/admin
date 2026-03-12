@@ -156,6 +156,65 @@ function getNestedValueWithWildcard(obj: any, path: string): any {
   return results;
 }
 
+function extractBoletoIds(rawValue: unknown): string[] {
+  const fromPrimitive = (value: unknown): string[] => {
+    if (value === null || value === undefined) return [];
+    const str = String(value).trim();
+    if (!str) return [];
+    return str
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+  };
+
+  const normalizeObject = (value: unknown): string[] => {
+    if (!value || typeof value !== 'object') return fromPrimitive(value);
+
+    if (Array.isArray(value)) {
+      return value.flatMap((item) => normalizeObject(item));
+    }
+
+    const obj = value as Record<string, unknown>;
+    const directId = obj.idBoleto ?? obj.idboleto ?? obj.id;
+    if (directId !== undefined) {
+      return fromPrimitive(directId);
+    }
+
+    return [];
+  };
+
+  if (Array.isArray(rawValue)) {
+    return Array.from(new Set(rawValue.flatMap((item) => normalizeObject(item)).filter(Boolean)));
+  }
+
+  if (typeof rawValue === 'string') {
+    const trimmed = rawValue.trim();
+    if (!trimmed) return [];
+
+    if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const parsedIds = normalizeObject(parsed);
+        if (parsedIds.length > 0) {
+          return Array.from(new Set(parsedIds));
+        }
+      } catch {
+        // fallback abaixo para string CSV
+      }
+    }
+
+    return Array.from(new Set(fromPrimitive(trimmed)));
+  }
+
+  return Array.from(new Set(normalizeObject(rawValue)));
+}
+
+function pickSingleBoletoId(rawValue: unknown): string {
+  const ids = extractBoletoIds(rawValue);
+  const valid = ids.find((id) => id !== '0' && id !== '0.0');
+  return valid ?? '';
+}
+
 async function callSender(supabase: any, action: string, conexao: any, phoneNumber: string, chatId: number | undefined, params: any) {
   const { data, error } = await supabase.functions.invoke('flow-whatsapp-sender', {
     body: { action, conexao, phoneNumber, chatId, ...params }
@@ -185,11 +244,15 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
   }
 
   const isFileLikeResponse = responseFormat === 'base64' || responseFormat === 'binary' || responseFormat === 'file';
-  if (isFileLikeResponse) {
-    delete session.variables['_http_document'];
-    if (fileVariable) {
-      delete session.variables[fileVariable];
-    }
+
+  // Limpa caches transitórios para evitar reaproveitar dados de execução anterior
+  delete session.variables['_http_document'];
+  delete session.variables['_http_first_boleto'];
+  delete session.variables['_http_all_boletos'];
+  delete session.variables['_http_boletos_count'];
+
+  if (isFileLikeResponse && fileVariable) {
+    delete session.variables[fileVariable];
   }
 
   const processedUrl = replaceVariables(url, session.variables, session);
@@ -316,14 +379,27 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
         if (mapping.variable && mapping.path) {
           const value = getNestedValue(responseData, mapping.path);
           if (value !== undefined) {
-            const normalized = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            const variableName = String(mapping.variable).toLowerCase();
 
-            // Regra específica: boleto "0" significa sem boleto disponível
-            if (mapping.variable === 'idboleto' && (normalized === '0' || normalized === '0.0')) {
-              session.variables[mapping.variable] = '';
-            } else {
-              session.variables[mapping.variable] = normalized;
+            if (variableName === 'idboleto') {
+              const allIds = extractBoletoIds(value);
+              const selectedId = pickSingleBoletoId(value);
+
+              if (allIds.length > 1) {
+                console.warn(`[External] ${allIds.length} IDs de boleto recebidos; usando apenas o primeiro válido (${selectedId || 'nenhum'}) para evitar spam.`);
+                session.variables['_idboleto_all'] = allIds.join(', ');
+                session.variables['_idboleto_count'] = String(allIds.length);
+              } else {
+                delete session.variables['_idboleto_all'];
+                delete session.variables['_idboleto_count'];
+              }
+
+              session.variables[mapping.variable] = selectedId;
+              continue;
             }
+
+            const normalized = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            session.variables[mapping.variable] = normalized;
           }
         }
       }
@@ -588,13 +664,29 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
     }
     
     if (boletosArray.length > 0) {
-      console.log(`[External] Processing ${boletosArray.length} documents (sendAllFiles)`);
+      const uniqueBoletos: any[] = [];
+      const seenKeys = new Set<string>();
+
+      for (const boleto of boletosArray) {
+        if (!boleto || boleto.success === false) {
+          uniqueBoletos.push(boleto);
+          continue;
+        }
+
+        const key = `${boleto.id ?? ''}|${boleto.filename ?? ''}|${(boleto.base64 ?? '').slice(0, 120)}`;
+        if (seenKeys.has(key)) continue;
+
+        seenKeys.add(key);
+        uniqueBoletos.push(boleto);
+      }
+
+      console.log(`[External] Processing ${uniqueBoletos.length} documents (sendAllFiles)`);
       
       let successCount = 0;
       let errorCount = 0;
       
-      for (let i = 0; i < boletosArray.length; i++) {
-        const boleto = boletosArray[i];
+      for (let i = 0; i < uniqueBoletos.length; i++) {
+        const boleto = uniqueBoletos[i];
         
         if (boleto.success === false) {
           errorCount++;
@@ -623,7 +715,7 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
           errorCount++;
         }
         
-        if (i < boletosArray.length - 1) {
+        if (i < uniqueBoletos.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
