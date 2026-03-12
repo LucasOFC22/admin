@@ -106,7 +106,8 @@ export type AdminTab =
   | 'campanhas-whatsapp'
   | 'logs-campanhas'
   | 'vagas'
-  | 'logs-vagas';
+  | 'logs-vagas'
+  | 'auditoria-seguranca';
 
 export interface MenuItemConfig {
   id: string;
