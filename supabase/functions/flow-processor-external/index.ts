@@ -156,6 +156,65 @@ function getNestedValueWithWildcard(obj: any, path: string): any {
   return results;
 }
 
+function extractBoletoIds(rawValue: unknown): string[] {
+  const fromPrimitive = (value: unknown): string[] => {
+    if (value === null || value === undefined) return [];
+    const str = String(value).trim();
+    if (!str) return [];
+    return str
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+  };
+
+  const normalizeObject = (value: unknown): string[] => {
+    if (!value || typeof value !== 'object') return fromPrimitive(value);
+
+    if (Array.isArray(value)) {
+      return value.flatMap((item) => normalizeObject(item));
+    }
+
+    const obj = value as Record<string, unknown>;
+    const directId = obj.idBoleto ?? obj.idboleto ?? obj.id;
+    if (directId !== undefined) {
+      return fromPrimitive(directId);
+    }
+
+    return [];
+  };
+
+  if (Array.isArray(rawValue)) {
+    return Array.from(new Set(rawValue.flatMap((item) => normalizeObject(item)).filter(Boolean)));
+  }
+
+  if (typeof rawValue === 'string') {
+    const trimmed = rawValue.trim();
+    if (!trimmed) return [];
+
+    if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const parsedIds = normalizeObject(parsed);
+        if (parsedIds.length > 0) {
+          return Array.from(new Set(parsedIds));
+        }
+      } catch {
+        // fallback abaixo para string CSV
+      }
+    }
+
+    return Array.from(new Set(fromPrimitive(trimmed)));
+  }
+
+  return Array.from(new Set(normalizeObject(rawValue)));
+}
+
+function pickSingleBoletoId(rawValue: unknown): string {
+  const ids = extractBoletoIds(rawValue);
+  const valid = ids.find((id) => id !== '0' && id !== '0.0');
+  return valid ?? '';
+}
+
 async function callSender(supabase: any, action: string, conexao: any, phoneNumber: string, chatId: number | undefined, params: any) {
   const { data, error } = await supabase.functions.invoke('flow-whatsapp-sender', {
     body: { action, conexao, phoneNumber, chatId, ...params }
