@@ -2,6 +2,7 @@ import { toast } from '@/lib/toast';
 import { requireAuthenticatedClient } from '@/config/supabaseAuth';
 import { checkQueueAccess } from '@/hooks/useTicketAccessGuard';
 import { logsWhatsAppService } from '@/services/whatsapp/logsWhatsAppService';
+import { ticketLimitService } from '@/services/whatsapp/ticketLimitService';
 
 interface UseTicketsActionsParams {
   tickets: any[];
@@ -77,7 +78,6 @@ export const useTicketsActions = ({
     setIsAccepting(true);
     try {
       const supabase = requireAuthenticatedClient();
-      // Buscar o ticket e usar o chatId correto
       const ticket = tickets.find(t => String(t.id) === String(modals.ticketToAccept));
       const chatId = ticket?.chatId;
       const isClosed = ticket?.resolvido === true;
@@ -87,6 +87,20 @@ export const useTicketsActions = ({
         setIsAccepting(false);
         return;
       }
+
+      // Verificar limite de tickets ANTES de aceitar (exceto para reabrir)
+      if (!isClosed) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          const limitCheck = await ticketLimitService.checkTicketLimit(user.id);
+          if (!limitCheck.canAccept) {
+            toast.error(limitCheck.errorMessage || 'Limite de tickets atingido');
+            setIsAccepting(false);
+            closeAcceptModal();
+            return;
+          }
+        }
+      }
       
       if (queueId) {
         await supabase
@@ -95,7 +109,6 @@ export const useTicketsActions = ({
           .eq('id', chatId);
       }
       
-      // Se ticket está fechado, usar reopenTicket, senão usar onAcceptTicket
       if (isClosed) {
         await reopenTicket(modals.ticketToAccept);
         const successMessage = queueName 
