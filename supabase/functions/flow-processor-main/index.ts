@@ -556,21 +556,6 @@ async function processBlock(supabase: any, session: Session, flowData: FlowData,
   const block = sortedBlocks[blockIndex];
   const blockType = (block.type || block.data?.type || '').toLowerCase().trim();
   
-  // Refresh variables
-  const { data: freshSession } = await supabase.from('flow_sessions').select('variables').eq('id', session.id).maybeSingle();
-  if (freshSession?.variables) session.variables = freshSession.variables;
-  
-  // Log block start
-  await supabase.from('flow_execution_logs').insert({
-    session_id: session.id, node_id: block.id, node_type: blockType, node_data: block.data, result: 'processing'
-  });
-  
-  // Update session position
-  await supabase.from('flow_sessions').update({
-    current_group_id: groupId, current_block_index: blockIndex,
-    current_node_id: groupId, updated_at: new Date().toISOString()
-  }).eq('id', session.id);
-  
   // ============================================
   // INLINE PROCESSING - No HTTP round-trips!
   // ============================================
