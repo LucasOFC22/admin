@@ -142,43 +142,31 @@ serve(async (req) => {
         );
       }
 
-      // Proteção contra webhooks duplicados
+      // Parallel initial queries for speed
       const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-      const { data: existingMessage } = await supabase
-        .from("mensagens_whatsapp")
-        .select("id, created_at")
-        .eq("message_id", messageId)
-        .gte("created_at", oneMinuteAgo)
-        .maybeSingle();
+      const entryIdValue = body.entryId;
+      
+      const [dupResult, configResult, contatoResult, conexaoByEntryResult] = await Promise.all([
+        supabase.from("mensagens_whatsapp").select("id").eq("message_id", messageId).gte("created_at", oneMinuteAgo).maybeSingle(),
+        supabase.from("config_whatsapp").select("*").limit(1).maybeSingle(),
+        supabase.from("contatos_whatsapp").select("*").eq("telefone", from).maybeSingle(),
+        entryIdValue 
+          ? supabase.from("conexoes").select("*, whatsapp_token, whatsapp_phone_id").eq("whatsapp_business_account_id", entryIdValue).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
 
-      if (existingMessage) {
+      if (dupResult.data) {
         return new Response(
           JSON.stringify({ success: true, message: "Mensagem duplicada ignorada" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
 
-      const { data: whatsappConfig } = await supabase
-        .from("config_whatsapp")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
+      const whatsappConfig = configResult.data;
 
-      // Buscar conexão
-      const entryIdValue = body.entryId;
-      let conexao = null;
-      let conexaoError = null;
-
-      if (entryIdValue) {
-        const result = await supabase
-          .from("conexoes")
-          .select("*, whatsapp_token, whatsapp_phone_id")
-          .eq("whatsapp_business_account_id", entryIdValue)
-          .maybeSingle();
-        conexao = result.data;
-        conexaoError = result.error;
-      }
+      // Conexão - use parallel result or fallback
+      let conexao = conexaoByEntryResult.data;
+      let conexaoError = conexaoByEntryResult.error;
 
       if (!conexao) {
         const result = await supabase
@@ -199,7 +187,6 @@ serve(async (req) => {
           .maybeSingle();
         conexao = result.data;
         conexaoError = result.error;
-        if (conexao) console.log(`[Webhook] ⚠️ Conexão encontrada (fallback ativo): ${conexao.id}`);
       }
 
       if (conexaoError) console.error("[Webhook] Erro ao buscar conexao:", conexaoError);
@@ -290,16 +277,12 @@ serve(async (req) => {
       const mediaData = body.media || {};
       const entryId = body.entryId;
 
-      // Contato
+      // Contato - already fetched in parallel above
       let contato = null;
-      const { data: existingContact, error: searchError } = await supabase
-        .from("contatos_whatsapp").select("*").eq("telefone", from).maybeSingle();
-
-      if (searchError) {
-        console.error("[Webhook] Erro ao buscar contato:", searchError);
-      } else if (existingContact) {
-        contato = existingContact;
-        // Nome NÃO é mais atualizado automaticamente - mantém apenas o do cadastro inicial
+      if (contatoResult.error) {
+        console.error("[Webhook] Erro ao buscar contato:", contatoResult.error);
+      } else if (contatoResult.data) {
+        contato = contatoResult.data;
       } else {
         const { data: newContact, error: createError } = await supabase
           .from("contatos_whatsapp").insert({ telefone: from, nome: contactName }).select().single();
@@ -493,40 +476,23 @@ serve(async (req) => {
             isNewChat = true;
             console.log(`[Webhook] 🆕 Novo chat criado: ${newChat.id}, campanha_flow_id: ${campanhaFlowId || 'nenhum'}`);
             
-            // Buscar foto de perfil via Meta Graph API (apenas se contato não tiver foto)
+            // Buscar foto de perfil em background (não bloqueia resposta)
             if (contato && !contato.perfil && conexao?.whatsapp_token) {
-              try {
-                console.log(`[Webhook] 📷 Buscando foto de perfil para: ${from}`);
-                
-                // Buscar profile picture URL do contato via Meta Graph API
-                const profileResponse = await fetch(
-                  `https://graph.facebook.com/v21.0/${from}?fields=profile_pic`,
-                  {
-                    method: 'GET',
-                    headers: { 
-                      'Authorization': `Bearer ${conexao.whatsapp_token}` 
+              const profilePromise = (async () => {
+                try {
+                  const profileResponse = await fetch(
+                    `https://graph.facebook.com/v21.0/${from}?fields=profile_pic`,
+                    { method: 'GET', headers: { 'Authorization': `Bearer ${conexao.whatsapp_token}` } }
+                  );
+                  if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    if (profileData.profile_pic) {
+                      await supabase.from("contatos_whatsapp").update({ perfil: profileData.profile_pic }).eq("id", contato.id);
                     }
                   }
-                );
-                
-                if (profileResponse.ok) {
-                  const profileData = await profileResponse.json();
-                  console.log(`[Webhook] 📷 Resposta da API de perfil:`, JSON.stringify(profileData));
-                  
-                  if (profileData.profile_pic) {
-                    await supabase
-                      .from("contatos_whatsapp")
-                      .update({ perfil: profileData.profile_pic })
-                      .eq("id", contato.id);
-                    console.log(`[Webhook] ✅ Foto de perfil salva para contato ${contato.id}`);
-                  }
-                } else {
-                  const errorText = await profileResponse.text();
-                  console.log(`[Webhook] ⚠️ Não foi possível buscar foto de perfil (${profileResponse.status}): ${errorText}`);
-                }
-              } catch (perfilErr) {
-                console.error("[Webhook] ❌ Erro ao buscar foto de perfil:", perfilErr);
-              }
+                } catch {}
+              })();
+              EdgeRuntime.waitUntil(profilePromise);
             }
           }
         }

@@ -291,7 +291,8 @@ async function callSender(supabase: any, action: string, conexao: any, phoneNumb
 // ============================================
 async function handleTextBlockInline(supabase: any, session: Session, block: FlowBlock, blockIndex: number, conexao: any) {
   const rawMessage = block.data?.description || block.data?.text || block.data?.message || '';
-  const message = await replaceVariablesWithContactFallback(supabase, rawMessage, session.variables, session);
+  // Contact name already resolved once in executeFlowLoop - use replaceVariables directly
+  const message = replaceVariables(rawMessage, session.variables, session);
   if (message && message.trim() !== '') {
     await sendTextDirect(supabase, conexao, session.phone_number, session.chatId, message);
   }
@@ -457,7 +458,7 @@ async function handleTicketBlockInline(supabase: any, session: Session, block: F
   const queueIds = block.data?.queueIds || [];
   const message = block.data?.message || block.data?.text;
   if (message) {
-    const processedMessage = await replaceVariablesWithContactFallback(supabase, message, session.variables, session);
+    const processedMessage = replaceVariables(message, session.variables, session);
     await sendTextDirect(supabase, conexao, session.phone_number, session.chatId, processedMessage);
   }
   const { data: contato } = await supabase.from('contatos_whatsapp').select('id').eq('telefone', session.phone_number).maybeSingle();
@@ -515,7 +516,7 @@ async function handleLoopBlockInline(supabase: any, session: Session, flowData: 
         for (const targetBlock of [...targetGroup.blocks].sort((a, b) => (a.order || 0) - (b.order || 0))) {
           const bt = (targetBlock.type || '').toLowerCase().trim();
           if (bt === 'text') {
-            const msg = await replaceVariablesWithContactFallback(supabase, targetBlock.data?.description || targetBlock.data?.text || '', session.variables, session);
+            const msg = replaceVariables(targetBlock.data?.description || targetBlock.data?.text || '', session.variables, session);
             if (msg) await sendTextDirect(supabase, conexao, session.phone_number, session.chatId, msg);
           } else if (bt === 'interval') {
             const delay = Math.min((targetBlock.data?.delay || 1) * 1000, 10000);
@@ -555,21 +556,6 @@ async function processBlock(supabase: any, session: Session, flowData: FlowData,
   
   const block = sortedBlocks[blockIndex];
   const blockType = (block.type || block.data?.type || '').toLowerCase().trim();
-  
-  // Refresh variables
-  const { data: freshSession } = await supabase.from('flow_sessions').select('variables').eq('id', session.id).maybeSingle();
-  if (freshSession?.variables) session.variables = freshSession.variables;
-  
-  // Log block start
-  await supabase.from('flow_execution_logs').insert({
-    session_id: session.id, node_id: block.id, node_type: blockType, node_data: block.data, result: 'processing'
-  });
-  
-  // Update session position
-  await supabase.from('flow_sessions').update({
-    current_group_id: groupId, current_block_index: blockIndex,
-    current_node_id: groupId, updated_at: new Date().toISOString()
-  }).eq('id', session.id);
   
   // ============================================
   // INLINE PROCESSING - No HTTP round-trips!
@@ -616,6 +602,10 @@ async function processBlock(supabase: any, session: Session, flowData: FlowData,
   // ============================================
   // EXTERNAL BLOCKS - Use edge function (httpRequest, openai, etc.)
   // ============================================
+  // For external blocks, refresh variables from DB before calling
+  const { data: freshSession } = await supabase.from('flow_sessions').select('variables').eq('id', session.id).maybeSingle();
+  if (freshSession?.variables) session.variables = freshSession.variables;
+  
   const processorName = 'flow-processor-external';
   const { data, error } = await supabase.functions.invoke(processorName, {
     body: { blockType, session, flowData, group, block, blockIndex, conexao }
@@ -641,6 +631,9 @@ async function executeFlowLoop(supabase: any, session: Session, flowData: FlowDa
   const startTime = Date.now();
   const maxExecutionTime = 25000;
   
+  // Resolve contact name ONCE at start instead of per-text-block
+  await resolveContactName(supabase, session);
+  
   while (iterations < maxIterations) {
     iterations++;
     const elapsed = Date.now() - startTime;
@@ -664,6 +657,11 @@ async function executeFlowLoop(supabase: any, session: Session, flowData: FlowDa
         currentBlockIndex = 0;
         break;
       case 'wait_input':
+        // Save position only when pausing
+        await supabase.from('flow_sessions').update({
+          current_group_id: currentGroupId, current_block_index: currentBlockIndex,
+          current_node_id: currentGroupId, updated_at: new Date().toISOString()
+        }).eq('id', session.id);
         return { success: true, waitingInput: true, blockType: result.blockType };
       case 'complete':
         await completeFlowSession(supabase, session, conexao, result.reason || 'flow_completed');
