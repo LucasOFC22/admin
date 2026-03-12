@@ -8,11 +8,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Building2, Loader2 } from 'lucide-react';
-import { requireAuthenticatedClient } from '@/config/supabaseAuth';
 import { toast } from '@/lib/toast';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { filterEmpresasByPermissions, hasAllEmpresasPermissions } from '@/utils/empresaPermissions';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { empresasConfigService, EmpresaConfig } from '@/services/empresasConfigService';
 
 export interface Empresa {
   id: number;
@@ -48,7 +48,6 @@ export const EmpresaSelector = ({
   const [canSelectAll, setCanSelectAll] = useState(false);
 
   useEffect(() => {
-    // Só buscar quando o usuário estiver autenticado
     if (!user) {
       setLoading(false);
       return;
@@ -57,25 +56,8 @@ export const EmpresaSelector = ({
     const fetchEmpresas = async () => {
       try {
         setLoading(true);
-        const client = requireAuthenticatedClient();
-        
-        const { data, error: fetchError } = await client
-          .from('dbfrete_token')
-          .select('empresas')
-          .limit(1)
-          .maybeSingle();
-
-        if (fetchError) throw fetchError;
-        if (!data) return;
-
-        if (data?.empresas) {
-          const empresasData = (data.empresas as any[]).map(emp => ({
-            id: emp.id_empresa || emp.id,
-            nome: emp.fantasia || emp.nome,
-            cnpj: emp.cnpj
-          }));
-          setEmpresas(empresasData);
-        }
+        const empresasData = await empresasConfigService.getEmpresas();
+        setEmpresas(empresasData);
       } catch (err) {
         console.error('Erro ao buscar empresas:', err);
         toast.error('Não foi possível obter a lista de empresas');
