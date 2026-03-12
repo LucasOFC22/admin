@@ -476,40 +476,23 @@ serve(async (req) => {
             isNewChat = true;
             console.log(`[Webhook] 🆕 Novo chat criado: ${newChat.id}, campanha_flow_id: ${campanhaFlowId || 'nenhum'}`);
             
-            // Buscar foto de perfil via Meta Graph API (apenas se contato não tiver foto)
+            // Buscar foto de perfil em background (não bloqueia resposta)
             if (contato && !contato.perfil && conexao?.whatsapp_token) {
-              try {
-                console.log(`[Webhook] 📷 Buscando foto de perfil para: ${from}`);
-                
-                // Buscar profile picture URL do contato via Meta Graph API
-                const profileResponse = await fetch(
-                  `https://graph.facebook.com/v21.0/${from}?fields=profile_pic`,
-                  {
-                    method: 'GET',
-                    headers: { 
-                      'Authorization': `Bearer ${conexao.whatsapp_token}` 
+              const profilePromise = (async () => {
+                try {
+                  const profileResponse = await fetch(
+                    `https://graph.facebook.com/v21.0/${from}?fields=profile_pic`,
+                    { method: 'GET', headers: { 'Authorization': `Bearer ${conexao.whatsapp_token}` } }
+                  );
+                  if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    if (profileData.profile_pic) {
+                      await supabase.from("contatos_whatsapp").update({ perfil: profileData.profile_pic }).eq("id", contato.id);
                     }
                   }
-                );
-                
-                if (profileResponse.ok) {
-                  const profileData = await profileResponse.json();
-                  console.log(`[Webhook] 📷 Resposta da API de perfil:`, JSON.stringify(profileData));
-                  
-                  if (profileData.profile_pic) {
-                    await supabase
-                      .from("contatos_whatsapp")
-                      .update({ perfil: profileData.profile_pic })
-                      .eq("id", contato.id);
-                    console.log(`[Webhook] ✅ Foto de perfil salva para contato ${contato.id}`);
-                  }
-                } else {
-                  const errorText = await profileResponse.text();
-                  console.log(`[Webhook] ⚠️ Não foi possível buscar foto de perfil (${profileResponse.status}): ${errorText}`);
-                }
-              } catch (perfilErr) {
-                console.error("[Webhook] ❌ Erro ao buscar foto de perfil:", perfilErr);
-              }
+                } catch {}
+              })();
+              EdgeRuntime.waitUntil(profilePromise);
             }
           }
         }
