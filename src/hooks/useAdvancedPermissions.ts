@@ -1,33 +1,53 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { databasePermissionsService } from '@/services/databasePermissionsService';
 import { useCustomNotifications } from '@/hooks/useCustomNotifications';
 import { supabase, REALTIME_ENABLED } from '@/config/supabase';
 
+// Singleton para evitar múltiplas subscriptions realtime
+let realtimeRefCount = 0;
+let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+let sharedQueryClient: ReturnType<typeof useQueryClient> | null = null;
+
 export const useAdvancedPermissions = (cargoId?: number) => {
   const queryClient = useQueryClient();
   const { notify } = useCustomNotifications();
+  const subscribedRef = useRef(false);
 
-  // Realtime subscription para mudanças na tabela cargos (apenas se habilitado)
+  // Realtime subscription singleton - apenas uma instância global
   useEffect(() => {
     if (!REALTIME_ENABLED) return;
+    if (subscribedRef.current) return;
+    subscribedRef.current = true;
+    
+    sharedQueryClient = queryClient;
+    realtimeRefCount++;
 
-    const channel = supabase
-      .channel('cargos-permissions-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'cargos' },
-        () => {
-          console.log('🔄 Cargo atualizado, invalidando cache de permissões');
-          // Invalidar todas as queries de permissões
-          queryClient.invalidateQueries({ queryKey: ['cargo-permissions'] });
-          databasePermissionsService.invalidateCache();
-        }
-      )
-      .subscribe();
+    if (realtimeRefCount === 1 && !realtimeChannel) {
+      realtimeChannel = supabase
+        .channel('cargos-permissions-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'cargos' },
+          () => {
+            if (sharedQueryClient) {
+              sharedQueryClient.invalidateQueries({ queryKey: ['cargo-permissions'] });
+              databasePermissionsService.invalidateCache();
+            }
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      subscribedRef.current = false;
+      realtimeRefCount--;
+      if (realtimeRefCount <= 0 && realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+        realtimeRefCount = 0;
+        sharedQueryClient = null;
+      }
     };
   }, [queryClient]);
 
@@ -35,19 +55,18 @@ export const useAdvancedPermissions = (cargoId?: number) => {
   const {
     data: cargoPermissions,
     isLoading: isQueryLoading,
-    isFetching,
     error: cargoPermissionsError
   } = useQuery({
     queryKey: ['cargo-permissions', cargoId],
     queryFn: () => databasePermissionsService.getCargoPermissions(cargoId!),
     enabled: !!cargoId,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 30 * 60 * 1000, // Manter em cache por 30 minutos
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
-  // CORREÇÃO: Considerar loading quando cargoId existe mas dados ainda não carregaram
-  // Isso evita redirecionamento indevido durante refresh da página
-  const isLoadingCargoPermissions = !!cargoId && (isQueryLoading || (isFetching && !cargoPermissions));
+  const isLoadingCargoPermissions = !!cargoId && isQueryLoading;
 
   // Mutation para atualizar permissões de um cargo
   const updateCargoPermissionsMutation = useMutation({
@@ -57,7 +76,7 @@ export const useAdvancedPermissions = (cargoId?: number) => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cargo-permissions', variables.cargoId] });
       queryClient.invalidateQueries({ queryKey: ['cargos'] });
-      databasePermissionsService.invalidateCache(); // Invalidar cache das permissões
+      databasePermissionsService.invalidateCache();
       notify.success('Sucesso', 'Permissões atualizadas com sucesso');
     },
     onError: (error: any) => {
@@ -82,29 +101,24 @@ export const useAdvancedPermissions = (cargoId?: number) => {
     return databasePermissionsService.isCriticalPermission(permissionId);
   };
 
-  // Obter grupos de permissões
   const getPermissionGroups = async () => {
     return databasePermissionsService.getPermissionGroups();
   };
 
   return {
-    // Dados
     cargoPermissions: cargoPermissions ?? [],
     isLoadingCargoPermissions,
     cargoPermissionsError,
     
-    // Mutations
     updateCargoPermissions: updateCargoPermissionsMutation.mutateAsync,
     isUpdatingPermissions: updateCargoPermissionsMutation.isPending,
     
-    // Funções de verificação
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
     isCriticalPermission,
     getPermissionGroups,
     
-    // Refresh
     refetchCargoPermissions: () => queryClient.invalidateQueries({ queryKey: ['cargo-permissions', cargoId] })
   };
 };
