@@ -220,6 +220,8 @@ const Configuracoes = () => {
             }))} />} />
             </div>
 
+            <EmpresasConfigSection />
+
             <div className="flex justify-end pt-6 border-t">
               <Button onClick={handleSaveSystem} disabled={loading}>
                 {loading ? <>
