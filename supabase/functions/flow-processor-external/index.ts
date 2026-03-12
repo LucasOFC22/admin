@@ -302,7 +302,7 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     }
 
     if (isFileLikeResponse && fileVariable) {
-      if (responseData === null || responseData === undefined) {
+      if (!response.ok || responseData === null || responseData === undefined) {
         delete session.variables[fileVariable];
       } else if (typeof responseData === 'object') {
         session.variables[fileVariable] = JSON.stringify(responseData);
