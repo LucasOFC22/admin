@@ -153,6 +153,7 @@ export const tabMapping: Record<string, AdminTab> = {
   'dre': 'dre',
   'solicitacoes-documentos': 'solicitacoes-documentos',
   'documentos-clientes': 'documentos-clientes',
+  'baixa-rapida-cte': 'baixa-rapida-cte',
   'ocorrencias': 'ocorrencias',
   'mensagens-rapidas': 'mensagens-rapidas',
   'chat-interno': 'chat-interno',
