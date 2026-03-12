@@ -130,6 +130,7 @@ const App = () => (
             <Route path="malotes" element={<Malotes />} />
             <Route path="ocorrencias" element={<Ocorrencias />} />
             <Route path="rastreamento" element={<AdminRastreamento />} />
+            <Route path="baixa-rapida-cte" element={<BaixaRapidaCte />} />
             <Route path="erros-envio" element={<ErrosEnvio />} />
             
             {/* Usuários e Acessos */}
