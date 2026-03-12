@@ -287,6 +287,7 @@ async function handleButtonsResponse(
   conexao: any, interactiveId?: string
 ) {
   let selectedButtonId: string | null = null;
+  let selectedButton: any = null;
   const buttonsData = block.data?.buttonsData;
   
   if (messageType === 'interactive' && interactiveId) {
