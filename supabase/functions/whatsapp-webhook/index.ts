@@ -142,43 +142,31 @@ serve(async (req) => {
         );
       }
 
-      // Proteção contra webhooks duplicados
+      // Parallel initial queries for speed
       const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-      const { data: existingMessage } = await supabase
-        .from("mensagens_whatsapp")
-        .select("id, created_at")
-        .eq("message_id", messageId)
-        .gte("created_at", oneMinuteAgo)
-        .maybeSingle();
+      const entryIdValue = body.entryId;
+      
+      const [dupResult, configResult, contatoResult, conexaoByEntryResult] = await Promise.all([
+        supabase.from("mensagens_whatsapp").select("id").eq("message_id", messageId).gte("created_at", oneMinuteAgo).maybeSingle(),
+        supabase.from("config_whatsapp").select("*").limit(1).maybeSingle(),
+        supabase.from("contatos_whatsapp").select("*").eq("telefone", from).maybeSingle(),
+        entryIdValue 
+          ? supabase.from("conexoes").select("*, whatsapp_token, whatsapp_phone_id").eq("whatsapp_business_account_id", entryIdValue).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
 
-      if (existingMessage) {
+      if (dupResult.data) {
         return new Response(
           JSON.stringify({ success: true, message: "Mensagem duplicada ignorada" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
 
-      const { data: whatsappConfig } = await supabase
-        .from("config_whatsapp")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
+      const whatsappConfig = configResult.data;
 
-      // Buscar conexão
-      const entryIdValue = body.entryId;
-      let conexao = null;
-      let conexaoError = null;
-
-      if (entryIdValue) {
-        const result = await supabase
-          .from("conexoes")
-          .select("*, whatsapp_token, whatsapp_phone_id")
-          .eq("whatsapp_business_account_id", entryIdValue)
-          .maybeSingle();
-        conexao = result.data;
-        conexaoError = result.error;
-      }
+      // Conexão - use parallel result or fallback
+      let conexao = conexaoByEntryResult.data;
+      let conexaoError = conexaoByEntryResult.error;
 
       if (!conexao) {
         const result = await supabase
@@ -199,7 +187,6 @@ serve(async (req) => {
           .maybeSingle();
         conexao = result.data;
         conexaoError = result.error;
-        if (conexao) console.log(`[Webhook] ⚠️ Conexão encontrada (fallback ativo): ${conexao.id}`);
       }
 
       if (conexaoError) console.error("[Webhook] Erro ao buscar conexao:", conexaoError);
