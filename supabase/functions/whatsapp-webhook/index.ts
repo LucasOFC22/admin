@@ -277,16 +277,12 @@ serve(async (req) => {
       const mediaData = body.media || {};
       const entryId = body.entryId;
 
-      // Contato
+      // Contato - already fetched in parallel above
       let contato = null;
-      const { data: existingContact, error: searchError } = await supabase
-        .from("contatos_whatsapp").select("*").eq("telefone", from).maybeSingle();
-
-      if (searchError) {
-        console.error("[Webhook] Erro ao buscar contato:", searchError);
-      } else if (existingContact) {
-        contato = existingContact;
-        // Nome NÃO é mais atualizado automaticamente - mantém apenas o do cadastro inicial
+      if (contatoResult.error) {
+        console.error("[Webhook] Erro ao buscar contato:", contatoResult.error);
+      } else if (contatoResult.data) {
+        contato = contatoResult.data;
       } else {
         const { data: newContact, error: createError } = await supabase
           .from("contatos_whatsapp").insert({ telefone: from, nome: contactName }).select().single();
