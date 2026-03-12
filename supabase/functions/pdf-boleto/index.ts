@@ -159,6 +159,9 @@ serve(async (req) => {
       }
     }
 
+    // Deduplicate IDs to avoid sending the same boleto multiple times
+    idsBoletos = [...new Set(idsBoletos)];
+
     if (idsBoletos.length === 0) {
       return new Response(JSON.stringify({ 
         error: "Nenhum ID de boleto fornecido. Use GET /id ou POST com { ids: [...] }" 
