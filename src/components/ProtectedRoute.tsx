@@ -1,10 +1,10 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { CookieAuth, CrossDomainRedirect } from '@/lib/auth/cookieAuth';
+import { CrossDomainRedirect } from '@/lib/auth/cookieAuth';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import OptimizedAuthSpinner from '@/components/auth/OptimizedAuthSpinner';
 import { databasePermissionsService } from '@/services/databasePermissionsService';
-import { supabaseAuthService, SupabaseUser } from '@/services/auth/supabaseAuthService';
+import { useAuthState } from '@/hooks/useAuthState';
 
 interface ProtectedRouteProps {
   children?: ReactNode;
@@ -13,60 +13,23 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredAccess, requiredPermission }: ProtectedRouteProps) => {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+  const { user, isAuthenticated, hasAdminAccess, loading: authLoading } = useAuthState();
   const { canAccess, isLoadingCargoPermissions } = usePermissionGuard();
   const location = useLocation();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Verificar cookie cross-domain
-      const cookieData = CookieAuth.validateAuthCookie();
-      
-      if (!cookieData) {
-        setIsAuthenticated(false);
-        setLoading(false);
-        return;
-      }
-
-      // Verificar se tem acesso admin no cookie
-      if (requiredAccess === 'admin' && !cookieData.access_areas?.admin) {
-        setIsAuthenticated(false);
-        setLoading(false);
-        return;
-      }
-
-      // Buscar dados completos do usuário no banco
-      const userData = await supabaseAuthService.getCurrentUser();
-      
-      if (userData) {
-        setUser(userData);
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
-      
-      setLoading(false);
-    };
-
-    checkAuth();
-  }, [requiredAccess]);
-
-  // Loading unificado: auth OU permissões ainda carregando = um único spinner
+  // Loading unificado: auth + permissões = um único spinner
   const needsPermissionCheck = isAuthenticated && user && (requiredPermission || requiredAccess === 'admin');
-  const isStillLoading = loading || (needsPermissionCheck && isLoadingCargoPermissions);
+  const isStillLoading = authLoading || (needsPermissionCheck && isLoadingCargoPermissions);
 
   if (isStillLoading) {
-    return <OptimizedAuthSpinner message="Verificando autenticação..." />;
+    return <OptimizedAuthSpinner />;
   }
 
   // Não autenticado
   if (!isAuthenticated || !user) {
     if (!CrossDomainRedirect.isDev()) {
       CrossDomainRedirect.redirectToAuth();
-      return <OptimizedAuthSpinner message="Redirecionando para login..." />;
+      return <OptimizedAuthSpinner />;
     }
     
     return (
@@ -95,7 +58,7 @@ const ProtectedRoute = ({ children, requiredAccess, requiredPermission }: Protec
   }
 
   // Verificar acesso admin
-  if (requiredAccess === 'admin' && !user.hasAdminAccess) {
+  if (requiredAccess === 'admin' && !hasAdminAccess) {
     return <Navigate to="/forbidden" replace />;
   }
 
