@@ -379,14 +379,27 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
         if (mapping.variable && mapping.path) {
           const value = getNestedValue(responseData, mapping.path);
           if (value !== undefined) {
-            const normalized = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            const variableName = String(mapping.variable).toLowerCase();
 
-            // Regra específica: boleto "0" significa sem boleto disponível
-            if (mapping.variable === 'idboleto' && (normalized === '0' || normalized === '0.0')) {
-              session.variables[mapping.variable] = '';
-            } else {
-              session.variables[mapping.variable] = normalized;
+            if (variableName === 'idboleto') {
+              const allIds = extractBoletoIds(value);
+              const selectedId = pickSingleBoletoId(value);
+
+              if (allIds.length > 1) {
+                console.warn(`[External] ${allIds.length} IDs de boleto recebidos; usando apenas o primeiro válido (${selectedId || 'nenhum'}) para evitar spam.`);
+                session.variables['_idboleto_all'] = allIds.join(', ');
+                session.variables['_idboleto_count'] = String(allIds.length);
+              } else {
+                delete session.variables['_idboleto_all'];
+                delete session.variables['_idboleto_count'];
+              }
+
+              session.variables[mapping.variable] = selectedId;
+              continue;
             }
+
+            const normalized = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            session.variables[mapping.variable] = normalized;
           }
         }
       }
