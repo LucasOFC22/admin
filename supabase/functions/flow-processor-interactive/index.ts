@@ -191,27 +191,44 @@ async function handleMenuResponse(
   conexao: any, interactiveId?: string
 ) {
   let selectedOptionId: string | null = null;
+  let selectedRow: any = null;
   const menuData = block.data?.menuData;
   
   if (menuData) {
     if (messageType === 'interactive' && interactiveId) {
       selectedOptionId = interactiveId;
+      // Find the matching row to get its targetGroupId
+      for (const section of menuData.sections || []) {
+        const row = section.rows?.find((r: any) => r.id === interactiveId);
+        if (row) { selectedRow = row; break; }
+      }
     } else {
       for (const section of menuData.sections || []) {
         const row = section.rows?.find((r: any) => 
           r.title?.toLowerCase() === messageText.toLowerCase() || r.id === messageText
         );
-        if (row) { selectedOptionId = row.id; break; }
+        if (row) { selectedOptionId = row.id; selectedRow = row; break; }
       }
     }
     
     if (selectedOptionId) {
+      // 1. First, check if the row has a direct targetGroupId (used by "Voltar" and similar)
+      if (selectedRow?.targetGroupId) {
+        const targetGroup = flowData.groups?.find(g => g.id === selectedRow.targetGroupId);
+        if (targetGroup) {
+          console.log(`[Interactive] ✅ Menu row "${selectedRow.title}" → targetGroupId: ${selectedRow.targetGroupId}`);
+          return { action: 'navigate', targetGroupId: selectedRow.targetGroupId };
+        }
+      }
+      
+      // 2. Then check edges with specific option handle
       let edge = findEdge(flowData, group.id, `${block.id}-${selectedOptionId}`) ||
                  findEdge(flowData, group.id, selectedOptionId) || findEdge(flowData, block.id, selectedOptionId);
       
       if (edge) return { action: 'navigate', targetGroupId: edge.target };
       
-      const defaultEdge = findEdge(flowData, group.id, 'output') || findEdge(flowData, group.id);
+      // 3. Default edge (only with explicit output handle, not any random edge)
+      const defaultEdge = findEdge(flowData, group.id, 'output') || findEdge(flowData, group.id, `${block.id}-output`);
       if (defaultEdge) return { action: 'navigate', targetGroupId: defaultEdge.target };
       return { action: 'advance', blockIndex };
     }
@@ -222,6 +239,10 @@ async function handleMenuResponse(
     );
     
     if (selectedOption) {
+      // Check targetGroupId on legacy options too
+      if (selectedOption.targetGroupId) {
+        return { action: 'navigate', targetGroupId: selectedOption.targetGroupId };
+      }
       const edge = findEdge(flowData, group.id, `option-${selectedOption.number}`);
       if (edge) return { action: 'navigate', targetGroupId: edge.target };
     }
@@ -266,16 +287,24 @@ async function handleButtonsResponse(
   conexao: any, interactiveId?: string
 ) {
   let selectedButtonId: string | null = null;
+  let selectedButton: any = null;
   const buttonsData = block.data?.buttonsData;
   
   if (messageType === 'interactive' && interactiveId) {
     selectedButtonId = interactiveId;
+    selectedButton = buttonsData?.buttons?.find((b: any) => b.id === interactiveId);
   } else {
-    const btn = buttonsData?.buttons?.find((b: any) => b.title.toLowerCase().trim() === messageText.toLowerCase().trim());
-    selectedButtonId = btn?.id || null;
+    selectedButton = buttonsData?.buttons?.find((b: any) => b.title.toLowerCase().trim() === messageText.toLowerCase().trim());
+    selectedButtonId = selectedButton?.id || null;
   }
   
   if (selectedButtonId) {
+    // 1. Check targetGroupId on the button itself
+    if (selectedButton?.targetGroupId) {
+      console.log(`[Interactive] ✅ Button "${selectedButton.title}" → targetGroupId: ${selectedButton.targetGroupId}`);
+      return { action: 'navigate', targetGroupId: selectedButton.targetGroupId };
+    }
+    // 2. Check edges
     const edge = findEdge(flowData, group.id, `${block.id}-${selectedButtonId}`) || findEdge(flowData, block.id, selectedButtonId);
     if (edge) return { action: 'navigate', targetGroupId: edge.target };
   }
