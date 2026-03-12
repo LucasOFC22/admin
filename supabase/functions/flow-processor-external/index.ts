@@ -168,7 +168,7 @@ async function callSender(supabase: any, action: string, conexao: any, phoneNumb
 // HTTP REQUEST BLOCK
 // ============================================
 async function handleHttpRequestBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number) {
-  const { url, method = 'GET', headers = [], body, outputMappings = [], responseFormat = 'json', continueOnError = true, timeout = 30 } = block.data || {};
+  const { url, method = 'GET', headers = [], body, outputMappings = [], responseFormat = 'json', continueOnError = true, timeout = 30, fileVariable = '' } = block.data || {};
 
   const { data: freshSession } = await supabase
     .from('flow_sessions')
@@ -182,6 +182,14 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
 
   if (!url) {
     return { action: 'advance', blockIndex };
+  }
+
+  const isFileLikeResponse = responseFormat === 'base64' || responseFormat === 'binary' || responseFormat === 'file';
+  if (isFileLikeResponse) {
+    delete session.variables['_http_document'];
+    if (fileVariable) {
+      delete session.variables[fileVariable];
+    }
   }
 
   const processedUrl = replaceVariables(url, session.variables, session);
@@ -220,17 +228,42 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     clearTimeout(timeoutId);
 
     let responseData: any;
+    const responseContentType = response.headers.get('content-type') || '';
 
-    if (responseFormat === 'base64' || responseFormat === 'binary' || responseFormat === 'file') {
+    if (isFileLikeResponse) {
       const arrayBuffer = await response.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      responseData = {
-        base64: btoa(binary),
-        contentType: response.headers.get('content-type') || 'application/octet-stream',
-        size: bytes.length
-      };
+
+      const normalizedContentType = responseContentType.toLowerCase();
+      const isJsonLikeContent =
+        normalizedContentType.includes('application/json') ||
+        normalizedContentType.includes('text/json') ||
+        normalizedContentType.startsWith('text/');
+
+      if (isJsonLikeContent) {
+        const text = new TextDecoder().decode(bytes);
+        if (text && text.trim()) {
+          try {
+            responseData = JSON.parse(text);
+          } catch {
+            responseData = {
+              base64: btoa(binary),
+              contentType: responseContentType || 'application/octet-stream',
+              size: bytes.length
+            };
+          }
+        } else {
+          responseData = null;
+        }
+      } else {
+        responseData = {
+          base64: btoa(binary),
+          contentType: responseContentType || 'application/octet-stream',
+          size: bytes.length
+        };
+      }
     } else {
       const text = await response.text();
 
@@ -259,13 +292,23 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
         session.variables['_http_all_boletos'] = JSON.stringify((responseData as any).boletos);
       }
 
-      if ((responseData as any).base64 && (responseData as any).contentType) {
+      if (response.ok && (responseData as any).base64 && (responseData as any).contentType) {
         session.variables['_http_document'] = JSON.stringify(responseData);
       }
     } else if (typeof responseData === 'string') {
       session.variables['_http_response'] = responseData;
     } else {
       session.variables['_http_response'] = '';
+    }
+
+    if (isFileLikeResponse && fileVariable) {
+      if (!response.ok || responseData === null || responseData === undefined) {
+        delete session.variables[fileVariable];
+      } else if (typeof responseData === 'object') {
+        session.variables[fileVariable] = JSON.stringify(responseData);
+      } else {
+        session.variables[fileVariable] = String(responseData);
+      }
     }
 
     if (outputMappings && Array.isArray(outputMappings) && responseData) {
@@ -286,6 +329,28 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
       }
     }
 
+    if (!response.ok) {
+      const responseErrorMessage =
+        typeof responseData === 'object'
+          ? responseData?.error?.message || responseData?.erro || responseData?.message || JSON.stringify(responseData)
+          : typeof responseData === 'string'
+            ? responseData
+            : `HTTP ${response.status}`;
+
+      session.variables['_http_error'] = String(responseErrorMessage);
+      await supabase.from('flow_sessions').update({ variables: session.variables }).eq('id', session.id);
+
+      return {
+        action: 'error_edge',
+        blockIndex,
+        blockId: block.id,
+        handleId: `${block.id}-error`,
+        continueOnError,
+        updatedVariables: session.variables
+      };
+    }
+
+    delete session.variables['_http_error'];
     await supabase.from('flow_sessions').update({ variables: session.variables }).eq('id', session.id);
 
     return {
