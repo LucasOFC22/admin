@@ -74,7 +74,7 @@ const BaixaRapidaCte = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
+    <div className="min-h-screen bg-background">
       <PageHeader
         title="Baixa Rápida de CT-e"
         subtitle="Registre ocorrências em lote através de imagens dos CT-es"
