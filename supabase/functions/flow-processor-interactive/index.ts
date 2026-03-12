@@ -212,6 +212,8 @@ async function handleMenuResponse(
     }
     
     if (selectedOptionId) {
+      console.log(`[Interactive] 🔍 Menu response: optionId="${selectedOptionId}", title="${selectedRow?.title}", groupId="${group.id}", blockId="${block.id}"`);
+      
       // 1. First, check if the row has a direct targetGroupId (used by "Voltar" and similar)
       if (selectedRow?.targetGroupId) {
         const targetGroup = flowData.groups?.find(g => g.id === selectedRow.targetGroupId);
@@ -221,13 +223,36 @@ async function handleMenuResponse(
         }
       }
       
-      // 2. Then check edges with specific option handle
-      let edge = findEdge(flowData, group.id, `${block.id}-${selectedOptionId}`) ||
-                 findEdge(flowData, group.id, selectedOptionId) || findEdge(flowData, block.id, selectedOptionId);
+      // 2. Then check edges with specific option handle - try multiple patterns
+      const handlePatterns = [
+        `${block.id}-${selectedOptionId}`,
+        selectedOptionId,
+      ];
       
-      if (edge) return { action: 'navigate', targetGroupId: edge.target };
+      let edge = null;
+      for (const handle of handlePatterns) {
+        edge = findEdge(flowData, group.id, handle) || findEdge(flowData, block.id, handle);
+        if (edge) break;
+      }
       
-      // 3. Default edge (only with explicit output handle, not any random edge)
+      // 3. Also search for edges where sourceHandle CONTAINS the optionId (handles with prefixed block ids)
+      if (!edge) {
+        edge = flowData.edges.find((e: any) => 
+          (e.source === group.id || e.source === block.id) && 
+          e.sourceHandle && 
+          e.sourceHandle.endsWith(`-${selectedOptionId}`)
+        ) || null;
+      }
+      
+      if (edge) {
+        console.log(`[Interactive] ✅ Edge found: handle="${edge.sourceHandle}" → target="${edge.target}"`);
+        return { action: 'navigate', targetGroupId: edge.target };
+      }
+      
+      console.log(`[Interactive] ⚠️ No edge found for optionId="${selectedOptionId}". Available edges from group:`, 
+        flowData.edges.filter((e: any) => e.source === group.id).map((e: any) => `${e.sourceHandle} → ${e.target}`).join(', '));
+      
+      // 4. Default edge (only with explicit output handle, not any random edge)
       const defaultEdge = findEdge(flowData, group.id, 'output') || findEdge(flowData, group.id, `${block.id}-output`);
       if (defaultEdge) return { action: 'navigate', targetGroupId: defaultEdge.target };
       return { action: 'advance', blockIndex };
