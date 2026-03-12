@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Shield, Settings, ArrowLeft } from 'lucide-react';
+import { User, Shield, Settings, ArrowLeft, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import { ProfileHeader } from '@/components/admin/profile/ProfileHeader';
 import { ProfileInfoTab } from '@/components/admin/profile/ProfileInfoTab';
 import { ProfileSecurityTab } from '@/components/admin/profile/ProfileSecurityTab';
 import { ProfilePreferencesTab } from '@/components/admin/profile/ProfilePreferencesTab';
+import { ActiveDevicesManager } from '@/components/admin/profile/ActiveDevicesManager';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -67,7 +68,7 @@ const Profile = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-12">
+          <TabsList className="grid w-full grid-cols-4 h-12">
             <TabsTrigger value="info" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Informações</span>
@@ -75,6 +76,10 @@ const Profile = () => {
             <TabsTrigger value="security" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Shield className="h-4 w-4" />
               <span className="hidden sm:inline">Segurança</span>
+            </TabsTrigger>
+            <TabsTrigger value="devices" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Monitor className="h-4 w-4" />
+              <span className="hidden sm:inline">Dispositivos</span>
             </TabsTrigger>
             <TabsTrigger value="preferences" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Settings className="h-4 w-4" />
@@ -101,6 +106,15 @@ const Profile = () => {
 
             <TabsContent value="security" className="mt-0">
               <ProfileSecurityTab onChangePassword={handleChangePassword} userId={userProfile?.id} />
+            </TabsContent>
+
+            <TabsContent value="devices" className="mt-0">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+              >
+                <ActiveDevicesManager userId={userProfile?.id} />
+              </motion.div>
             </TabsContent>
 
             <TabsContent value="preferences" className="mt-0">
