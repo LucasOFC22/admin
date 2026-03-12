@@ -291,12 +291,19 @@ async function handleButtonsResponse(
   
   if (messageType === 'interactive' && interactiveId) {
     selectedButtonId = interactiveId;
+    selectedButton = buttonsData?.buttons?.find((b: any) => b.id === interactiveId);
   } else {
-    const btn = buttonsData?.buttons?.find((b: any) => b.title.toLowerCase().trim() === messageText.toLowerCase().trim());
-    selectedButtonId = btn?.id || null;
+    selectedButton = buttonsData?.buttons?.find((b: any) => b.title.toLowerCase().trim() === messageText.toLowerCase().trim());
+    selectedButtonId = selectedButton?.id || null;
   }
   
   if (selectedButtonId) {
+    // 1. Check targetGroupId on the button itself
+    if (selectedButton?.targetGroupId) {
+      console.log(`[Interactive] ✅ Button "${selectedButton.title}" → targetGroupId: ${selectedButton.targetGroupId}`);
+      return { action: 'navigate', targetGroupId: selectedButton.targetGroupId };
+    }
+    // 2. Check edges
     const edge = findEdge(flowData, group.id, `${block.id}-${selectedButtonId}`) || findEdge(flowData, block.id, selectedButtonId);
     if (edge) return { action: 'navigate', targetGroupId: edge.target };
   }
