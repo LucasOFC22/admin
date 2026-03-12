@@ -28,6 +28,7 @@ import WhatsAppLogs from "./pages/admin/WhatsAppLogs";
 import WhatsAppCampanhas from "./pages/admin/WhatsAppCampanhas";
 import TagsKanban from "./pages/admin/TagsKanban";
 import ColetasAdmin from "./pages/ColetasAdmin";
+import BaixaRapidaCte from "./pages/admin/BaixaRapidaCte";
 import UnifiedUsersPage from "./pages/UnifiedUsersPage";
 import AdminContacts from "./pages/AdminContacts";
 import Cargos from "./pages/Cargos";
