@@ -12,6 +12,7 @@ import { requireAuthenticatedClient } from '@/config/supabaseAuth';
 import { toast } from '@/lib/toast';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { filterEmpresasByPermissions, hasAllEmpresasPermissions } from '@/utils/empresaPermissions';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
 export interface Empresa {
   id: number;
@@ -40,16 +41,22 @@ export const EmpresaSelector = ({
   bypassEmpresaPermissions = false
 }: EmpresaSelectorProps) => {
   const { cargoPermissions } = usePermissionGuard();
+  const { user } = useUnifiedAuth();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresasFiltradas, setEmpresasFiltradas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
   const [canSelectAll, setCanSelectAll] = useState(false);
 
   useEffect(() => {
+    // Só buscar quando o usuário estiver autenticado
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     const fetchEmpresas = async () => {
       try {
         setLoading(true);
-        // Usar cliente autenticado para enviar JWT
         const client = requireAuthenticatedClient();
         
         const { data, error: fetchError } = await client
@@ -59,13 +66,9 @@ export const EmpresaSelector = ({
           .maybeSingle();
 
         if (fetchError) throw fetchError;
-        if (!data) {
-          console.warn('[EmpresaSelector] Nenhum token encontrado');
-          return;
-        }
+        if (!data) return;
 
         if (data?.empresas) {
-          // Transformar empresas para o formato padrão
           const empresasData = (data.empresas as any[]).map(emp => ({
             id: emp.id_empresa || emp.id,
             nome: emp.fantasia || emp.nome,
@@ -82,14 +85,13 @@ export const EmpresaSelector = ({
     };
 
     fetchEmpresas();
-  }, []);
+  }, [user]);
 
   // Filtrar empresas baseado nas permissões do usuário
   useEffect(() => {
     if (!loading && empresas.length > 0) {
       const userPermissions = cargoPermissions || [];
       
-      // Se bypassEmpresaPermissions for true, mostrar todas as empresas
       if (bypassEmpresaPermissions) {
         setEmpresasFiltradas(empresas);
         setCanSelectAll(true);
@@ -99,12 +101,9 @@ export const EmpresaSelector = ({
       const filtered = filterEmpresasByPermissions(empresas, userPermissions);
       setEmpresasFiltradas(filtered);
       
-      // Verificar se o usuário tem acesso a todas as empresas
       const hasAll = hasAllEmpresasPermissions(userPermissions);
       setCanSelectAll(hasAll);
       
-      // Se o usuário não tem permissão para todas e 'all' está selecionado, 
-      // selecionar a primeira empresa disponível
       if (!hasAll && value === 'all' && filtered.length > 0) {
         onChange(filtered[0].id.toString());
       }
