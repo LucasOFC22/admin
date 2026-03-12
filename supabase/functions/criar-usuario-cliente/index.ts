@@ -3,10 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-const SENHA_PADRAO = 'fpcargas';
 
 interface RequestBody {
   email: string;
@@ -44,8 +42,35 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+    // ========== AUTENTICAÇÃO E AUTORIZAÇÃO ==========
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Não autorizado. Token ausente.' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    // Verificar o JWT do chamador usando o anon key (valida o token do usuário logado)
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user: callerUser }, error: authError } = await supabaseAuth.auth.getUser(token);
+    if (authError || !callerUser) {
+      console.error('[criar-usuario-cliente] Token inválido:', authError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Não autorizado. Token inválido.' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Usar service role para operações administrativas
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -53,10 +78,25 @@ serve(async (req) => {
       },
     });
 
+    // Verificar se o chamador é admin
+    const { data: callerData, error: callerError } = await supabase
+      .from('usuarios')
+      .select('id, acesso_area_admin, ativo')
+      .eq('supabase_id', callerUser.id)
+      .single();
+
+    if (callerError || !callerData || !callerData.acesso_area_admin || !callerData.ativo) {
+      console.error('[criar-usuario-cliente] Acesso negado - usuário não é admin:', callerUser.id);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Acesso negado. Apenas administradores podem criar usuários.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const body: RequestBody = await req.json();
     const { email, cnpjcpf, cargo, nome, telefone } = body;
 
-    console.log('[criar-usuario-cliente] Iniciando criação de usuário:', { email, cargo, cnpjcpf_count: cnpjcpf?.length });
+    console.log('[criar-usuario-cliente] Admin', callerData.id, 'criando usuário:', { email, cargo, cnpjcpf_count: cnpjcpf?.length });
 
     // ========== VALIDAÇÕES ==========
 
@@ -152,13 +192,14 @@ serve(async (req) => {
       );
     }
 
-    // ========== CRIAR USUÁRIO NO SUPABASE AUTH ==========
+    // ========== CRIAR USUÁRIO COM SENHA ALEATÓRIA ==========
 
-    // Criar usuário com signUp para enviar email de confirmação automaticamente
-    // (igual ao fluxo de /admin/gerenciar-usuarios)
+    // Gerar senha aleatória segura (nunca armazenada, usuário define via email)
+    const randomPassword = crypto.randomUUID() + '!Aa1' + crypto.randomUUID();
+
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: email.toLowerCase(),
-      password: SENHA_PADRAO,
+      password: randomPassword,
       options: {
         emailRedirectTo: "https://fptranscargas.com.br/",
         data: {
@@ -204,7 +245,7 @@ serve(async (req) => {
     }
 
     const authData = { user: signUpData.user };
-    console.log('[criar-usuario-cliente] Usuário criado no Auth com email de confirmação:', authData.user.id);
+    console.log('[criar-usuario-cliente] Usuário criado no Auth:', authData.user.id);
 
     // ========== CRIAR REGISTRO NA TABELA USUARIOS ==========
 
@@ -222,24 +263,22 @@ serve(async (req) => {
 
     const usuarioData = {
       id: usuarioId,
-      nome: nomeClean || email.split('@')[0], // Usa parte do email se nome não fornecido
+      nome: nomeClean || email.split('@')[0],
       email: email.toLowerCase(),
-      telefone: telefoneClean, // null se não fornecido ou template não resolvido
+      telefone: telefoneClean,
       cnpjcpf: cnpjcpfData,
       cargo: cargo,
       acesso_area_cliente: true,
       acesso_area_admin: false,
       ativo: true,
       supabase_id: authData.user.id,
-      nivel_hierarquico: cargoInfo.level || 10, // Usa level do cargo ou 10 como padrão
+      nivel_hierarquico: cargoInfo.level || 10,
     };
 
     console.log('[criar-usuario-cliente] Dados do usuário preparados:', { 
       id: usuarioId,
       nome: usuarioData.nome, 
       telefone: usuarioData.telefone,
-      nome_original: nome,
-      telefone_original: telefone
     });
 
     const { data: usuarioCreated, error: usuarioError } = await supabase
