@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import EmpresasConfigSection from '@/components/admin/configuracoes/EmpresasConfigSection';
 import { useToast } from '@/hooks/use-toast';
 import QuoteSystemConfig from '@/components/admin/configuracoes/QuoteSystemConfig';
 import DepartmentConfigTab from '@/components/admin/configuracoes/DepartmentConfigTab';
@@ -218,6 +219,8 @@ const Configuracoes = () => {
               painel_cliente: checked
             }))} />} />
             </div>
+
+            <EmpresasConfigSection />
 
             <div className="flex justify-end pt-6 border-t">
               <Button onClick={handleSaveSystem} disabled={loading}>
