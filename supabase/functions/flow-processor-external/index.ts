@@ -168,7 +168,7 @@ async function callSender(supabase: any, action: string, conexao: any, phoneNumb
 // HTTP REQUEST BLOCK
 // ============================================
 async function handleHttpRequestBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number) {
-  const { url, method = 'GET', headers = [], body, outputMappings = [], responseFormat = 'json', continueOnError = true, timeout = 30 } = block.data || {};
+  const { url, method = 'GET', headers = [], body, outputMappings = [], responseFormat = 'json', continueOnError = true, timeout = 30, fileVariable = '' } = block.data || {};
 
   const { data: freshSession } = await supabase
     .from('flow_sessions')
