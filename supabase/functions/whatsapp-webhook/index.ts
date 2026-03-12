@@ -389,7 +389,7 @@ serve(async (req) => {
           // ============================================
           // 🕐 VERIFICAR HORÁRIO DE ATENDIMENTO (apenas para novos chats)
           // ============================================
-          let isOutsideBusinessHours = false;
+          isOutsideBusinessHours = false;
           let absenceMessage = '';
           
           try {
