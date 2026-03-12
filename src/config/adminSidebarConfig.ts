@@ -185,7 +185,8 @@ export const tabMapping: Record<string, AdminTab> = {
   'campanhas-whatsapp': 'campanhas-whatsapp',
   'logs-campanhas': 'logs-campanhas',
   'vagas': 'vagas',
-  'logs-vagas': 'logs-vagas'
+  'logs-vagas': 'logs-vagas',
+  'auditoria-seguranca': 'auditoria-seguranca'
 };
 
 // Nova estrutura reorganizada do menu
