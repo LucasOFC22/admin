@@ -664,13 +664,29 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
     }
     
     if (boletosArray.length > 0) {
-      console.log(`[External] Processing ${boletosArray.length} documents (sendAllFiles)`);
+      const uniqueBoletos: any[] = [];
+      const seenKeys = new Set<string>();
+
+      for (const boleto of boletosArray) {
+        if (!boleto || boleto.success === false) {
+          uniqueBoletos.push(boleto);
+          continue;
+        }
+
+        const key = `${boleto.id ?? ''}|${boleto.filename ?? ''}|${(boleto.base64 ?? '').slice(0, 120)}`;
+        if (seenKeys.has(key)) continue;
+
+        seenKeys.add(key);
+        uniqueBoletos.push(boleto);
+      }
+
+      console.log(`[External] Processing ${uniqueBoletos.length} documents (sendAllFiles)`);
       
       let successCount = 0;
       let errorCount = 0;
       
-      for (let i = 0; i < boletosArray.length; i++) {
-        const boleto = boletosArray[i];
+      for (let i = 0; i < uniqueBoletos.length; i++) {
+        const boleto = uniqueBoletos[i];
         
         if (boleto.success === false) {
           errorCount++;
@@ -699,7 +715,7 @@ async function handleDocumentBlock(supabase: any, session: Session, block: FlowB
           errorCount++;
         }
         
-        if (i < boletosArray.length - 1) {
+        if (i < uniqueBoletos.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
