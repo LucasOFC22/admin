@@ -458,7 +458,7 @@ async function handleTicketBlockInline(supabase: any, session: Session, block: F
   const queueIds = block.data?.queueIds || [];
   const message = block.data?.message || block.data?.text;
   if (message) {
-    const processedMessage = await replaceVariablesWithContactFallback(supabase, message, session.variables, session);
+    const processedMessage = replaceVariables(message, session.variables, session);
     await sendTextDirect(supabase, conexao, session.phone_number, session.chatId, processedMessage);
   }
   const { data: contato } = await supabase.from('contatos_whatsapp').select('id').eq('telefone', session.phone_number).maybeSingle();
