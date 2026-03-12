@@ -65,9 +65,12 @@ const CreateCargoModal = ({
         const client = requireAuthenticatedClient();
         
         // Buscar em paralelo
-        const [deptResult, tokenResult] = await Promise.all([
+        const [deptResult, empresasData] = await Promise.all([
           client.from('cargos_departamento').select('*').order('nome'),
-          client.from('dbfrete_token').select('empresas').limit(1).maybeSingle()
+          (async () => {
+            const { empresasConfigService } = await import('@/services/empresasConfigService');
+            return empresasConfigService.getEmpresas();
+          })()
         ]);
         
         if (deptResult.error) {
@@ -76,15 +79,10 @@ const CreateCargoModal = ({
           setDepartments(deptResult.data || []);
         }
         
-        if (tokenResult.error) {
-          console.error('Erro ao buscar empresas:', tokenResult.error);
-        } else if (tokenResult.data?.empresas) {
-          const empresasData = (tokenResult.data.empresas as any[]).map(emp => ({
-            id: (emp.id_empresa || emp.id).toString(),
-            nome: emp.fantasia || emp.nome
-          }));
-          setEmpresas(empresasData);
-        }
+        setEmpresas(empresasData.map(emp => ({
+          id: emp.id.toString(),
+          nome: emp.nome
+        })));
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
       } finally {
