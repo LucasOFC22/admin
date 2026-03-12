@@ -124,7 +124,8 @@ const tabToRouteMapping: Record<AdminTab, string> = {
   'campanhas-whatsapp': '/campanhas-whatsapp',
   'logs-campanhas': '/logs-campanhas',
   'vagas': '/vagas',
-  'logs-vagas': '/logs-vagas'
+  'logs-vagas': '/logs-vagas',
+  'baixa-rapida-cte': '/baixa-rapida-cte'
 };
 
 export function useActiveAdminTab() {
