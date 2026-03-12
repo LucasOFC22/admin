@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
 // --- Supabase ---
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -47,15 +52,19 @@ async function getToken() {
 
 // --- Servidor ---
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     const url = new URL(req.url);
     const pathParts = url.pathname.split("/").filter(Boolean);
-    const idconhecimento = pathParts[pathParts.length - 1]; // ÃÂºltimo pedaÃÂ§o da URL
+    const idconhecimento = pathParts[pathParts.length - 1];
 
     if (!idconhecimento) {
-      return new Response(JSON.stringify({ error: "idconhecimento ÃÂ© obrigatÃÂ³rio" }), {
+      return new Response(JSON.stringify({ error: "idconhecimento é obrigatório" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -70,7 +79,7 @@ serve(async (req) => {
       const txt = await response.text();
       return new Response(JSON.stringify({ error: txt }), {
         status: response.status,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -79,6 +88,7 @@ serve(async (req) => {
     return new Response(pdfArrayBuffer, {
       status: 200,
       headers: {
+        ...corsHeaders,
         "Content-Type": "application/pdf",
         "Content-Disposition": `inline; filename=CTE_${idconhecimento}.pdf`,
       },
@@ -88,7 +98,7 @@ serve(async (req) => {
     const errorMessage = err instanceof Error ? err.message : "Erro desconhecido";
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
