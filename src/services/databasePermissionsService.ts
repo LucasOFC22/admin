@@ -304,7 +304,8 @@ class DatabasePermissionsService {
       'logs-vagas': 'admin.logs-vagas.visualizar',
       
       // Documentos Clientes
-      'documentos-clientes': 'admin.documentos-clientes.visualizar'
+      'documentos-clientes': 'admin.documentos-clientes.visualizar',
+      'auditoria-seguranca': 'admin.auditoria.visualizar'
     };
   }
 
