@@ -629,7 +629,7 @@ async function executeFlowLoop(supabase: any, session: Session, flowData: FlowDa
   let iterations = 0;
   const maxIterations = 50;
   const startTime = Date.now();
-  const maxExecutionTime = 25000;
+  const maxExecutionTime = 120000; // 120s - precisa ser maior que o timeout HTTP do external (90s)
   
   // Resolve contact name ONCE at start instead of per-text-block
   await resolveContactName(supabase, session);
