@@ -309,6 +309,7 @@ serve(async (req) => {
       // Chat - buscar apenas chats NÃO resolvidos
       let chat: { id: number; mododeatendimento?: string; [key: string]: any } | null = null;
       let isNewChat = false;
+      let isOutsideBusinessHours = false;
       if (contato) {
         const { data: existingChat } = await supabase
           .from("chats_whatsapp")
@@ -388,7 +389,7 @@ serve(async (req) => {
           // ============================================
           // 🕐 VERIFICAR HORÁRIO DE ATENDIMENTO (apenas para novos chats)
           // ============================================
-          let isOutsideBusinessHours = false;
+          isOutsideBusinessHours = false;
           let absenceMessage = '';
           
           try {
