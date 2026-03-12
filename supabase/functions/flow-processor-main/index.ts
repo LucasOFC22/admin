@@ -630,6 +630,9 @@ async function executeFlowLoop(supabase: any, session: Session, flowData: FlowDa
   const startTime = Date.now();
   const maxExecutionTime = 25000;
   
+  // Resolve contact name ONCE at start instead of per-text-block
+  await resolveContactName(supabase, session);
+  
   while (iterations < maxIterations) {
     iterations++;
     const elapsed = Date.now() - startTime;
@@ -653,6 +656,11 @@ async function executeFlowLoop(supabase: any, session: Session, flowData: FlowDa
         currentBlockIndex = 0;
         break;
       case 'wait_input':
+        // Save position only when pausing
+        await supabase.from('flow_sessions').update({
+          current_group_id: currentGroupId, current_block_index: currentBlockIndex,
+          current_node_id: currentGroupId, updated_at: new Date().toISOString()
+        }).eq('id', session.id);
         return { success: true, waitingInput: true, blockType: result.blockType };
       case 'complete':
         await completeFlowSession(supabase, session, conexao, result.reason || 'flow_completed');
