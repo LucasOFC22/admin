@@ -361,10 +361,11 @@ export const FlowBuilderHTTPRequestModal: React.FC<FlowBuilderHTTPRequestModalPr
       const endTime = Date.now();
       let responseData;
       
+      const responseClone = response.clone();
       try {
         responseData = await response.json();
       } catch {
-        responseData = await response.text();
+        responseData = await responseClone.text();
       }
 
       setTestResult({
