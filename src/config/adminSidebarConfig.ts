@@ -40,6 +40,7 @@ import {
   ListOrdered,
   Megaphone,
   UserCircle,
+  FileDown,
   LucideIcon
 } from 'lucide-react';
 
