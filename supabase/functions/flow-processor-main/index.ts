@@ -291,7 +291,8 @@ async function callSender(supabase: any, action: string, conexao: any, phoneNumb
 // ============================================
 async function handleTextBlockInline(supabase: any, session: Session, block: FlowBlock, blockIndex: number, conexao: any) {
   const rawMessage = block.data?.description || block.data?.text || block.data?.message || '';
-  const message = await replaceVariablesWithContactFallback(supabase, rawMessage, session.variables, session);
+  // Contact name already resolved once in executeFlowLoop - use replaceVariables directly
+  const message = replaceVariables(rawMessage, session.variables, session);
   if (message && message.trim() !== '') {
     await sendTextDirect(supabase, conexao, session.phone_number, session.chatId, message);
   }
