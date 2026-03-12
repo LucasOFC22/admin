@@ -168,65 +168,60 @@ async function callSender(supabase: any, action: string, conexao: any, phoneNumb
 // HTTP REQUEST BLOCK
 // ============================================
 async function handleHttpRequestBlock(supabase: any, session: Session, block: FlowBlock, blockIndex: number) {
-  const { url, method = 'GET', headers = [], body, outputMappings = [], responseFormat = 'json', waitForResponse = true, continueOnError = true } = block.data || {};
-  
-  // CRITICAL: Reload session variables from DB to ensure we have the latest
+  const { url, method = 'GET', headers = [], body, outputMappings = [], responseFormat = 'json', continueOnError = true, timeout = 30 } = block.data || {};
+
   const { data: freshSession } = await supabase
     .from('flow_sessions')
     .select('variables')
     .eq('id', session.id)
     .maybeSingle();
-  
+
   if (freshSession?.variables) {
     session.variables = { ...session.variables, ...freshSession.variables };
   }
-  
+
   if (!url) {
-    console.warn('[External] HTTP Request: No URL provided');
     return { action: 'advance', blockIndex };
   }
-  
+
   const processedUrl = replaceVariables(url, session.variables, session);
-  
+
   const processedHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
   for (const header of headers) {
     if (header.key && header.value) {
       processedHeaders[header.key] = replaceVariables(String(header.value), session.variables, session);
     }
   }
-  
+
   try {
     const fetchOptions: RequestInit = { method, headers: processedHeaders };
-    
+
     if (body && method !== 'GET') {
       const processedBody = replaceVariables(body, session.variables, session);
       fetchOptions.body = processedBody;
-      
+
       const unreplacedVars = processedBody.match(/\{\{([^}]+)\}\}/g);
       if (unreplacedVars) {
         console.warn(`[External] Unreplaced variables in body:`, unreplacedVars);
-        console.log(`[External] Available vars:`, Object.keys(session.variables));
       }
-      console.log(`[External] HTTP ${method} ${processedUrl} | body: ${processedBody.substring(0, 300)}`);
-    } else {
-      console.log(`[External] HTTP ${method} ${processedUrl}`);
     }
-    
-    // Timeout de 90s para APIs externas lentas
+
+    const timeoutSeconds = Number(timeout) > 0 ? Number(timeout) : 30;
+    const timeoutMs = Math.min(Math.max(timeoutSeconds, 5), 300) * 1000;
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000);
-    
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     const response = await fetch(processedUrl, {
       ...fetchOptions,
       signal: controller.signal
     });
-    
+
     clearTimeout(timeoutId);
-    console.log(`[External] HTTP Response: status=${response.status} url=${processedUrl.substring(0, 120)}`);
-    
+
     let responseData: any;
-    
-    if (responseFormat === 'base64' || responseFormat === 'binary') {
+
+    if (responseFormat === 'base64' || responseFormat === 'binary' || responseFormat === 'file') {
       const arrayBuffer = await response.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       let binary = '';
@@ -238,45 +233,33 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
       };
     } else {
       const text = await response.text();
-      
+
       if (text && text.trim()) {
-        try { 
-          responseData = JSON.parse(text); 
-        } catch { 
-          responseData = text; 
+        try {
+          responseData = JSON.parse(text);
+        } catch {
+          responseData = text;
         }
       } else {
         responseData = null;
       }
     }
-    
-    // Debug: log response structure
-    if (Array.isArray(responseData)) {
-      console.log(`[External] Response is array with ${responseData.length} items`);
-      if (responseData.length > 0) {
-        console.log(`[External] First item sample: ${JSON.stringify(responseData[0]).substring(0, 300)}`);
-      }
-    } else if (responseData && typeof responseData === 'object') {
-      console.log(`[External] Response keys: ${Object.keys(responseData).join(', ')}`);
-    }
-    
-    // Salvar status da resposta
+
     session.variables['_http_status'] = String(response.status);
     session.variables['_http_ok'] = response.ok ? 'true' : 'false';
-    
-    // Auto-detect patterns
+
     if (responseData && typeof responseData === 'object') {
       session.variables['_http_response'] = JSON.stringify(responseData);
-      
-      if (responseData.boletos && Array.isArray(responseData.boletos)) {
-        session.variables['_http_boletos_count'] = String(responseData.boletos.length);
-        if (responseData.boletos.length > 0) {
-          session.variables['_http_first_boleto'] = JSON.stringify(responseData.boletos[0]);
+
+      if ((responseData as any).boletos && Array.isArray((responseData as any).boletos)) {
+        session.variables['_http_boletos_count'] = String((responseData as any).boletos.length);
+        if ((responseData as any).boletos.length > 0) {
+          session.variables['_http_first_boleto'] = JSON.stringify((responseData as any).boletos[0]);
         }
-        session.variables['_http_all_boletos'] = JSON.stringify(responseData.boletos);
+        session.variables['_http_all_boletos'] = JSON.stringify((responseData as any).boletos);
       }
-      
-      if (responseData.base64 && responseData.contentType) {
+
+      if ((responseData as any).base64 && (responseData as any).contentType) {
         session.variables['_http_document'] = JSON.stringify(responseData);
       }
     } else if (typeof responseData === 'string') {
@@ -284,47 +267,49 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     } else {
       session.variables['_http_response'] = '';
     }
-    
-    // Process output mappings
+
     if (outputMappings && Array.isArray(outputMappings) && responseData) {
       for (const mapping of outputMappings) {
         if (mapping.variable && mapping.path) {
           const value = getNestedValue(responseData, mapping.path);
           if (value !== undefined) {
-            session.variables[mapping.variable] = typeof value === 'object' ? JSON.stringify(value) : String(value);
-            console.log(`[External] Mapped ${mapping.path} -> ${mapping.variable} = ${String(value).substring(0, 100)}`);
-          } else {
-            console.warn(`[External] Mapping path "${mapping.path}" not found in response`);
+            const normalized = typeof value === 'object' ? JSON.stringify(value) : String(value);
+
+            // Regra específica: boleto "0" significa sem boleto disponível
+            if (mapping.variable === 'idboleto' && (normalized === '0' || normalized === '0.0')) {
+              session.variables[mapping.variable] = '';
+            } else {
+              session.variables[mapping.variable] = normalized;
+            }
           }
         }
       }
     }
-    
+
     await supabase.from('flow_sessions').update({ variables: session.variables }).eq('id', session.id);
-    
-    return { 
-      action: 'success_edge', 
-      blockIndex, 
+
+    return {
+      action: 'success_edge',
+      blockIndex,
       blockId: block.id,
       handleId: 'group-success-output',
-      updatedVariables: session.variables 
+      updatedVariables: session.variables
     };
-    
+
   } catch (error) {
     console.error('[External] HTTP error:', error);
-    console.error(`[External] Failed URL: ${processedUrl}`);
     session.variables['_http_error'] = String(error);
     session.variables['_http_status'] = '0';
     session.variables['_http_ok'] = 'false';
     await supabase.from('flow_sessions').update({ variables: session.variables }).eq('id', session.id);
-    
-    return { 
-      action: 'error_edge', 
-      blockIndex, 
+
+    return {
+      action: 'error_edge',
+      blockIndex,
       blockId: block.id,
       handleId: `${block.id}-error`,
       continueOnError,
-      updatedVariables: session.variables 
+      updatedVariables: session.variables
     };
   }
 }
