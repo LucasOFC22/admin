@@ -28,6 +28,7 @@ import WhatsAppLogs from "./pages/admin/WhatsAppLogs";
 import WhatsAppCampanhas from "./pages/admin/WhatsAppCampanhas";
 import TagsKanban from "./pages/admin/TagsKanban";
 import ColetasAdmin from "./pages/ColetasAdmin";
+import BaixaRapidaCte from "./pages/admin/BaixaRapidaCte";
 import UnifiedUsersPage from "./pages/UnifiedUsersPage";
 import AdminContacts from "./pages/AdminContacts";
 import Cargos from "./pages/Cargos";
@@ -129,6 +130,7 @@ const App = () => (
             <Route path="malotes" element={<Malotes />} />
             <Route path="ocorrencias" element={<Ocorrencias />} />
             <Route path="rastreamento" element={<AdminRastreamento />} />
+            <Route path="baixa-rapida-cte" element={<BaixaRapidaCte />} />
             <Route path="erros-envio" element={<ErrosEnvio />} />
             
             {/* Usuários e Acessos */}

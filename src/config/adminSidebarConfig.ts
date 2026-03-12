@@ -40,6 +40,7 @@ import {
   ListOrdered,
   Megaphone,
   UserCircle,
+  FileDown,
   LucideIcon
 } from 'lucide-react';
 
@@ -74,6 +75,7 @@ export type AdminTab =
   | 'calendario-financeiro'
   | 'dre'
   | 'solicitacoes-documentos'
+  | 'baixa-rapida-cte'
   | 'ocorrencias'
   | 'mensagens-rapidas'
   | 'chat-interno'
@@ -151,6 +153,7 @@ export const tabMapping: Record<string, AdminTab> = {
   'dre': 'dre',
   'solicitacoes-documentos': 'solicitacoes-documentos',
   'documentos-clientes': 'documentos-clientes',
+  'baixa-rapida-cte': 'baixa-rapida-cte',
   'ocorrencias': 'ocorrencias',
   'mensagens-rapidas': 'mensagens-rapidas',
   'chat-interno': 'chat-interno',
@@ -201,7 +204,8 @@ export const menuCategories: MenuCategoryConfig[] = [
       { id: 'coletas', label: 'Coletas', icon: Truck, requiredPermission: 'admin.coletas.visualizar' },
       { id: 'manifestos', label: 'Manifestos', icon: Package, requiredPermission: 'admin.manifestos.visualizar' },
       { id: 'consultar-nfe', label: 'Consultar NF-e', icon: FileSearch, requiredPermission: 'admin.nfe.visualizar' },
-      { id: 'rastreamento', label: 'Rastreamento', icon: Navigation, requiredPermission: 'admin.rastreamento.visualizar' }
+      { id: 'rastreamento', label: 'Rastreamento', icon: Navigation, requiredPermission: 'admin.rastreamento.visualizar' },
+      { id: 'baixa-rapida-cte', label: 'Baixa Rápida CT-e', icon: FileDown, requiredPermission: 'admin.baixa_rapida.visualizar' }
     ]
   },
   {
