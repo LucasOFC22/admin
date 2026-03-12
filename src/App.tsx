@@ -81,6 +81,7 @@ import LogsVagas from "./pages/admin/LogsVagas";
 import VagasPage from "./pages/admin/VagasPage";
 import Erros from "./pages/admin/Erros";
 import AdminRastreamento from "./pages/admin/AdminRastreamento";
+import AuditoriaSeguranca from "./pages/admin/AuditoriaSeguranca";
 
 // QueryClient fora do componente para evitar recriações
 const queryClient = new QueryClient({
