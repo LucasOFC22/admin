@@ -2,6 +2,7 @@ import { toast } from '@/lib/toast';
 import { requireAuthenticatedClient } from '@/config/supabaseAuth';
 import { checkQueueAccess } from '@/hooks/useTicketAccessGuard';
 import { logsWhatsAppService } from '@/services/whatsapp/logsWhatsAppService';
+import { ticketLimitService } from '@/services/whatsapp/ticketLimitService';
 
 interface UseTicketsActionsParams {
   tickets: any[];
