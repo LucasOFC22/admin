@@ -276,7 +276,8 @@ export const menuCategories: MenuCategoryConfig[] = [
       { id: 'logs-ocorrencias', label: 'Ocorrências', icon: AlertCircle, requiredPermission: 'logs.ocorrencias' },
       { id: 'logs-email', label: 'Email', icon: MailOpen, requiredPermission: 'logs.email' },
       { id: 'flow-logs', label: 'FlowBuilders', icon: GitBranch, requiredPermission: 'logs.flows' },
-      { id: 'erros', label: 'Erros', icon: Bug, requiredPermission: 'logs.erros' }
+      { id: 'erros', label: 'Erros', icon: Bug, requiredPermission: 'logs.erros' },
+      { id: 'auditoria-seguranca', label: 'Auditoria Segurança', icon: ShieldAlert, requiredPermission: 'admin.auditoria.visualizar' }
     ]
   },
   {

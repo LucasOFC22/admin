@@ -188,6 +188,7 @@ const App = () => (
             <Route path="logs-mensagens-rapidas" element={<LogsMensagensRapidas />} />
             <Route path="logs-ocorrencias" element={<LogsOcorrencias />} />
             <Route path="logs-vagas" element={<LogsVagas />} />
+            <Route path="auditoria-seguranca" element={<AuditoriaSeguranca />} />
           </Route>
 
           {/* WhatsApp Kanban - FORA do PersistentLayout */}
