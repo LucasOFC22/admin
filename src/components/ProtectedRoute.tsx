@@ -54,8 +54,11 @@ const ProtectedRoute = ({ children, requiredAccess, requiredPermission }: Protec
     checkAuth();
   }, [requiredAccess]);
 
-  // Loading state
-  if (loading) {
+  // Loading unificado: auth OU permissões ainda carregando = um único spinner
+  const needsPermissionCheck = isAuthenticated && user && (requiredPermission || requiredAccess === 'admin');
+  const isStillLoading = loading || (needsPermissionCheck && isLoadingCargoPermissions);
+
+  if (isStillLoading) {
     return <OptimizedAuthSpinner message="Verificando autenticação..." />;
   }
 
@@ -97,21 +100,12 @@ const ProtectedRoute = ({ children, requiredAccess, requiredPermission }: Protec
   }
 
   // Verificar permissões específicas
-  if (requiredPermission) {
-    if (isLoadingCargoPermissions) {
-      return <OptimizedAuthSpinner message="Verificando permissões..." />;
-    }
-    if (!canAccess(requiredPermission)) {
-      return <Navigate to="/" replace />;
-    }
+  if (requiredPermission && !canAccess(requiredPermission)) {
+    return <Navigate to="/" replace />;
   }
 
   // Verificar permissões de tab para rotas admin
   if (requiredAccess === 'admin') {
-    if (isLoadingCargoPermissions) {
-      return <OptimizedAuthSpinner message="Verificando permissões..." />;
-    }
-    
     const tabPermissionMapping = databasePermissionsService.getSidebarTabPermissionMapping();
     const pathParts = location.pathname.split('/').filter(Boolean);
     const tab = pathParts[0] || 'dashboard';
