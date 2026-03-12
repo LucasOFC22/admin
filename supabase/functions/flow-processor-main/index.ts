@@ -601,6 +601,10 @@ async function processBlock(supabase: any, session: Session, flowData: FlowData,
   // ============================================
   // EXTERNAL BLOCKS - Use edge function (httpRequest, openai, etc.)
   // ============================================
+  // For external blocks, refresh variables from DB before calling
+  const { data: freshSession } = await supabase.from('flow_sessions').select('variables').eq('id', session.id).maybeSingle();
+  if (freshSession?.variables) session.variables = freshSession.variables;
+  
   const processorName = 'flow-processor-external';
   const { data, error } = await supabase.functions.invoke(processorName, {
     body: { blockType, session, flowData, group, block, blockIndex, conexao }
