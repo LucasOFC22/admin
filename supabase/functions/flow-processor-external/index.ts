@@ -244,11 +244,15 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
   }
 
   const isFileLikeResponse = responseFormat === 'base64' || responseFormat === 'binary' || responseFormat === 'file';
-  if (isFileLikeResponse) {
-    delete session.variables['_http_document'];
-    if (fileVariable) {
-      delete session.variables[fileVariable];
-    }
+
+  // Limpa caches transitórios para evitar reaproveitar dados de execução anterior
+  delete session.variables['_http_document'];
+  delete session.variables['_http_first_boleto'];
+  delete session.variables['_http_all_boletos'];
+  delete session.variables['_http_boletos_count'];
+
+  if (isFileLikeResponse && fileVariable) {
+    delete session.variables[fileVariable];
   }
 
   const processedUrl = replaceVariables(url, session.variables, session);
