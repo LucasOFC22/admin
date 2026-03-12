@@ -24,6 +24,7 @@ const defaultConfig: ApiLogConfig = {
     /\/logs/,         // Evitar loop infinito
     /\/erros/,        // Evitar loop infinito com tabela de erros
     /\/rest\/v1\//,   // Não logar chamadas internas do Supabase
+    /\/functions\/v1\//, // Não interceptar Edge Functions (evita consumo de body stream)
   ],
   slowRequestThreshold: 2000
 };
