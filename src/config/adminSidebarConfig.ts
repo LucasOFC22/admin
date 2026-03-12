@@ -75,6 +75,7 @@ export type AdminTab =
   | 'calendario-financeiro'
   | 'dre'
   | 'solicitacoes-documentos'
+  | 'baixa-rapida-cte'
   | 'ocorrencias'
   | 'mensagens-rapidas'
   | 'chat-interno'
