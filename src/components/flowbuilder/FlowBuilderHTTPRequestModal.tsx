@@ -361,11 +361,29 @@ export const FlowBuilderHTTPRequestModal: React.FC<FlowBuilderHTTPRequestModalPr
       const endTime = Date.now();
       let responseData;
       
-      const responseClone = response.clone();
-      try {
-        responseData = await response.json();
-      } catch {
-        responseData = await responseClone.text();
+      if (formData.responseFormat === 'file') {
+        // Para respostas binárias (PDF, imagem, etc.), converter para base64
+        const arrayBuffer = await response.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < uint8Array.length; i++) {
+          binary += String.fromCharCode(uint8Array[i]);
+        }
+        const base64 = btoa(binary);
+        const contentType = response.headers.get('Content-Type') || 'application/octet-stream';
+        responseData = {
+          base64,
+          contentType,
+          size: arrayBuffer.byteLength,
+          message: `Arquivo recebido: ${contentType} (${(arrayBuffer.byteLength / 1024).toFixed(1)} KB)`
+        };
+      } else {
+        const responseClone = response.clone();
+        try {
+          responseData = await response.json();
+        } catch {
+          responseData = await responseClone.text();
+        }
       }
 
       setTestResult({
