@@ -876,7 +876,13 @@ const ContasReceber = () => {
                     </TableHeader>
                     <TableBody>
                       {filteredContas.map((conta, index) => (
-                        <TableRow key={`${conta.idTitulo}-${conta.doc}-${index}`}>
+                        <TableRow key={`${conta.idTitulo}-${conta.doc}-${index}`} className={selectedContas.has(conta.idTitulo) ? 'bg-primary/5' : ''}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedContas.has(conta.idTitulo)}
+                              onCheckedChange={() => toggleSelectConta(conta.idTitulo)}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">{conta.doc}</TableCell>
                           <TableCell className="font-medium">
                             <div className="flex flex-col">
