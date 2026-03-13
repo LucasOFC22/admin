@@ -78,6 +78,9 @@ const ContasReceber = () => {
   const [contasReceber, setContasReceber] = useState<ContaReceber[]>([]);
   const [detalhesModalOpen, setDetalhesModalOpen] = useState(false);
   const [selectedConta, setSelectedConta] = useState<ContaReceber | null>(null);
+  const [downloadChoiceOpen, setDownloadChoiceOpen] = useState(false);
+  const [downloadChoiceConta, setDownloadChoiceConta] = useState<ContaReceber | null>(null);
+  const [downloadChoiceTipo, setDownloadChoiceTipo] = useState<'fatura' | 'boleto'>('fatura');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filtros, setFiltros] = useState<ContasReceberFiltros>({
