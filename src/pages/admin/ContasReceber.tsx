@@ -415,6 +415,58 @@ const ContasReceber = () => {
     }
   };
 
+  const handleDownloadTodasFaturas = async (contas: ContaReceber[]) => {
+    setDownloadType('todas-faturas');
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    
+    await logActivity({
+      acao: 'todas_faturas_download',
+      modulo: 'contas-receber',
+      detalhes: {
+        cliente: contas[0]?.cliente,
+        total: contas.length,
+        docs: contas.map(c => c.doc)
+      }
+    });
+
+    for (const conta of contas) {
+      const pdfUrl = `${baseUrl}/functions/v1/pdf-fatura/${conta.idTitulo}`;
+      await downloadPdf({
+        url: pdfUrl,
+        fileName: `Fatura_${conta.doc}.pdf`,
+      });
+    }
+    setDownloadType(null);
+    success('Downloads concluídos', `${contas.length} faturas baixadas`);
+  };
+
+  const handleDownloadTodosBoletos = async (contas: ContaReceber[]) => {
+    setDownloadType('todos-boletos');
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+    
+    await logActivity({
+      acao: 'todos_boletos_download',
+      modulo: 'contas-receber',
+      detalhes: {
+        cliente: contas[0]?.cliente,
+        total: contas.length,
+        docs: contas.map(c => c.doc)
+      }
+    });
+
+    for (const conta of contas) {
+      if (conta.idBoleto && conta.idBoleto !== 0) {
+        const pdfUrl = `${baseUrl}/functions/v1/pdf-boleto/${conta.idBoleto}`;
+        await downloadPdf({
+          url: pdfUrl,
+          fileName: `Boleto_${conta.doc}.pdf`,
+        });
+      }
+    }
+    setDownloadType(null);
+    success('Downloads concluídos', `${contas.length} boletos baixados`);
+  };
+
   const handleVerDetalhes = (conta: ContaReceber) => {
     setSelectedConta(conta);
     setDetalhesModalOpen(true);
