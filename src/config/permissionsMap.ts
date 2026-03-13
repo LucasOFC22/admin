@@ -224,6 +224,40 @@ export const permissionsMap: PermissionGroup[] = [
     ]
   },
   {
+    category: 'Baixa Rápida CT-e',
+    icon: 'FileDown',
+    description: 'Registro de ocorrências em lote via imagens de CT-es',
+    permissions: [
+      {
+        id: 'admin.baixa_rapida.visualizar',
+        name: 'Visualizar Baixa Rápida',
+        description: 'Acessar página de Baixa Rápida CT-e',
+        action: 'view',
+        resource: 'baixa-rapida-cte',
+        category: 'Baixa Rápida CT-e',
+        enabled: true
+      },
+      {
+        id: 'admin.baixa_rapida.registrar',
+        name: 'Registrar Baixa',
+        description: 'Registrar ocorrências em lote nos CT-es',
+        action: 'create',
+        resource: 'baixa-rapida-cte',
+        category: 'Baixa Rápida CT-e',
+        enabled: true
+      },
+      {
+        id: 'admin.baixa_rapida.validar_ia',
+        name: 'Validar Chaves com IA',
+        description: 'Utilizar validação de chaves via inteligência artificial',
+        action: 'manage',
+        resource: 'baixa-rapida-cte',
+        category: 'Baixa Rápida CT-e',
+        enabled: true
+      }
+    ]
+  },
+  {
     category: 'Consultar NF-e',
     icon: 'FileSearch',
     description: 'Consulta e download de documentos fiscais (CT-e/NF-e)',

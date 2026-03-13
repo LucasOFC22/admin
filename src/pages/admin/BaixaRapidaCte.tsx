@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { ImagePlus, Upload, Sparkles, Search, Calendar, X, Loader2, FileDown } from 'lucide-react';
 import PageHeader from '@/components/admin/PageHeader';
+import PermissionGuard from '@/components/admin/permissions/PermissionGuard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,6 +75,7 @@ const BaixaRapidaCte = () => {
   };
 
   return (
+    <PermissionGuard permissions="admin.baixa_rapida.visualizar">
     <div className="min-h-screen bg-background">
       <PageHeader
         title="Baixa Rápida de CT-e"
@@ -97,14 +99,16 @@ const BaixaRapidaCte = () => {
                   Imagens dos CT-es ({images.length}/{MAX_IMAGES})
                 </CardTitle>
                 <div className="flex gap-2 flex-wrap">
-                  <Button
-                    size="sm"
-                    disabled={images.length === 0}
-                    className="gap-1"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Validar Chaves com IA
-                  </Button>
+                  <PermissionGuard permissions="admin.baixa_rapida.validar_ia" showMessage={false}>
+                    <Button
+                      size="sm"
+                      disabled={images.length === 0}
+                      className="gap-1"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Validar Chaves com IA
+                    </Button>
+                  </PermissionGuard>
                 </div>
               </div>
             </CardHeader>
@@ -237,19 +241,22 @@ const BaixaRapidaCte = () => {
               </div>
 
               {/* Botão de Submit */}
-              <Button
-                className="w-full"
-                disabled={!canSubmit || isSubmitting}
-                onClick={handleSubmit}
-              >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                Registrar Baixa ({images.length} CTEs)
-              </Button>
+              <PermissionGuard permissions="admin.baixa_rapida.registrar" showMessage={false}>
+                <Button
+                  className="w-full"
+                  disabled={!canSubmit || isSubmitting}
+                  onClick={handleSubmit}
+                >
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  Registrar Baixa ({images.length} CTEs)
+                </Button>
+              </PermissionGuard>
             </CardContent>
           </Card>
         </div>
       </main>
     </div>
+    </PermissionGuard>
   );
 };
 
