@@ -73,7 +73,7 @@ const ContasReceber = () => {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  const [downloadType, setDownloadType] = useState<'fatura' | 'boleto' | null>(null);
+  const [downloadType, setDownloadType] = useState<'fatura' | 'boleto' | 'todas-faturas' | 'todos-boletos' | null>(null);
   const [contasReceber, setContasReceber] = useState<ContaReceber[]>([]);
   const [detalhesModalOpen, setDetalhesModalOpen] = useState(false);
   const [selectedConta, setSelectedConta] = useState<ContaReceber | null>(null);
