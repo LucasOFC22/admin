@@ -332,6 +332,28 @@ const ContasReceber = () => {
   const handleClear = () => {
     setHasSearched(false);
     setContasReceber([]);
+    setSelectedContas(new Set());
+  };
+
+  const toggleSelectConta = (idTitulo: number) => {
+    setSelectedContas(prev => {
+      const next = new Set(prev);
+      if (next.has(idTitulo)) next.delete(idTitulo);
+      else next.add(idTitulo);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedContas.size === filteredContas.length) {
+      setSelectedContas(new Set());
+    } else {
+      setSelectedContas(new Set(filteredContas.map(c => c.idTitulo)));
+    }
+  };
+
+  const getSelectedContasList = () => {
+    return filteredContas.filter(c => selectedContas.has(c.idTitulo));
   };
 
   const handleImprimirFatura = (conta: ContaReceber) => {
