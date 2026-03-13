@@ -252,6 +252,7 @@ const BaixaRapidaCte = () => {
         </div>
       </main>
     </div>
+    </PermissionGuard>
   );
 };
 
