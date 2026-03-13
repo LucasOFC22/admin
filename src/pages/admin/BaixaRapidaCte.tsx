@@ -241,14 +241,16 @@ const BaixaRapidaCte = () => {
               </div>
 
               {/* Botão de Submit */}
-              <Button
-                className="w-full"
-                disabled={!canSubmit || isSubmitting}
-                onClick={handleSubmit}
-              >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                Registrar Baixa ({images.length} CTEs)
-              </Button>
+              <PermissionGuard permissions="admin.baixa_rapida.registrar" showMessage={false}>
+                <Button
+                  className="w-full"
+                  disabled={!canSubmit || isSubmitting}
+                  onClick={handleSubmit}
+                >
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  Registrar Baixa ({images.length} CTEs)
+                </Button>
+              </PermissionGuard>
             </CardContent>
           </Card>
         </div>
