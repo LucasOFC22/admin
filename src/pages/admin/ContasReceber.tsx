@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Eye, CheckCircle, XCircle, Clock, List, Grid3x3, Loader2, FileText, Printer, Copy, Info, Download } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
