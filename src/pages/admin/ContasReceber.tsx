@@ -335,26 +335,28 @@ const ContasReceber = () => {
     setSelectedContas(new Set());
   };
 
-  const toggleSelectConta = (idTitulo: number) => {
+  const toggleSelectConta = useCallback((idTitulo: number) => {
     setSelectedContas(prev => {
       const next = new Set(prev);
       if (next.has(idTitulo)) next.delete(idTitulo);
       else next.add(idTitulo);
       return next;
     });
-  };
+  }, []);
 
-  const toggleSelectAll = () => {
-    if (selectedContas.size === filteredContas.length) {
-      setSelectedContas(new Set());
-    } else {
-      setSelectedContas(new Set(filteredContas.map(c => c.idTitulo)));
-    }
-  };
+  const toggleSelectAll = useCallback(() => {
+    setSelectedContas(prev => {
+      if (prev.size === filteredContas.length) {
+        return new Set();
+      } else {
+        return new Set(filteredContas.map(c => c.idTitulo));
+      }
+    });
+  }, [filteredContas]);
 
-  const getSelectedContasList = () => {
+  const getSelectedContasList = useCallback(() => {
     return filteredContas.filter(c => selectedContas.has(c.idTitulo));
-  };
+  }, [filteredContas, selectedContas]);
 
   const handleImprimirFatura = (conta: ContaReceber) => {
     logActivity({
