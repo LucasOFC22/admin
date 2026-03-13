@@ -738,10 +738,45 @@ const ContasReceber = () => {
             ) : (
               /* Tabela de Contas - Desktop */
               <Card className="hidden md:block">
-                <div className="overflow-x-auto">
+              {/* Barra de ações em lote */}
+              {selectedContas.size > 0 && (
+                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg mb-2">
+                  <span className="text-sm font-medium text-primary">
+                    {selectedContas.size} selecionado(s)
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadTodasFaturas(getSelectedContasList())}
+                    disabled={downloadType === 'todas-faturas'}
+                  >
+                    {downloadType === 'todas-faturas' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
+                    Baixar Faturas
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadTodosBoletos(getSelectedContasList())}
+                    disabled={downloadType === 'todos-boletos'}
+                  >
+                    {downloadType === 'todos-boletos' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Printer className="h-4 w-4 mr-2" />}
+                    Baixar Boletos
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSelectedContas(new Set())}>
+                    Limpar seleção
+                  </Button>
+                </div>
+              )}
+              <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="border-b transition-colors data-[state=selected]:bg-muted border-primary/20 hover:bg-primary/5">
+                        <TableHead className="w-[40px]">
+                          <Checkbox
+                            checked={filteredContas.length > 0 && selectedContas.size === filteredContas.length}
+                            onCheckedChange={toggleSelectAll}
+                          />
+                        </TableHead>
                         <TableHead 
                           className="cursor-pointer select-none hover:bg-primary/10 transition-all duration-200 font-semibold text-primary/90 text-left max-w-[150px]"
                           onClick={() => handleSort('doc')}
