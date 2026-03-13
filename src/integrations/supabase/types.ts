@@ -1971,6 +1971,53 @@ export type Database = {
           },
         ]
       }
+      logs_coleta: {
+        Row: {
+          acao: string
+          coleta_id: number | null
+          created_at: string
+          dados_coleta: Json
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          usuario_email: string | null
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        Insert: {
+          acao?: string
+          coleta_id?: number | null
+          created_at?: string
+          dados_coleta?: Json
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          usuario_email?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          coleta_id?: number | null
+          created_at?: string
+          dados_coleta?: Json
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          usuario_email?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_coleta_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logs_conexoes: {
         Row: {
           conexao_id: string | null
@@ -3849,9 +3896,7 @@ export type Database = {
         Returns: undefined
       }
       is_active_user: { Args: never; Returns: boolean }
-      is_admin:
-        | { Args: never; Returns: boolean }
-        | { Args: { _user_id?: string }; Returns: boolean }
+      is_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_admin_user:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
