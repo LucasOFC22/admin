@@ -930,12 +930,23 @@ const ContasReceber = () => {
           onOpenChange={setDetalhesModalOpen}
           conta={selectedConta}
           todasContas={contasReceber}
-          onDownloadFatura={handleImprimirFatura}
-          onDownloadBoleto={handleImprimirBoleto}
+          onDownloadFatura={doDownloadFatura}
+          onDownloadBoleto={doDownloadBoleto}
           onDownloadTodasFaturas={handleDownloadTodasFaturas}
           onDownloadTodosBoletos={handleDownloadTodosBoletos}
           isDownloading={downloadType !== null}
           downloadType={downloadType}
+        />
+
+        {/* Download Choice Dialog */}
+        <DownloadChoiceDialog
+          open={downloadChoiceOpen}
+          onOpenChange={setDownloadChoiceOpen}
+          conta={downloadChoiceConta}
+          contasMesmoCliente={downloadChoiceConta ? contasReceber.filter(c => c.docCliente === downloadChoiceConta.docCliente) : []}
+          tipo={downloadChoiceTipo}
+          onDownloadSingle={downloadChoiceTipo === 'fatura' ? doDownloadFatura : doDownloadBoleto}
+          onDownloadAll={downloadChoiceTipo === 'fatura' ? handleDownloadTodasFaturas : handleDownloadTodosBoletos}
         />
 
       </motion.div>
