@@ -5,9 +5,11 @@ import {
   AdminDialogTitle,
 } from '@/components/admin/ui/AdminDialog';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Clock, FileText, CreditCard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, XCircle, Clock, FileText, CreditCard, Download, Loader2 } from 'lucide-react';
 import { formatDateOnly, formatDate } from '@/utils/dateFormatters';
 import { formatCurrency } from '@/lib/formatters';
+import { Separator } from '@/components/ui/separator';
 
 interface ContaReceber {
   doc: string;
@@ -35,14 +37,32 @@ interface DetalhesContaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   conta: ContaReceber | null;
+  todasContas?: ContaReceber[];
+  onDownloadFatura?: (conta: ContaReceber) => void;
+  onDownloadBoleto?: (conta: ContaReceber) => void;
+  onDownloadTodasFaturas?: (contas: ContaReceber[]) => void;
+  onDownloadTodosBoletos?: (contas: ContaReceber[]) => void;
+  isDownloading?: boolean;
+  downloadType?: 'fatura' | 'boleto' | 'todas-faturas' | 'todos-boletos' | null;
 }
 
-export const DetalhesContaModal = ({ open, onOpenChange, conta }: DetalhesContaModalProps) => {
+export const DetalhesContaModal = ({ 
+  open, 
+  onOpenChange, 
+  conta, 
+  todasContas = [],
+  onDownloadFatura,
+  onDownloadBoleto,
+  onDownloadTodasFaturas,
+  onDownloadTodosBoletos,
+  isDownloading = false,
+  downloadType = null,
+}: DetalhesContaModalProps) => {
   if (!conta) return null;
 
-  // formatCurrency imported from @/lib/formatters
-
-  // formatDate = formatDateOnly, imported from @/utils/dateFormatters
+  const contasMesmoCliente = todasContas.filter(c => c.docCliente === conta.docCliente);
+  const temMultiplasContas = contasMesmoCliente.length > 1;
+  const contasComBoleto = contasMesmoCliente.filter(c => c.idBoleto && c.idBoleto !== 0);
 
   const formatCTEs = (ctes?: string) => {
     if (!ctes) return '-';
@@ -198,6 +218,98 @@ export const DetalhesContaModal = ({ open, onOpenChange, conta }: DetalhesContaM
               <div className="bg-muted/50 rounded-lg p-4">
                 <p className="text-sm">{conta.contaRecebimento}</p>
               </div>
+            </div>
+          )}
+
+          {/* Ações de Download */}
+          {(onDownloadFatura || onDownloadBoleto) && (
+            <div className="space-y-3">
+              <Separator />
+              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Downloads
+              </h3>
+              
+              {/* Download desta fatura */}
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground font-medium">Esta fatura ({conta.doc})</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {onDownloadFatura && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => onDownloadFatura(conta)}
+                      disabled={isDownloading}
+                    >
+                      {isDownloading && downloadType === 'fatura' ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileText className="h-4 w-4 mr-2" />
+                      )}
+                      Baixar Fatura
+                    </Button>
+                  )}
+                  {onDownloadBoleto && conta.idBoleto && conta.idBoleto !== 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => onDownloadBoleto(conta)}
+                      disabled={isDownloading}
+                    >
+                      {isDownloading && downloadType === 'boleto' ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CreditCard className="h-4 w-4 mr-2" />
+                      )}
+                      Baixar Boleto
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Download de todas as faturas do mesmo cliente */}
+              {temMultiplasContas && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Todas as faturas de {conta.cliente} ({contasMesmoCliente.length} faturas)
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {onDownloadTodasFaturas && (
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => onDownloadTodasFaturas(contasMesmoCliente)}
+                        disabled={isDownloading}
+                      >
+                        {isDownloading && downloadType === 'todas-faturas' ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4 mr-2" />
+                        )}
+                        Baixar Todas as Faturas ({contasMesmoCliente.length})
+                      </Button>
+                    )}
+                    {onDownloadTodosBoletos && contasComBoleto.length > 0 && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => onDownloadTodosBoletos(contasComBoleto)}
+                        disabled={isDownloading}
+                      >
+                        {isDownloading && downloadType === 'todos-boletos' ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4 mr-2" />
+                        )}
+                        Baixar Todos os Boletos ({contasComBoleto.length})
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           </div>
