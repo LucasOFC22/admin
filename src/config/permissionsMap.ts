@@ -2060,5 +2060,30 @@ export const permissionsMap: PermissionGroup[] = [
         enabled: true
       }
     ]
+  },
+  {
+    category: 'Logs Coleta',
+    icon: 'Package',
+    description: 'Logs de ações e alterações nas coletas',
+    permissions: [
+      {
+        id: 'admin.logs-coleta.visualizar',
+        name: 'Visualizar Logs Coleta',
+        description: 'Acessar página de logs de coleta',
+        action: 'view',
+        resource: 'logs-coleta',
+        category: 'Logs Coleta',
+        enabled: true
+      },
+      {
+        id: 'admin.logs-coleta.exportar',
+        name: 'Exportar Logs Coleta',
+        description: 'Exportar logs de coleta em CSV',
+        action: 'export',
+        resource: 'logs-coleta',
+        category: 'Logs Coleta',
+        enabled: true
+      }
+    ]
   }
 ];
