@@ -180,6 +180,7 @@ export const tabMapping: Record<string, AdminTab> = {
   'logs-conexoes': 'logs-conexoes',
   'logs-cargos': 'logs-cargos',
   'logs-tags': 'logs-tags',
+  'logs-coleta': 'logs-coleta',
   'logs-documentos': 'logs-documentos',
   'logs-filas': 'logs-filas',
   'logs-sistema': 'logs-sistema',
