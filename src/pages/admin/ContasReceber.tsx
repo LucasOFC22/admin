@@ -36,6 +36,7 @@ import { EmpresaSelector } from '@/components/admin/EmpresaSelector';
 import PermissionGuard from '@/components/admin/permissions/PermissionGuard';
 import { ContaReceberCard } from '@/components/admin/contas-receber/ContaReceberCard';
 import { DetalhesContaModal } from '@/components/admin/contas-receber/DetalhesContaModal';
+import { DownloadChoiceDialog } from '@/components/admin/contas-receber/DownloadChoiceDialog';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { formatDateOnly } from '@/utils/dateFormatters';
 import { backendService } from '@/services/api/backendService';
@@ -77,6 +78,9 @@ const ContasReceber = () => {
   const [contasReceber, setContasReceber] = useState<ContaReceber[]>([]);
   const [detalhesModalOpen, setDetalhesModalOpen] = useState(false);
   const [selectedConta, setSelectedConta] = useState<ContaReceber | null>(null);
+  const [downloadChoiceOpen, setDownloadChoiceOpen] = useState(false);
+  const [downloadChoiceConta, setDownloadChoiceConta] = useState<ContaReceber | null>(null);
+  const [downloadChoiceTipo, setDownloadChoiceTipo] = useState<'fatura' | 'boleto'>('fatura');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filtros, setFiltros] = useState<ContasReceberFiltros>({
@@ -332,7 +336,7 @@ const ContasReceber = () => {
     setContasReceber([]);
   };
 
-  const handleImprimirFatura = (conta: ContaReceber) => {
+  const doDownloadFatura = (conta: ContaReceber) => {
     logActivity({
       acao: 'fatura_download',
       modulo: 'contas-receber',
@@ -359,7 +363,18 @@ const ContasReceber = () => {
     });
   };
 
-  const handleImprimirBoleto = (conta: ContaReceber) => {
+  const handleImprimirFatura = (conta: ContaReceber) => {
+    const contasMesmoCliente = contasReceber.filter(c => c.docCliente === conta.docCliente);
+    if (contasMesmoCliente.length > 1) {
+      setDownloadChoiceConta(conta);
+      setDownloadChoiceTipo('fatura');
+      setDownloadChoiceOpen(true);
+    } else {
+      doDownloadFatura(conta);
+    }
+  };
+
+  const doDownloadBoleto = (conta: ContaReceber) => {
     if (!conta.idBoleto || conta.idBoleto === 0) {
       error('Boleto não disponível', 'Este título não possui boleto associado');
       return;
@@ -389,6 +404,21 @@ const ContasReceber = () => {
         setDownloadType(null);
       }
     });
+  };
+
+  const handleImprimirBoleto = (conta: ContaReceber) => {
+    if (!conta.idBoleto || conta.idBoleto === 0) {
+      error('Boleto não disponível', 'Este título não possui boleto associado');
+      return;
+    }
+    const contasMesmoCliente = contasReceber.filter(c => c.docCliente === conta.docCliente && c.idBoleto && c.idBoleto !== 0);
+    if (contasMesmoCliente.length > 1) {
+      setDownloadChoiceConta(conta);
+      setDownloadChoiceTipo('boleto');
+      setDownloadChoiceOpen(true);
+    } else {
+      doDownloadBoleto(conta);
+    }
   };
 
   const handleCopiarLinhaDigitavel = async (conta: ContaReceber) => {
@@ -900,12 +930,23 @@ const ContasReceber = () => {
           onOpenChange={setDetalhesModalOpen}
           conta={selectedConta}
           todasContas={contasReceber}
-          onDownloadFatura={handleImprimirFatura}
-          onDownloadBoleto={handleImprimirBoleto}
+          onDownloadFatura={doDownloadFatura}
+          onDownloadBoleto={doDownloadBoleto}
           onDownloadTodasFaturas={handleDownloadTodasFaturas}
           onDownloadTodosBoletos={handleDownloadTodosBoletos}
           isDownloading={downloadType !== null}
           downloadType={downloadType}
+        />
+
+        {/* Download Choice Dialog */}
+        <DownloadChoiceDialog
+          open={downloadChoiceOpen}
+          onOpenChange={setDownloadChoiceOpen}
+          conta={downloadChoiceConta}
+          contasMesmoCliente={downloadChoiceConta ? contasReceber.filter(c => c.docCliente === downloadChoiceConta.docCliente) : []}
+          tipo={downloadChoiceTipo}
+          onDownloadSingle={downloadChoiceTipo === 'fatura' ? doDownloadFatura : doDownloadBoleto}
+          onDownloadAll={downloadChoiceTipo === 'fatura' ? handleDownloadTodasFaturas : handleDownloadTodosBoletos}
         />
 
       </motion.div>
