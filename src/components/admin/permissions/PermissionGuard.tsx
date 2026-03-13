@@ -28,6 +28,11 @@ const PermissionGuard: React.FC<PermissionGuardProps> = ({
     isLoadingCargoPermissions 
   } = useAdvancedPermissions(userCargoId);
 
+  // Se não tem cargo definido, permitir acesso (admin sem cargo configurado)
+  if (!userCargoId) {
+    return <>{children}</>;
+  }
+
   // Se ainda está carregando, mostra loading
   if (isLoadingCargoPermissions) {
     return fallback || (
