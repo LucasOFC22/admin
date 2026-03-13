@@ -336,7 +336,7 @@ const ContasReceber = () => {
     setContasReceber([]);
   };
 
-  const handleImprimirFatura = (conta: ContaReceber) => {
+  const doDownloadFatura = (conta: ContaReceber) => {
     logActivity({
       acao: 'fatura_download',
       modulo: 'contas-receber',
@@ -363,7 +363,18 @@ const ContasReceber = () => {
     });
   };
 
-  const handleImprimirBoleto = (conta: ContaReceber) => {
+  const handleImprimirFatura = (conta: ContaReceber) => {
+    const contasMesmoCliente = contasReceber.filter(c => c.docCliente === conta.docCliente);
+    if (contasMesmoCliente.length > 1) {
+      setDownloadChoiceConta(conta);
+      setDownloadChoiceTipo('fatura');
+      setDownloadChoiceOpen(true);
+    } else {
+      doDownloadFatura(conta);
+    }
+  };
+
+  const doDownloadBoleto = (conta: ContaReceber) => {
     if (!conta.idBoleto || conta.idBoleto === 0) {
       error('Boleto não disponível', 'Este título não possui boleto associado');
       return;
@@ -393,6 +404,21 @@ const ContasReceber = () => {
         setDownloadType(null);
       }
     });
+  };
+
+  const handleImprimirBoleto = (conta: ContaReceber) => {
+    if (!conta.idBoleto || conta.idBoleto === 0) {
+      error('Boleto não disponível', 'Este título não possui boleto associado');
+      return;
+    }
+    const contasMesmoCliente = contasReceber.filter(c => c.docCliente === conta.docCliente && c.idBoleto && c.idBoleto !== 0);
+    if (contasMesmoCliente.length > 1) {
+      setDownloadChoiceConta(conta);
+      setDownloadChoiceTipo('boleto');
+      setDownloadChoiceOpen(true);
+    } else {
+      doDownloadBoleto(conta);
+    }
   };
 
   const handleCopiarLinhaDigitavel = async (conta: ContaReceber) => {
