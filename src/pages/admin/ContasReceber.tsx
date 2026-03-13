@@ -36,6 +36,7 @@ import { EmpresaSelector } from '@/components/admin/EmpresaSelector';
 import PermissionGuard from '@/components/admin/permissions/PermissionGuard';
 import { ContaReceberCard } from '@/components/admin/contas-receber/ContaReceberCard';
 import { DetalhesContaModal } from '@/components/admin/contas-receber/DetalhesContaModal';
+import { DownloadChoiceDialog } from '@/components/admin/contas-receber/DownloadChoiceDialog';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { formatDateOnly } from '@/utils/dateFormatters';
 import { backendService } from '@/services/api/backendService';
