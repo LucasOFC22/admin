@@ -189,6 +189,7 @@ const App = () => (
             <Route path="logs-mensagens-rapidas" element={<LogsMensagensRapidas />} />
             <Route path="logs-ocorrencias" element={<LogsOcorrencias />} />
             <Route path="logs-vagas" element={<LogsVagas />} />
+            <Route path="logs-coleta" element={<LogsColeta />} />
             <Route path="auditoria-seguranca" element={<AuditoriaSeguranca />} />
           </Route>
 

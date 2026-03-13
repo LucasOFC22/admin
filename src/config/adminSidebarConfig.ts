@@ -294,6 +294,7 @@ export const menuCategories: MenuCategoryConfig[] = [
       { id: 'logs-malotes', label: 'Malotes', icon: Briefcase, requiredPermission: 'logs.malotes' },
       { id: 'logs-conexoes', label: 'Conexões', icon: Plug, requiredPermission: 'logs.conexoes' },
       { id: 'logs-tags', label: 'Tags', icon: Tag, requiredPermission: 'logs.tags' },
+      { id: 'logs-coleta', label: 'Coletas', icon: Package, requiredPermission: 'logs.coleta' },
       { id: 'logs-documentos', label: 'Documentos', icon: FileCheck, requiredPermission: 'logs.documentos' },
       { id: 'logs-filas', label: 'Filas WhatsApp', icon: ListOrdered, requiredPermission: 'logs.filas' },
       { id: 'logs-sistema', label: 'Sistema', icon: AlertTriangle, requiredPermission: 'logs.sistema' }
