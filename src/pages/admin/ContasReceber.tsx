@@ -80,6 +80,7 @@ const ContasReceber = () => {
   const [selectedConta, setSelectedConta] = useState<ContaReceber | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedContas, setSelectedContas] = useState<Set<number>>(new Set());
   const [filtros, setFiltros] = useState<ContasReceberFiltros>({
     empresa: 'all',
     idCliente: '',
