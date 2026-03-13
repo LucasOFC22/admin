@@ -107,6 +107,7 @@ export type AdminTab =
   | 'logs-campanhas'
   | 'vagas'
   | 'logs-vagas'
+  | 'logs-coleta'
   | 'auditoria-seguranca';
 
 export interface MenuItemConfig {
