@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { ImagePlus, Upload, Sparkles, Search, Calendar, X, Loader2, FileDown } from 'lucide-react';
 import PageHeader from '@/components/admin/PageHeader';
+import PermissionGuard from '@/components/admin/permissions/PermissionGuard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

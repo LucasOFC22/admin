@@ -62,7 +62,8 @@ export type PermissionResource =
   | 'cliente-coletas'
   | 'cliente-financeiro'
   | 'email'
-  | 'email-contas';
+  | 'email-contas'
+  | 'baixa-rapida-cte';
 
 // Compatibilidade com código existente
 export type PermissionCategory = string;
