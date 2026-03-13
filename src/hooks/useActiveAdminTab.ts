@@ -62,6 +62,7 @@ const routeToTabMapping: Record<string, AdminTab> = {
   '/logs-vagas': 'logs-vagas',
   '/rastreamento': 'rastreamento',
   '/baixa-rapida-cte': 'baixa-rapida-cte',
+  '/logs-coleta': 'logs-coleta',
   '/auditoria-seguranca': 'auditoria-seguranca'
 };
 
@@ -127,6 +128,7 @@ const tabToRouteMapping: Record<AdminTab, string> = {
   'vagas': '/vagas',
   'logs-vagas': '/logs-vagas',
   'baixa-rapida-cte': '/baixa-rapida-cte',
+  'logs-coleta': '/logs-coleta',
   'auditoria-seguranca': '/auditoria-seguranca'
 };
 

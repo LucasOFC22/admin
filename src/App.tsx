@@ -77,6 +77,7 @@ import LogsSistema from "./pages/admin/LogsSistema";
 import LogsCampanhas from "./pages/admin/LogsCampanhas";
 import LogsMensagensRapidas from "./pages/admin/LogsMensagensRapidas";
 import LogsOcorrencias from "./pages/admin/LogsOcorrencias";
+import LogsColeta from "./pages/admin/LogsColeta";
 import LogsVagas from "./pages/admin/LogsVagas";
 import VagasPage from "./pages/admin/VagasPage";
 import Erros from "./pages/admin/Erros";
@@ -188,6 +189,7 @@ const App = () => (
             <Route path="logs-mensagens-rapidas" element={<LogsMensagensRapidas />} />
             <Route path="logs-ocorrencias" element={<LogsOcorrencias />} />
             <Route path="logs-vagas" element={<LogsVagas />} />
+            <Route path="logs-coleta" element={<LogsColeta />} />
             <Route path="auditoria-seguranca" element={<AuditoriaSeguranca />} />
           </Route>
 

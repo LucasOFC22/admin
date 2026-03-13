@@ -301,6 +301,7 @@ class DatabasePermissionsService {
       'logs-documentos': 'admin.logs-documentos.visualizar',
       'logs-filas': 'admin.logs-filas.visualizar',
       'logs-sistema': 'admin.logs-sistema.visualizar',
+      'logs-coleta': 'admin.logs-coleta.visualizar',
       'vagas': 'admin.vagas.visualizar',
       'logs-vagas': 'admin.logs-vagas.visualizar',
       

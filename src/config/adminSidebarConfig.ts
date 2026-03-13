@@ -107,6 +107,7 @@ export type AdminTab =
   | 'logs-campanhas'
   | 'vagas'
   | 'logs-vagas'
+  | 'logs-coleta'
   | 'auditoria-seguranca';
 
 export interface MenuItemConfig {
@@ -179,6 +180,7 @@ export const tabMapping: Record<string, AdminTab> = {
   'logs-conexoes': 'logs-conexoes',
   'logs-cargos': 'logs-cargos',
   'logs-tags': 'logs-tags',
+  'logs-coleta': 'logs-coleta',
   'logs-documentos': 'logs-documentos',
   'logs-filas': 'logs-filas',
   'logs-sistema': 'logs-sistema',
@@ -293,6 +295,7 @@ export const menuCategories: MenuCategoryConfig[] = [
       { id: 'logs-malotes', label: 'Malotes', icon: Briefcase, requiredPermission: 'logs.malotes' },
       { id: 'logs-conexoes', label: 'Conexões', icon: Plug, requiredPermission: 'logs.conexoes' },
       { id: 'logs-tags', label: 'Tags', icon: Tag, requiredPermission: 'logs.tags' },
+      { id: 'logs-coleta', label: 'Coletas', icon: Package, requiredPermission: 'logs.coleta' },
       { id: 'logs-documentos', label: 'Documentos', icon: FileCheck, requiredPermission: 'logs.documentos' },
       { id: 'logs-filas', label: 'Filas WhatsApp', icon: ListOrdered, requiredPermission: 'logs.filas' },
       { id: 'logs-sistema', label: 'Sistema', icon: AlertTriangle, requiredPermission: 'logs.sistema' }
