@@ -232,7 +232,7 @@ const ContasReceber = () => {
     return sorted;
   };
 
-  const filteredContas = getSortedContas();
+  const filteredContas = useMemo(() => getSortedContas(), [contasReceber, sortColumn, sortDirection]);
 
   const totalPendente = contasReceber
     .filter(c => c.status && ['pendente', 'aberto'].includes(c.status.toLowerCase()))
