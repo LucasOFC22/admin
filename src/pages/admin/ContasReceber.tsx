@@ -429,15 +429,68 @@ const ContasReceber = () => {
       }
     });
 
-    for (const conta of contas) {
-      const pdfUrl = `${baseUrl}/functions/v1/pdf-fatura/${conta.idTitulo}`;
-      await downloadPdf({
-        url: pdfUrl,
-        fileName: `Fatura_${conta.doc}.pdf`,
+    try {
+      // Usa batch endpoint com POST para buscar todas de uma vez
+      const ids = contas.map(c => String(c.idTitulo));
+      const response = await fetch(`${baseUrl}/functions/v1/pdf-fatura`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
       });
+
+      const data = await response.json();
+
+      if (data.faturas && Array.isArray(data.faturas)) {
+        // Baixar cada fatura retornada como base64
+        for (const fatura of data.faturas) {
+          if (fatura.success && fatura.base64) {
+            const byteCharacters = atob(fatura.base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'application/pdf' });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            const doc = contas.find(c => String(c.idTitulo) === fatura.id)?.doc || fatura.id;
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `Fatura_${doc}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+          }
+        }
+        success('Downloads concluídos', `${data.sucessos} de ${data.total} faturas baixadas`);
+      } else if (data.base64) {
+        // Resposta de fatura única
+        const byteCharacters = atob(data.base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `Fatura_${contas[0]?.doc || 'download'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        success('Download concluído', '1 fatura baixada');
+      } else {
+        error('Erro ao baixar faturas', data.error || 'Resposta inválida');
+      }
+    } catch (err) {
+      console.error('Erro ao baixar todas as faturas:', err);
+      error('Erro ao baixar faturas', 'Erro ao processar o download');
+    } finally {
+      setDownloadType(null);
     }
-    setDownloadType(null);
-    success('Downloads concluídos', `${contas.length} faturas baixadas`);
   };
 
   const handleDownloadTodosBoletos = async (contas: ContaReceber[]) => {
@@ -454,17 +507,74 @@ const ContasReceber = () => {
       }
     });
 
-    for (const conta of contas) {
-      if (conta.idBoleto && conta.idBoleto !== 0) {
-        const pdfUrl = `${baseUrl}/functions/v1/pdf-boleto/${conta.idBoleto}`;
-        await downloadPdf({
-          url: pdfUrl,
-          fileName: `Boleto_${conta.doc}.pdf`,
-        });
+    try {
+      const ids = contas
+        .filter(c => c.idBoleto && c.idBoleto !== 0)
+        .map(c => String(c.idBoleto));
+
+      if (ids.length === 0) {
+        error('Nenhum boleto disponível', 'Nenhuma das contas possui boleto');
+        setDownloadType(null);
+        return;
       }
+
+      const response = await fetch(`${baseUrl}/functions/v1/pdf-boleto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+
+      const data = await response.json();
+
+      if (data.boletos && Array.isArray(data.boletos)) {
+        for (const boleto of data.boletos) {
+          if (boleto.success && boleto.base64) {
+            const byteCharacters = atob(boleto.base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'application/pdf' });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            const doc = contas.find(c => String(c.idBoleto) === boleto.id)?.doc || boleto.id;
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `Boleto_${doc}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+          }
+        }
+        success('Downloads concluídos', `${data.sucessos} de ${data.total} boletos baixados`);
+      } else if (data.base64) {
+        const byteCharacters = atob(data.base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `Boleto_${contas[0]?.doc || 'download'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        success('Download concluído', '1 boleto baixado');
+      } else {
+        error('Erro ao baixar boletos', data.error || 'Resposta inválida');
+      }
+    } catch (err) {
+      console.error('Erro ao baixar todos os boletos:', err);
+      error('Erro ao baixar boletos', 'Erro ao processar o download');
+    } finally {
+      setDownloadType(null);
     }
-    setDownloadType(null);
-    success('Downloads concluídos', `${contas.length} boletos baixados`);
   };
 
   const handleVerDetalhes = (conta: ContaReceber) => {
