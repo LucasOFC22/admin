@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Eye, CheckCircle, XCircle, Clock, List, Grid3x3, Loader2, FileText, Printer, Copy, Info, Download } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -232,7 +232,7 @@ const ContasReceber = () => {
     return sorted;
   };
 
-  const filteredContas = getSortedContas();
+  const filteredContas = useMemo(() => getSortedContas(), [contasReceber, sortColumn, sortDirection]);
 
   const totalPendente = contasReceber
     .filter(c => c.status && ['pendente', 'aberto'].includes(c.status.toLowerCase()))
@@ -335,26 +335,28 @@ const ContasReceber = () => {
     setSelectedContas(new Set());
   };
 
-  const toggleSelectConta = (idTitulo: number) => {
+  const toggleSelectConta = useCallback((idTitulo: number) => {
     setSelectedContas(prev => {
       const next = new Set(prev);
       if (next.has(idTitulo)) next.delete(idTitulo);
       else next.add(idTitulo);
       return next;
     });
-  };
+  }, []);
 
-  const toggleSelectAll = () => {
-    if (selectedContas.size === filteredContas.length) {
-      setSelectedContas(new Set());
-    } else {
-      setSelectedContas(new Set(filteredContas.map(c => c.idTitulo)));
-    }
-  };
+  const toggleSelectAll = useCallback(() => {
+    setSelectedContas(prev => {
+      if (prev.size === filteredContas.length) {
+        return new Set();
+      } else {
+        return new Set(filteredContas.map(c => c.idTitulo));
+      }
+    });
+  }, [filteredContas]);
 
-  const getSelectedContasList = () => {
+  const getSelectedContasList = useCallback(() => {
     return filteredContas.filter(c => selectedContas.has(c.idTitulo));
-  };
+  }, [filteredContas, selectedContas]);
 
   const handleImprimirFatura = (conta: ContaReceber) => {
     logActivity({
