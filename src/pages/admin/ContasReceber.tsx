@@ -789,6 +789,13 @@ const ContasReceber = () => {
           open={detalhesModalOpen}
           onOpenChange={setDetalhesModalOpen}
           conta={selectedConta}
+          todasContas={contasReceber}
+          onDownloadFatura={handleImprimirFatura}
+          onDownloadBoleto={handleImprimirBoleto}
+          onDownloadTodasFaturas={handleDownloadTodasFaturas}
+          onDownloadTodosBoletos={handleDownloadTodosBoletos}
+          isDownloading={downloadType !== null}
+          downloadType={downloadType}
         />
 
       </motion.div>

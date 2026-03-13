@@ -40,7 +40,7 @@ interface ContaReceberCardProps {
   onCopiarLinhaDigitavel: (conta: ContaReceber) => void;
   onVerDetalhes: (conta: ContaReceber) => void;
   isDownloading?: boolean;
-  downloadType?: 'fatura' | 'boleto' | null;
+  downloadType?: 'fatura' | 'boleto' | 'todas-faturas' | 'todos-boletos' | null;
 }
 
 export const ContaReceberCard = ({ 
