@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Eye, CheckCircle, XCircle, Clock, List, Grid3x3, Loader2, FileText, Printer, Copy, Info } from 'lucide-react';
+import { Search, Eye, CheckCircle, XCircle, Clock, List, Grid3x3, Loader2, FileText, Printer, Copy, Info, Download } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { formatCurrency } from '@/lib/formatters';
 
 import { Button } from '@/components/ui/button';
