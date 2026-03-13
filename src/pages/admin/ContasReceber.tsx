@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Eye, CheckCircle, XCircle, Clock, List, Grid3x3, Loader2, FileText, Printer, Copy, Info } from 'lucide-react';
+import { Search, Eye, CheckCircle, XCircle, Clock, List, Grid3x3, Loader2, FileText, Printer, Copy, Info, Download } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { formatCurrency } from '@/lib/formatters';
 
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,7 @@ const ContasReceber = () => {
   const [selectedConta, setSelectedConta] = useState<ContaReceber | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedContas, setSelectedContas] = useState<Set<number>>(new Set());
   const [filtros, setFiltros] = useState<ContasReceberFiltros>({
     empresa: 'all',
     idCliente: '',
@@ -330,6 +332,28 @@ const ContasReceber = () => {
   const handleClear = () => {
     setHasSearched(false);
     setContasReceber([]);
+    setSelectedContas(new Set());
+  };
+
+  const toggleSelectConta = (idTitulo: number) => {
+    setSelectedContas(prev => {
+      const next = new Set(prev);
+      if (next.has(idTitulo)) next.delete(idTitulo);
+      else next.add(idTitulo);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedContas.size === filteredContas.length) {
+      setSelectedContas(new Set());
+    } else {
+      setSelectedContas(new Set(filteredContas.map(c => c.idTitulo)));
+    }
+  };
+
+  const getSelectedContasList = () => {
+    return filteredContas.filter(c => selectedContas.has(c.idTitulo));
   };
 
   const handleImprimirFatura = (conta: ContaReceber) => {
@@ -714,10 +738,45 @@ const ContasReceber = () => {
             ) : (
               /* Tabela de Contas - Desktop */
               <Card className="hidden md:block">
-                <div className="overflow-x-auto">
+              {/* Barra de ações em lote */}
+              {selectedContas.size > 0 && (
+                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg mb-2">
+                  <span className="text-sm font-medium text-primary">
+                    {selectedContas.size} selecionado(s)
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadTodasFaturas(getSelectedContasList())}
+                    disabled={downloadType === 'todas-faturas'}
+                  >
+                    {downloadType === 'todas-faturas' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
+                    Baixar Faturas
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadTodosBoletos(getSelectedContasList())}
+                    disabled={downloadType === 'todos-boletos'}
+                  >
+                    {downloadType === 'todos-boletos' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Printer className="h-4 w-4 mr-2" />}
+                    Baixar Boletos
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSelectedContas(new Set())}>
+                    Limpar seleção
+                  </Button>
+                </div>
+              )}
+              <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="border-b transition-colors data-[state=selected]:bg-muted border-primary/20 hover:bg-primary/5">
+                        <TableHead className="w-[40px]">
+                          <Checkbox
+                            checked={filteredContas.length > 0 && selectedContas.size === filteredContas.length}
+                            onCheckedChange={toggleSelectAll}
+                          />
+                        </TableHead>
                         <TableHead 
                           className="cursor-pointer select-none hover:bg-primary/10 transition-all duration-200 font-semibold text-primary/90 text-left max-w-[150px]"
                           onClick={() => handleSort('doc')}
@@ -817,7 +876,13 @@ const ContasReceber = () => {
                     </TableHeader>
                     <TableBody>
                       {filteredContas.map((conta, index) => (
-                        <TableRow key={`${conta.idTitulo}-${conta.doc}-${index}`}>
+                        <TableRow key={`${conta.idTitulo}-${conta.doc}-${index}`} className={selectedContas.has(conta.idTitulo) ? 'bg-primary/5' : ''}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedContas.has(conta.idTitulo)}
+                              onCheckedChange={() => toggleSelectConta(conta.idTitulo)}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">{conta.doc}</TableCell>
                           <TableCell className="font-medium">
                             <div className="flex flex-col">
