@@ -230,13 +230,23 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
     let responseData: any;
     const responseContentType = response.headers.get('content-type') || '';
 
-    if (isFileLikeResponse) {
+    // Auto-detect binary content types even when responseFormat is not explicitly set
+    const normalizedContentType = responseContentType.toLowerCase();
+    const isBinaryContentType = 
+      normalizedContentType.includes('application/pdf') ||
+      normalizedContentType.includes('application/octet-stream') ||
+      normalizedContentType.includes('image/') ||
+      normalizedContentType.includes('application/zip') ||
+      normalizedContentType.includes('application/vnd.');
+    
+    const shouldReadAsBinary = isFileLikeResponse || isBinaryContentType;
+
+    if (shouldReadAsBinary) {
       const arrayBuffer = await response.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
 
-      const normalizedContentType = responseContentType.toLowerCase();
       const isJsonLikeContent =
         normalizedContentType.includes('application/json') ||
         normalizedContentType.includes('text/json') ||
@@ -263,6 +273,12 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
           contentType: responseContentType || 'application/octet-stream',
           size: bytes.length
         };
+      }
+      
+      // Auto-detect: if we got binary data with base64 and it was not explicitly requested,
+      // log it for debugging
+      if (!isFileLikeResponse && responseData?.base64) {
+        console.log(`[External] Auto-detected binary response (${normalizedContentType}), converted to base64 (${bytes.length} bytes)`);
       }
     } else {
       const text = await response.text();
@@ -301,7 +317,7 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
       session.variables['_http_response'] = '';
     }
 
-    if (isFileLikeResponse && fileVariable) {
+    if ((isFileLikeResponse || isBinaryContentType) && fileVariable) {
       if (!response.ok || responseData === null || responseData === undefined) {
         delete session.variables[fileVariable];
       } else if (typeof responseData === 'object') {
