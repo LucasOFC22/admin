@@ -317,7 +317,7 @@ async function handleHttpRequestBlock(supabase: any, session: Session, block: Fl
       session.variables['_http_response'] = '';
     }
 
-    if (isFileLikeResponse && fileVariable) {
+    if ((isFileLikeResponse || isBinaryContentType) && fileVariable) {
       if (!response.ok || responseData === null || responseData === undefined) {
         delete session.variables[fileVariable];
       } else if (typeof responseData === 'object') {
