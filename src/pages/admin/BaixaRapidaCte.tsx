@@ -99,14 +99,16 @@ const BaixaRapidaCte = () => {
                   Imagens dos CT-es ({images.length}/{MAX_IMAGES})
                 </CardTitle>
                 <div className="flex gap-2 flex-wrap">
-                  <Button
-                    size="sm"
-                    disabled={images.length === 0}
-                    className="gap-1"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Validar Chaves com IA
-                  </Button>
+                  <PermissionGuard permissions="admin.baixa_rapida.validar_ia" showMessage={false}>
+                    <Button
+                      size="sm"
+                      disabled={images.length === 0}
+                      className="gap-1"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Validar Chaves com IA
+                    </Button>
+                  </PermissionGuard>
                 </div>
               </div>
             </CardHeader>
