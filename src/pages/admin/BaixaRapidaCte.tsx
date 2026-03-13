@@ -75,6 +75,7 @@ const BaixaRapidaCte = () => {
   };
 
   return (
+    <PermissionGuard permissions="admin.baixa_rapida.visualizar">
     <div className="min-h-screen bg-background">
       <PageHeader
         title="Baixa Rápida de CT-e"
