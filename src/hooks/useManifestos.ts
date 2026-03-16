@@ -11,22 +11,27 @@ export const useManifestos = () => {
   const { success, error: showError } = useNotification();
   const { logActivity } = useActivityLogger();
 
-  const fetchManifestos = async () => {
-    setIsLoading(true);
+  const fetchManifestos = async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+    }
     setError(null);
     
     try {
       const data = await n8nManifestosService.getManifestos();
-      // Ensure data is always an array
       const manifestosArray = Array.isArray(data) ? data : [];
       setManifestos(manifestosArray);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar manifestos';
       setError(errorMessage);
-      setManifestos([]); // Reset to empty array on error
-      showError('Erro', errorMessage);
+      if (!silent) {
+        setManifestos([]);
+        showError('Erro', errorMessage);
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
