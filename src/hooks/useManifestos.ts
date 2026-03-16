@@ -11,22 +11,27 @@ export const useManifestos = () => {
   const { success, error: showError } = useNotification();
   const { logActivity } = useActivityLogger();
 
-  const fetchManifestos = async () => {
-    setIsLoading(true);
+  const fetchManifestos = async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+    }
     setError(null);
     
     try {
       const data = await n8nManifestosService.getManifestos();
-      // Ensure data is always an array
       const manifestosArray = Array.isArray(data) ? data : [];
       setManifestos(manifestosArray);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar manifestos';
       setError(errorMessage);
-      setManifestos([]); // Reset to empty array on error
-      showError('Erro', errorMessage);
+      if (!silent) {
+        setManifestos([]);
+        showError('Erro', errorMessage);
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -45,7 +50,7 @@ export const useManifestos = () => {
       });
       
       success('Sucesso', `Manifesto #${manifesto.nroManifesto} enviado para impressão`);
-      await fetchManifestos(); // Atualizar lista
+      await fetchManifestos(true); // Atualizar lista silenciosamente
     } catch (err) {
       showError('Erro', err instanceof Error ? err.message : 'Erro ao imprimir manifesto');
     }
@@ -66,7 +71,7 @@ export const useManifestos = () => {
       });
       
       success('Sucesso', `Manifesto #${manifesto.nroManifesto} encerrado com sucesso`);
-      await fetchManifestos(); // Recarregar lista
+      await fetchManifestos(true); // Recarregar lista silenciosamente
     } catch (err) {
       showError('Erro', err instanceof Error ? err.message : 'Erro ao encerrar manifesto');
     }
@@ -87,7 +92,7 @@ export const useManifestos = () => {
       });
       
       success('Sucesso', `Manifesto #${manifesto.nroManifesto} cancelado com sucesso`);
-      await fetchManifestos(); // Recarregar lista
+      await fetchManifestos(true); // Recarregar lista silenciosamente
     } catch (err) {
       showError('Erro', err instanceof Error ? err.message : 'Erro ao cancelar manifesto');
     }
