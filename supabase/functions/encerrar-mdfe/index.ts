@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
 // --- Config DBFrete ---
 const DBFRETE = {
   ENCERRAR_MDFE: "https://dbfreteapi.dyndns-web.com/manifestos/encerrar/",
@@ -12,10 +17,10 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// --- FunÃÂ§ÃÂ£o para obter token vÃÂ¡lido ---
+// --- Função para obter token válido ---
 async function getToken() {
   const { data: registro, error } = await supabase.from("dbfrete_token").select("*").single();
-  if (error || !registro) throw new Error("Registro de token DB Frete nÃ£o encontrado");
+  if (error || !registro) throw new Error("Registro de token DB Frete não encontrado");
 
   const agora = new Date();
   const atualizadoEm = registro.atualizado_em ? new Date(registro.atualizado_em) : new Date(0);
@@ -36,10 +41,10 @@ async function getToken() {
     try {
       data = JSON.parse(text);
     } catch {
-      throw new Error("Resposta inesperada ao renovar token (nÃ£o Ã© JSON)");
+      throw new Error("Resposta inesperada ao renovar token (não é JSON)");
     }
 
-    if (!data.token) throw new Error("NÃ£o foi possÃ­vel renovar token DB Frete");
+    if (!data.token) throw new Error("Não foi possível renovar token DB Frete");
 
     await supabase
       .from("dbfrete_token")
@@ -52,14 +57,17 @@ async function getToken() {
   return registro.token;
 }
 
-// --- FunÃÂ§ÃÂ£o principal ---
+// --- Função principal ---
 serve(async (req) => {
-  try {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
+  try {
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "MÃÂ©todo nÃÂ£o permitido. Use POST." }), {
+      return new Response(JSON.stringify({ error: "Método não permitido. Use POST." }), {
         status: 405,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -68,16 +76,16 @@ serve(async (req) => {
     const chave = url.pathname.split("/").pop();
 
     if (!chave) {
-      return new Response(JSON.stringify({ error: "Informe a chaveMDF-e na URL." }), {
+      return new Response(JSON.stringify({ error: "Informe a chave MDF-e na URL." }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ObtÃÂ©m token
+    // Obtém token
     const token = await getToken();
 
-    // Faz requisiÃÂ§ÃÂ£o ao DBFrete com body mÃÂ­nimo
+    // Faz requisição ao DBFrete
     const endpoint = `${DBFRETE.ENCERRAR_MDFE}${chave}`;
 
     const response = await fetch(endpoint, {
@@ -87,8 +95,6 @@ serve(async (req) => {
 
     const text = await response.text();
 
-
-    // Tratamento: se nÃÂ£o for JSON, retorna como mensagem
     let result;
     try {
       result = JSON.parse(text);
@@ -101,15 +107,14 @@ serve(async (req) => {
       chave,
       resposta: result,
     }), {
-      status: 200, // ✅ força retorno HTTP 200
-      headers: { "Content-Type": "application/json" },
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
 
   } catch (err: any) {
     return new Response(
       JSON.stringify({ error: err.message || "Erro interno ao encerrar MDF-e" }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
