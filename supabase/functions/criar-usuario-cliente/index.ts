@@ -192,10 +192,12 @@ serve(async (req) => {
       );
     }
 
-    // ========== CRIAR USUÁRIO COM SENHA ALEATÓRIA ==========
+    // ========== CRIAR USUÁRIO COM SENHA ALEATÓRIA DE 8 DÍGITOS ==========
 
-    // Gerar senha aleatória segura (nunca armazenada, usuário define via email)
-    const randomPassword = crypto.randomUUID() + '!Aa1' + crypto.randomUUID();
+    // Gerar senha aleatória de 8 dígitos numéricos
+    const randomPassword = Array.from(crypto.getRandomValues(new Uint32Array(8)))
+      .map(v => (v % 10).toString())
+      .join('');
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: email.toLowerCase(),
