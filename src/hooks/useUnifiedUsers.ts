@@ -5,7 +5,6 @@ import { requireAuthenticatedClient } from '@/config/supabaseAuth';
 import { useCustomNotifications } from '@/hooks/useCustomNotifications';
 import { useLogging } from '@/hooks/useLogging';
 import { Usuario, Cargo, CreateUsuarioData, UpdateUsuarioData } from '@/types/database';
-import { backendService } from '@/services/api/backendService';
 import { extractCnpjCpfAtual } from '@/types/cnpjcpf';
 
 // Re-exportar tipos necessários para outros componentes
