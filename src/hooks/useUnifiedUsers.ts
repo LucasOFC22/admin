@@ -310,8 +310,7 @@ export const useUnifiedUsers = () => {
       const senha = (data as any)._generatedPassword;
       notify.success(
         'Usuário Criado',
-        `Usuário "${data.nome}" criado com sucesso!\n\n📧 Email: ${data.email}\n🔑 Senha gerada: ${senha}\n\nUm email de confirmação foi enviado. O usuário deve confirmar o email e usar esta senha para o primeiro acesso.`,
-        15000
+        `Usuário "${data.nome}" criado!\n📧 Email: ${data.email}\n🔑 Senha: ${senha}\n\nEmail de confirmação enviado. O usuário deve confirmar e usar esta senha no primeiro acesso.`
       );
     },
     onError: (error: any) => {
