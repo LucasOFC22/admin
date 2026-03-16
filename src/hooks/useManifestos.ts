@@ -50,7 +50,7 @@ export const useManifestos = () => {
       });
       
       success('Sucesso', `Manifesto #${manifesto.nroManifesto} enviado para impressão`);
-      await fetchManifestos(); // Atualizar lista
+      await fetchManifestos(true); // Atualizar lista silenciosamente
     } catch (err) {
       showError('Erro', err instanceof Error ? err.message : 'Erro ao imprimir manifesto');
     }
