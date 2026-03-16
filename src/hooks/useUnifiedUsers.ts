@@ -299,14 +299,12 @@ export const useUnifiedUsers = () => {
         }
       });
 
-      // Retornar dados com a senha gerada para exibição ao admin
-      return { ...data, _generatedPassword: randomPassword };
+      return { ...data };
     },
     onSuccess: (data) => {
-      const senha = (data as any)._generatedPassword;
       notify.success(
-        'Usuário Criado',
-        `Usuário "${data.nome}" criado!\n📧 Email: ${data.email}\n🔑 Senha: ${senha}\n\nEmail de confirmação enviado. O usuário deve confirmar e usar esta senha no primeiro acesso.`
+        'Convite Enviado',
+        `Convite enviado para "${data.nome}"!\n📧 Email: ${data.email}\n\nUm email de convite foi enviado. O usuário deverá criar sua própria senha ao confirmar a conta.`
       );
     },
     onError: (error: any) => {
