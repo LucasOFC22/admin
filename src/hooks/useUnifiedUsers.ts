@@ -217,17 +217,13 @@ export const useUnifiedUsers = () => {
         throw new Error(`Você não tem permissão para criar usuários com cargo de nível ${cargoLevel}. Seu cargo tem nível ${currentUserLevel}.`);
       }
 
-      // Gerar senha aleatória de 8 dígitos
-      const randomPassword = Array.from(crypto.getRandomValues(new Uint32Array(8)))
-        .map(v => (v % 10).toString())
-        .join('');
-
-      // Cria usuário com senha aleatória e envia convite
+      // Criar usuário como convite (sem senha) - usuário definirá senha ao confirmar
+      const tempPassword = crypto.randomUUID(); // Senha temporária que será substituída pelo usuário
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
-        password: randomPassword,
+        password: tempPassword,
         options: {
-          emailRedirectTo: "https://fptranscargas.com.br/",
+          emailRedirectTo: "https://auth.fptranscargas.com.br/criar-senha",
           data: {
             nome: userData.nome,
             telefone: userData.telefone,
