@@ -92,7 +92,7 @@ export const useManifestos = () => {
       });
       
       success('Sucesso', `Manifesto #${manifesto.nroManifesto} cancelado com sucesso`);
-      await fetchManifestos(); // Recarregar lista
+      await fetchManifestos(true); // Recarregar lista silenciosamente
     } catch (err) {
       showError('Erro', err instanceof Error ? err.message : 'Erro ao cancelar manifesto');
     }
