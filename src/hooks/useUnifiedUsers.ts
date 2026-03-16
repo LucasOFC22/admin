@@ -306,7 +306,7 @@ export const useUnifiedUsers = () => {
       return data;
     },
     onSuccess: (data) => {
-      notify.success('Sucesso', `Usuário "${data.nome}" criado com senha padrão "fpcargas"! Um email de verificação foi enviado para ${data.email}. O usuário deve confirmar o email antes de fazer login.`);
+      notify.success('Sucesso', `Usuário "${data.nome}" criado com sucesso! Um email de verificação foi enviado para ${data.email}. O usuário deve confirmar o email e redefinir a senha antes de fazer login.`);
     },
     onError: (error: any) => {
       notify.error('Erro', error.message || 'Falha ao criar usuário');
