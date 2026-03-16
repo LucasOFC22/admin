@@ -197,7 +197,7 @@ export const useUnifiedUsers = () => {
 
   // Mutation para criar usuário
   const createUserMutation = useMutation({
-    mutationFn: async (userData: CreateUsuarioData): Promise<Usuario> => {
+    mutationFn: async (userData: CreateUsuarioData): Promise<Usuario & { _generatedPassword?: string }> => {
       // Buscar o level do cargo selecionado
       const { data: cargoData, error: cargoError } = await supabase
         .from('cargos')
@@ -303,10 +303,16 @@ export const useUnifiedUsers = () => {
         }
       });
 
-      return data;
+      // Retornar dados com a senha gerada para exibição ao admin
+      return { ...data, _generatedPassword: randomPassword };
     },
     onSuccess: (data) => {
-      notify.success('Sucesso', `Usuário "${data.nome}" criado com sucesso! Um email de verificação foi enviado para ${data.email}. O usuário deve confirmar o email e redefinir a senha antes de fazer login.`);
+      const senha = (data as any)._generatedPassword;
+      notify.success(
+        'Usuário Criado',
+        `Usuário "${data.nome}" criado com sucesso!\n\n📧 Email: ${data.email}\n🔑 Senha gerada: ${senha}\n\nUm email de confirmação foi enviado. O usuário deve confirmar o email e usar esta senha para o primeiro acesso.`,
+        15000
+      );
     },
     onError: (error: any) => {
       notify.error('Erro', error.message || 'Falha ao criar usuário');
