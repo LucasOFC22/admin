@@ -39,136 +39,39 @@ export const useUnifiedUsers = () => {
   const { notify } = useCustomNotifications();
   const { logUsuario } = useLogging();
   
-  // Buscar level do cargo do usuário logado
-  const { data: currentUserLevel = 1 } = useQuery({
-    queryKey: ['current-user-cargo-level'],
-    queryFn: async (): Promise<number> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 1;
-      
-      // Buscar o cargo do usuário
-      const { data: userData } = await supabase
-        .from('usuarios')
-        .select('cargo, nome')
-        .eq('supabase_id', user.id)
-        .maybeSingle();
-      
-      if (!userData?.cargo) {
-        return 1;
-      }
-      
-      // Buscar o level do cargo do usuário
-      const { data: cargoData } = await supabase
-        .from('cargos')
-        .select('id, nome, level')
-        .eq('id', userData.cargo)
-        .maybeSingle();
-      
-      return cargoData?.level || 1;
-    }
-  });
-
-  // Query para buscar todos os usuários com informações de cargo
+  // Single query using edge function - loads usuarios, cargos, auth verification & current user level in 1 request
   const {
-    data: users = [],
+    data: unifiedData,
     isLoading,
     error: queryError,
     refetch
   } = useQuery({
     queryKey: ['unified-users'],
-    queryFn: async (): Promise<UsuarioComCargo[]> => {
+    queryFn: async () => {
       const supabaseAuth = requireAuthenticatedClient();
-      // Buscar usuários
-      const { data: usuariosData, error: usuariosError } = await supabaseAuth
-        .from('usuarios')
-        .select('*')
-        .order('nome');
+      const { data, error } = await supabaseAuth.functions.invoke('listar-usuarios-unificados');
 
-      if (usuariosError) {
-        console.error('Erro ao buscar usuários:', usuariosError);
+      if (error) {
+        console.error('Erro ao buscar dados unificados:', error);
         throw new Error('Erro ao carregar usuários');
       }
 
-      // Buscar cargos
-      const { data: cargosData, error: cargosError } = await supabaseAuth
-        .from('cargos')
-        .select('*');
-
-      if (cargosError) {
-        console.error('Erro ao buscar cargos:', cargosError);
-        // Não falhar se os cargos não carregarem
+      if (!data?.success) {
+        throw new Error(data?.error || 'Erro ao carregar usuários');
       }
 
-      // Buscar status de verificação de email do Supabase Auth via backend
-      const supabaseIds = (usuariosData || [])
-        .filter(u => u.supabase_id)
-        .map(u => u.supabase_id);
-      
-      let authUsersMap: Record<string, boolean> = {};
-      
-      if (supabaseIds.length > 0) {
-        try {
-          const response = await backendService.buscarUsuarios(supabaseIds);
-          console.log('🔍 Resposta do /usuario/buscar:', response);
-          
-          if (response.success && response.data) {
-            // O backend pode retornar dados com wrapper .json (formato N8N)
-            let authUsers = Array.isArray(response.data) ? response.data : [response.data];
-            
-            // Extrair dados do wrapper .json se existir
-            authUsers = authUsers.map((item: any) => item?.json || item);
-            
-            console.log('📋 Usuários Auth processados:', authUsers);
-            
-            authUsers.forEach((authUser: any) => {
-              if (authUser?.id) {
-                // email_confirmed_at != null significa email verificado
-                const isVerified = !!authUser.email_confirmed_at;
-                console.log(`✉️ Usuário ${authUser.email}: email_confirmed_at=${authUser.email_confirmed_at}, verificado=${isVerified}`);
-                authUsersMap[authUser.id] = isVerified;
-              }
-            });
-          }
-        } catch (error) {
-          console.error('Erro ao buscar status de verificação:', error);
-          // Continuar sem o status de verificação
-        }
-      }
-
-      // Combinar dados com status de verificação do Auth
-      const usuariosComCargo: UsuarioComCargo[] = (usuariosData || []).map(usuario => {
-        const cargoInfo = cargosData?.find(cargo => cargo.id === usuario.cargo);
-        return {
-          ...usuario,
-          cargo_info: cargoInfo,
-          email_verified: usuario.supabase_id ? authUsersMap[usuario.supabase_id] : undefined
-        };
-      });
-
-      return usuariosComCargo;
+      return {
+        users: (data.usuarios || []) as UsuarioComCargo[],
+        cargos: (data.cargos || []) as Cargo[],
+        currentUserLevel: (data.currentUserLevel || 1) as number,
+      };
     },
-    staleTime: 0, // Sempre considerar stale para Realtime funcionar
+    staleTime: 0,
   });
 
-  // Query para buscar cargos (para formulários)
-  const { data: cargos = [] } = useQuery({
-    queryKey: ['cargos'],
-    queryFn: async (): Promise<Cargo[]> => {
-      const supabaseAuth = requireAuthenticatedClient();
-      const { data, error } = await supabaseAuth
-        .from('cargos')
-        .select('*')
-        .eq('ativo', true)
-        .order('nome');
-
-      if (error) {
-        console.error('Erro ao buscar cargos:', error);
-        return [];
-      }
-
-      return data || [];
-    }
-  });
+  const users = unifiedData?.users || [];
+  const cargos = unifiedData?.cargos || [];
+  const currentUserLevel = unifiedData?.currentUserLevel || 1;
 
   // Configurar Realtime subscription (apenas se habilitado)
   useEffect(() => {
