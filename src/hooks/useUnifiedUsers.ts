@@ -197,7 +197,7 @@ export const useUnifiedUsers = () => {
 
   // Mutation para criar usuário
   const createUserMutation = useMutation({
-    mutationFn: async (userData: CreateUsuarioData): Promise<Usuario & { _generatedPassword?: string }> => {
+    mutationFn: async (userData: CreateUsuarioData): Promise<Usuario> => {
       // Buscar o level do cargo selecionado
       const { data: cargoData, error: cargoError } = await supabase
         .from('cargos')
@@ -217,17 +217,13 @@ export const useUnifiedUsers = () => {
         throw new Error(`Você não tem permissão para criar usuários com cargo de nível ${cargoLevel}. Seu cargo tem nível ${currentUserLevel}.`);
       }
 
-      // Gerar senha aleatória de 8 dígitos
-      const randomPassword = Array.from(crypto.getRandomValues(new Uint32Array(8)))
-        .map(v => (v % 10).toString())
-        .join('');
-
-      // Cria usuário com senha aleatória e envia convite
+      // Criar usuário como convite (sem senha) - usuário definirá senha ao confirmar
+      const tempPassword = crypto.randomUUID(); // Senha temporária que será substituída pelo usuário
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
-        password: randomPassword,
+        password: tempPassword,
         options: {
-          emailRedirectTo: "https://fptranscargas.com.br/",
+          emailRedirectTo: "https://auth.fptranscargas.com.br/criar-senha",
           data: {
             nome: userData.nome,
             telefone: userData.telefone,
@@ -303,14 +299,12 @@ export const useUnifiedUsers = () => {
         }
       });
 
-      // Retornar dados com a senha gerada para exibição ao admin
-      return { ...data, _generatedPassword: randomPassword };
+      return { ...data };
     },
     onSuccess: (data) => {
-      const senha = (data as any)._generatedPassword;
       notify.success(
-        'Usuário Criado',
-        `Usuário "${data.nome}" criado!\n📧 Email: ${data.email}\n🔑 Senha: ${senha}\n\nEmail de confirmação enviado. O usuário deve confirmar e usar esta senha no primeiro acesso.`
+        'Convite Enviado',
+        `Convite enviado para "${data.nome}"!\n📧 Email: ${data.email}\n\nUm email de convite foi enviado. O usuário deverá criar sua própria senha ao confirmar a conta.`
       );
     },
     onError: (error: any) => {
