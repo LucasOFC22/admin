@@ -215,3 +215,6 @@ verify_jwt = false
 
 [functions.xml-cte]
 verify_jwt = false
+
+[functions.listar-usuarios-unificados]
+verify_jwt = false
