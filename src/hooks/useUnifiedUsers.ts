@@ -197,7 +197,7 @@ export const useUnifiedUsers = () => {
 
   // Mutation para criar usuário
   const createUserMutation = useMutation({
-    mutationFn: async (userData: CreateUsuarioData): Promise<Usuario & { _generatedPassword?: string }> => {
+    mutationFn: async (userData: CreateUsuarioData): Promise<Usuario> => {
       // Buscar o level do cargo selecionado
       const { data: cargoData, error: cargoError } = await supabase
         .from('cargos')
