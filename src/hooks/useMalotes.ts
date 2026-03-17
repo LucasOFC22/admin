@@ -219,11 +219,17 @@ export const useMalotes = () => {
   };
 
   const enviarLinkAssinatura = async (id: string, telefone: string) => {
-    // Chamar backend que irá gerar token e enviar via N8N/WhatsApp
-    const response = await backendService.enviarAssinaturaMalote(id, telefone);
+    // Chamar edge function diretamente para gerar token e enviar via WhatsApp
+    const supabase = requireAuthenticatedClient();
+    const { data, error } = await supabase.functions.invoke('enviar-assinatura-malote', {
+      body: {
+        malote_id: id,
+        telefone: telefone.replace(/\D/g, '')
+      }
+    });
 
-    if (!response.success) {
-      throw new Error(response.error || 'Erro ao enviar link');
+    if (error || !data?.success) {
+      throw new Error(data?.error || error?.message || 'Erro ao enviar link');
     }
 
     // Log do envio
