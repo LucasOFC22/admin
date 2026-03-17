@@ -36,13 +36,18 @@ serve(async (req) => {
 
     console.log('Token gerado:', token, 'VÃÂÃÂ¡lido atÃÂÃÂ©:', validade.toISOString());
 
-    // 2. Atualizar malote com token
+    // 2. Atualizar malote com token e resetar assinatura anterior
     const { error: updateError } = await supabase
       .from('malotes')
       .update({
         token_assinatura: token,
         token_valido_ate: validade.toISOString(),
-        telefone_motorista: telefone
+        telefone_motorista: telefone,
+        assinado: false,
+        assinatura_data: null,
+        assinatura_ip: null,
+        assinatura_user_agent: null,
+        assinatura_imagem: null
       })
       .eq('id', malote_id);
 
