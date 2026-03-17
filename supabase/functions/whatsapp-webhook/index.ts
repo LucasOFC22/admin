@@ -237,6 +237,11 @@ serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json();
 
+      const statusResponse = await handleMetaStatusWebhook(supabase, body);
+      if (statusResponse) {
+        return statusResponse;
+      }
+
       const from = body.from;
       const messageType = body.type || "text";
       const messageId = body.messageId || crypto.randomUUID();
