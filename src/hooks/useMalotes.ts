@@ -220,6 +220,7 @@ export const useMalotes = () => {
 
   const enviarLinkAssinatura = async (id: string, telefone: string) => {
     // Chamar edge function diretamente para gerar token e enviar via WhatsApp
+    const supabase = requireAuthenticatedClient();
     const { data, error } = await supabase.functions.invoke('enviar-assinatura-malote', {
       body: {
         malote_id: id,
