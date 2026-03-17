@@ -99,6 +99,115 @@ function extractMediaUrl(body: any, messageType: string): string | null {
   }
 }
 
+async function handleMetaStatusWebhook(supabase: any, body: any): Promise<Response | null> {
+  const entries = Array.isArray(body?.entry) ? body.entry : [];
+  const statuses = entries.flatMap((entry: any) =>
+    (entry?.changes || []).flatMap((change: any) => change?.value?.statuses || [])
+  );
+
+  if (statuses.length === 0) {
+    return null;
+  }
+
+  console.log(`[Webhook] 📬 Processando ${statuses.length} status(es) da Meta`);
+
+  for (const statusItem of statuses) {
+    const messageId = statusItem?.id;
+    const status = statusItem?.status || 'unknown';
+    const statusTimestamp = statusItem?.timestamp
+      ? new Date(Number(statusItem.timestamp) * 1000).toISOString()
+      : new Date().toISOString();
+
+    if (!messageId) continue;
+
+    const historyEntry = {
+      status,
+      timestamp: statusTimestamp,
+      recipient_id: statusItem?.recipient_id || null,
+      conversation: statusItem?.conversation || null,
+      pricing: statusItem?.pricing || null,
+      errors: statusItem?.errors || null,
+    };
+
+    const { data: existingMessage, error: existingMessageError } = await supabase
+      .from('mensagens_whatsapp')
+      .select('id, metadata, message_data')
+      .eq('message_id', messageId)
+      .maybeSingle();
+
+    if (existingMessageError) {
+      console.error(`[Webhook] ❌ Erro ao buscar mensagem ${messageId}:`, existingMessageError);
+      continue;
+    }
+
+    if (existingMessage) {
+      const previousHistory = Array.isArray(existingMessage.message_data?.status_history)
+        ? existingMessage.message_data.status_history
+        : [];
+
+      const { error: updateError } = await supabase
+        .from('mensagens_whatsapp')
+        .update({
+          message_data: {
+            ...(existingMessage.message_data || {}),
+            latest_status: status,
+            latest_status_at: statusTimestamp,
+            status_history: [...previousHistory, historyEntry],
+          },
+          metadata: {
+            ...(existingMessage.metadata || {}),
+            delivery_status: status,
+            delivery_status_updated_at: statusTimestamp,
+            recipient_id: statusItem?.recipient_id || null,
+            conversation: statusItem?.conversation || null,
+            pricing: statusItem?.pricing || null,
+            status_errors: statusItem?.errors || null,
+          },
+          received_at: statusTimestamp,
+        })
+        .eq('id', existingMessage.id);
+
+      if (updateError) {
+        console.error(`[Webhook] ❌ Erro ao atualizar status da mensagem ${messageId}:`, updateError);
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from('mensagens_whatsapp')
+        .insert({
+          message_id: messageId,
+          message_type: 'status',
+          message_text: `[WhatsApp status] ${status}`,
+          send: 'sistema',
+          message_data: {
+            type: 'whatsapp_status',
+            latest_status: status,
+            latest_status_at: statusTimestamp,
+            status_history: [historyEntry],
+            raw_status: statusItem,
+          },
+          metadata: {
+            delivery_status: status,
+            delivery_status_updated_at: statusTimestamp,
+            recipient_id: statusItem?.recipient_id || null,
+            conversation: statusItem?.conversation || null,
+            pricing: statusItem?.pricing || null,
+            status_errors: statusItem?.errors || null,
+          },
+          received_at: statusTimestamp,
+        });
+
+      if (insertError) {
+        console.error(`[Webhook] ❌ Erro ao inserir status da mensagem ${messageId}:`, insertError);
+      }
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, processedStatuses: statuses.length }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -127,6 +236,11 @@ serve(async (req) => {
 
     if (req.method === "POST") {
       const body = await req.json();
+
+      const statusResponse = await handleMetaStatusWebhook(supabase, body);
+      if (statusResponse) {
+        return statusResponse;
+      }
 
       const from = body.from;
       const messageType = body.type || "text";
