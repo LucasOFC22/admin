@@ -78,9 +78,9 @@ serve(async (req) => {
       );
     }
 
-    // 4. Gerar link
-    const linkPath = `assinar-malote/${token}`;
-    const linkCompleto = `https://motorista.fptranscargas.com.br/${linkPath}`;
+    // 4. Gerar link - template já tem URL base, enviar apenas o token
+    const linkPath = token;
+    const linkCompleto = `https://motorista.fptranscargas.com.br/assinar-malote?token=${token}`;
 
     // 5. Formatar número
     let numeroFormatado = telefone.replace(/\D/g, '');
