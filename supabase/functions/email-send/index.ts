@@ -1350,7 +1350,10 @@ serve(async (req) => {
       data.html,
       data.anexos,
       data.in_reply_to,
-      data.references
+      data.references,
+      fromEmail,
+      fromName
+    );
     );
 
     if (!result.success) {
