@@ -500,7 +500,7 @@ export const EditCotacaoModal = ({
               <div className="flex items-center justify-between mb-3 md:mb-4 flex-wrap gap-2">
                 <div className="min-w-0">
                   <h1 className="text-base sm:text-lg md:text-xl font-bold truncate">
-                    {cotacao ? `Cotação #${cotacao.idOrcamento || cotacao.id || ''}` : 'Nova Cotação'}
+                    {cotacao ? `Cotação #${(cotacao as any).nroOrcamento || cotacao.idOrcamento || cotacao.id || ''}` : 'Nova Cotação'}
                   </h1>
                   <p className="text-xs sm:text-sm text-muted-foreground">
                     Emissão: {new Date().toLocaleDateString('pt-BR')}
