@@ -986,7 +986,7 @@ async function sendSmtpEmail(
     }
     
     // Username (base64)
-    authResp = await sendCommand(btoa(cleanEmail));
+    authResp = await sendCommand(btoa(cleanAuthEmail));
     if (!authResp.code.startsWith('3')) {
       throw new Error(`AUTH username falhou: ${authResp.lines.join(' ')}`);
     }
