@@ -130,7 +130,7 @@ const TabelasFreteManager = () => {
   if (showLogs) {
     return (
       <div className="space-y-4">
-        <AdminPageHeader
+        <PageHeader
           title="Logs da Tabela de Frete"
           breadcrumbs={[
             { label: 'Dashboard', href: '/' },
@@ -145,7 +145,7 @@ const TabelasFreteManager = () => {
 
   return (
     <div className="space-y-4">
-      <AdminPageHeader
+      <PageHeader
         title="Tabelas de Frete"
         breadcrumbs={[
           { label: 'Dashboard', href: '/' },

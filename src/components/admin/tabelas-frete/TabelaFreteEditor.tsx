@@ -162,7 +162,7 @@ const TabelaFreteEditor = ({ tabela, canEdit, onBack, onShowLogs }: TabelaFreteE
 
   return (
     <div className="space-y-4">
-      <AdminPageHeader
+      <PageHeader
         title={nome}
         breadcrumbs={[
           { label: 'Dashboard', href: '/' },
