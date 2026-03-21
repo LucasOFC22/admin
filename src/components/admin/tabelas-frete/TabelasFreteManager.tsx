@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/config/supabase';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { toast } from 'sonner';
