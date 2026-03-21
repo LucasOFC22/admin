@@ -883,7 +883,7 @@ async function readSmtpResponse(conn: Deno.Conn): Promise<{ code: string; lines:
 async function sendSmtpEmail(
   host: string,
   port: number,
-  email: string,
+  authEmail: string,
   password: string,
   to: string[],
   cc: string[],
@@ -893,7 +893,9 @@ async function sendSmtpEmail(
   isHtml: boolean,
   attachments: Attachment[] = [],
   inReplyTo?: string,
-  references?: string[]
+  references?: string[],
+  fromEmail?: string,
+  fromName?: string
 ): Promise<{ success: boolean; error?: string; messageId?: string; stage?: string }> {
   let conn: Deno.Conn | Deno.TlsConn | null = null;
   let stage = 'INIT';
