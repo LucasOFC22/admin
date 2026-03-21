@@ -1397,7 +1397,7 @@ serve(async (req) => {
     console.log('[email-send] Salvando na pasta Enviados via IMAP APPEND...');
     
     const mimeMessage = buildMimeMessage(
-      cleanContaEmail,
+      fromEmail,
       data.para,
       data.cc,
       data.assunto,
