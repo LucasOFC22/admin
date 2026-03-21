@@ -41,6 +41,7 @@ import {
   Megaphone,
   UserCircle,
   FileDown,
+  TableProperties,
   LucideIcon
 } from 'lucide-react';
 
