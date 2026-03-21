@@ -73,7 +73,7 @@ function buildEmailHtml(data: {
   if (origem && origem !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Origem</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${origem}</td></tr>`);
   if (destino && destino !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Destino</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${destino}</td></tr>`);
   if (peso) detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Peso</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${peso}</td></tr>`);
-  if (valorTotal && valorTotal !== '0' && valorTotal !== '0,00') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;width:120px;">Valor Total</td><td style="padding:10px 16px;font-size:13px;font-weight:700;color:#1e293b;">${valorTotal}</td></tr>`);
+  // Valor Total removido do email
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
