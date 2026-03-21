@@ -95,10 +95,28 @@ export async function attemptTokenRefresh(): Promise<boolean> {
           if (token) {
             bodyPayload.refresh_token = token;
             devLog.log('[HttpClient] 📦 Enviando refresh_token + device_id no body');
+          } else {
+            devLog.warn('[HttpClient] ⚠️ Cookie fp_supabase_session não contém refresh_token. Keys:', Object.keys(parsed).join(', '));
           }
+        } else {
+          devLog.warn('[HttpClient] ⚠️ Cookie fp_supabase_session não encontrado');
         }
-      } catch {
-        // Silencioso
+      } catch (e) {
+        devLog.warn('[HttpClient] ⚠️ Erro ao ler cookie fp_supabase_session:', e);
+      }
+
+      // Se não tem refresh_token no body, tentar Supabase session como último recurso
+      if (!bodyPayload.refresh_token) {
+        try {
+          const { supabase } = await import('@/integrations/supabase/client');
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.refresh_token) {
+            bodyPayload.refresh_token = sessionData.session.refresh_token;
+            devLog.log('[HttpClient] 📦 Usando refresh_token do Supabase SDK como fallback');
+          }
+        } catch {
+          // Silencioso
+        }
       }
 
       const response = await fetch(REFRESH_URL, {
