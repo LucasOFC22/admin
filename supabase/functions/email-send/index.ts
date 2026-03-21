@@ -1000,7 +1000,7 @@ async function sendSmtpEmail(
     
     // MAIL FROM
     stage = 'MAIL_FROM';
-    const mailFromResp = await sendCommand(`MAIL FROM:<${cleanEmail}>`);
+    const mailFromResp = await sendCommand(`MAIL FROM:<${cleanFromEmail}>`);
     if (!mailFromResp.code.startsWith('2')) {
       throw new Error(`MAIL FROM falhou: ${mailFromResp.lines.join(' ')}`);
     }
