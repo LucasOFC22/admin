@@ -73,7 +73,7 @@ function buildEmailHtml(data: {
   if (origem && origem !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Origem</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${origem}</td></tr>`);
   if (destino && destino !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Destino</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${destino}</td></tr>`);
   if (peso) detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Peso</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${peso}</td></tr>`);
-  if (valorTotal && valorTotal !== '0' && valorTotal !== '0,00') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;width:120px;">Valor Total</td><td style="padding:10px 16px;font-size:13px;font-weight:700;color:#1e293b;">${valorTotal}</td></tr>`);
+  // Valor Total removido do email
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -90,8 +90,10 @@ function buildEmailHtml(data: {
           
           <!-- Logo -->
           <tr>
-            <td style="background-color:#ffffff;padding:20px 32px;text-align:center;border-bottom:3px solid #1e40af;">
-              <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:44px;width:auto;" />
+            <td style="background-color:#ffffff;padding:20px 32px;border-bottom:3px solid #1e40af;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="text-align:center;">
+                <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:44px;width:auto;margin:0 auto;display:block;" />
+              </td></tr></table>
             </td>
           </tr>
 
@@ -112,7 +114,7 @@ function buildEmailHtml(data: {
 
               ${detailsRows.length > 0 ? `
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border:1px solid #e2e8f0;">
-                <tr><td colspan="2" style="padding:8px 16px;background-color:#f8fafc;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Resumo</td></tr>
+                <tr><td colspan="2" style="padding:8px 16px;background-color:#f8fafc;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Detalhes</td></tr>
                 ${detailsRows.join('')}
               </table>
               ` : ''}
