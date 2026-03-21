@@ -431,6 +431,43 @@ export const EditCotacaoModal = ({
         setIsSaved(true);
         setTimeout(() => setIsSaved(false), 2000);
         
+        // Enviar email ao cliente se checkbox marcado
+        if (enviarEmail) {
+          const emailCliente = formData.emailSolicitante || (cotacao as any)?.contato?.email;
+          const idOrcamento = (cotacao as any)?.idOrcamento || cotacao?.id;
+          
+          if (emailCliente && emailCliente !== 'N/A' && idOrcamento) {
+            toast.info('Enviando email ao cliente...');
+            try {
+              const { supabase } = await import('@/integrations/supabase/client');
+              const { data: emailResult, error: emailError } = await supabase.functions.invoke('email-enviar-cotacao', {
+                body: {
+                  idCotacao: idOrcamento,
+                  emailCliente,
+                  nomeCliente: formData.solicitante || (cotacao as any)?.contato?.nome || 'Cliente',
+                  valorTotal: formData.valorTotal || undefined,
+                  origem: formData.cidadeOrigem ? `${formData.cidadeOrigem.cidade}/${formData.cidadeOrigem.uf}` : undefined,
+                  destino: formData.cidadeDestino ? `${formData.cidadeDestino.cidade}/${formData.cidadeDestino.uf}` : undefined,
+                },
+              });
+              
+              if (emailError) {
+                console.error('Erro ao enviar email:', emailError);
+                toast.error('Cotação salva, mas houve erro ao enviar o email');
+              } else if (emailResult?.success) {
+                toast.success('Email enviado ao cliente com sucesso!');
+              } else {
+                toast.error(`Erro no envio: ${emailResult?.error || 'Erro desconhecido'}`);
+              }
+            } catch (emailErr) {
+              console.error('Erro ao enviar email:', emailErr);
+              toast.error('Cotação salva, mas houve erro ao enviar o email');
+            }
+          } else {
+            toast.warning('Email do cliente não encontrado. Cotação salva sem envio de email.');
+          }
+        }
+        
         // Callback opcional
         onSave?.(payload);
         onSaveSuccess?.();
