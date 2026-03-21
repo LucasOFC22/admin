@@ -156,6 +156,14 @@ const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoadi
 
       if (!response.ok) throw new Error('Erro na requisição');
       const data = await response.json();
+
+      if (data?.smtp_ok) {
+        setConnectionStatus('success');
+        toast.success('Conexão SMTP testada com sucesso!');
+      } else {
+        setConnectionStatus('error');
+        toast.error(`Falha SMTP: ${data?.smtp_error || 'Erro desconhecido'}`);
+      }
     } catch {
       setConnectionStatus('error');
       toast.error('Falha na conexão SMTP');
