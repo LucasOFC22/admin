@@ -90,8 +90,10 @@ function buildEmailHtml(data: {
           
           <!-- Logo -->
           <tr>
-            <td style="background-color:#ffffff;padding:20px 32px;text-align:center;border-bottom:3px solid #1e40af;">
-              <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:44px;width:auto;" />
+            <td style="background-color:#ffffff;padding:20px 32px;border-bottom:3px solid #1e40af;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="text-align:center;">
+                <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:44px;width:auto;margin:0 auto;display:block;" />
+              </td></tr></table>
             </td>
           </tr>
 
