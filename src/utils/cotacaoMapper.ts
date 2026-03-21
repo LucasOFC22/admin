@@ -6,18 +6,28 @@ import { formatDateTime } from '@/utils/dateFormatters';
 export interface MappedQuote {
   id: string;
   quoteId: string;
+  nroOrcamento: number | string;
+  idOrcamento: number | string;
   senderName: string;
   senderDocument: string;
   recipientName: string;
   recipientDocument: string;
+  recipientShortName: string;
   origin: string;
   destination: string;
+  originCity: string;
+  originState: string;
+  destCity: string;
+  destState: string;
   cargoType: string;
   weight: string;
+  weightNum: number;
   value: number;
   status: string;
+  statusInterno: string;
   createdAt: string;
   validUntil: string;
+  dias: number;
   // Estrutura correta para o modal
   contato: {
     nome: string;
