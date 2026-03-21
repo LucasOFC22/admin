@@ -6,18 +6,28 @@ import { formatDateTime } from '@/utils/dateFormatters';
 export interface MappedQuote {
   id: string;
   quoteId: string;
+  nroOrcamento: number | string;
+  idOrcamento: number | string;
   senderName: string;
   senderDocument: string;
   recipientName: string;
   recipientDocument: string;
+  recipientShortName: string;
   origin: string;
   destination: string;
+  originCity: string;
+  originState: string;
+  destCity: string;
+  destState: string;
   cargoType: string;
   weight: string;
+  weightNum: number;
   value: number;
   status: string;
+  statusInterno: string;
   createdAt: string;
   validUntil: string;
+  dias: number;
   // Estrutura correta para o modal
   contato: {
     nome: string;
@@ -105,25 +115,38 @@ export const mapSupabaseCotacao = (cotacao: SupabaseCotacao): MappedQuote => {
   const origem = `${origemCidade}, ${origemEstado}`;
   const destino = `${destinoCidade}, ${destinoEstado}`;
 
+  const recipientFullName = cotacao.destinatario_nome || (cotacao as any).destinatarioNome || 'N/A';
+  const pesoNum = cotacao.peso || (cotacao as any).peso || 0;
+
   const mappedQuote = {
     id: String(primaryId),
     quoteId: String(quoteNumber).substring(0, 8),
+    nroOrcamento: (cotacao as any).nroOrcamento ?? quoteNumber,
+    idOrcamento: (cotacao as any).idOrcamento ?? primaryId,
     senderName: cotacao.remetente_nome || cotacao.contato_nome || (cotacao as any).remetenteNome || (cotacao as any).solicitante || 'N/A',
     senderDocument: cotacao.remetente_documento || (cotacao as any).remetenteDocumento || 'N/A',
-    recipientName: cotacao.destinatario_nome || (cotacao as any).destinatarioNome || 'N/A',
+    recipientName: recipientFullName,
     recipientDocument: cotacao.destinatario_documento || (cotacao as any).destinatarioDocumento || 'N/A',
+    recipientShortName: recipientFullName.length > 30 ? recipientFullName.substring(0, 28) + '…' : recipientFullName,
     origin: origem,
     destination: destino,
+    originCity: origemCidade,
+    originState: origemEstado,
+    destCity: destinoCidade,
+    destState: destinoEstado,
     cargoType: cotacao.tipo_frete === 'fob'
       ? 'FOB'
       : cotacao.tipo_frete === 'cif'
       ? 'CIF'
       : (cotacao.tipo_frete || (cotacao as any).descTabela || cotacao.descricao || 'N/A'),
-    weight: cotacao.peso ? `${cotacao.peso} kg` : 'N/A',
+    weight: pesoNum ? `${pesoNum} kg` : 'N/A',
+    weightNum: pesoNum,
     value: (cotacao as any).vlrTotal ?? cotacao.valor_declarado ?? 0,
     status: cotacao.status || 'pendente',
+    statusInterno: (cotacao as any).statusInterno || '',
     createdAt: formatDate(cotacao.criado_em || (cotacao as any).emissao),
     validUntil: 'N/A',
+    dias: (cotacao as any).dias ?? 0,
     criadoEm: cotacao.criado_em || (cotacao as any).emissao || new Date().toISOString(),
     
     // Estrutura detalhada para o modal
