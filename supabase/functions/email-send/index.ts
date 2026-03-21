@@ -1241,11 +1241,39 @@ serve(async (req) => {
       usuario_responsavel: usuarioResponsavelId
     });
 
-    // Resolver conta de email
+    // Resolver conta SMTP
     let conta: any = null;
+    let senha = '';
+    let cleanContaEmail = '';
+    let fromName = '';
+
+    // Prioridade 0: smtp_override enviado pela função chamadora
+    if (data.smtp_override) {
+      const override = data.smtp_override;
+      cleanContaEmail = override.user.trim().toLowerCase();
+      senha = override.password;
+      fromName = override.from_name || '';
+      conta = {
+        id: 'smtp-override',
+        email: override.from_email || override.user,
+        smtp_host: override.host,
+        smtp_port: override.port,
+        smtp_ssl: override.secure ?? (override.port === 465),
+        imap_host: override.host,
+        imap_port: 993,
+        imap_ssl: true,
+        ativo: true,
+      };
+      console.log('[email-send] Usando smtp_override:', {
+        auth_user: cleanContaEmail,
+        from_email: conta.email,
+        host: conta.smtp_host,
+        port: conta.smtp_port,
+      });
+    }
 
     // Prioridade 1: conta_id
-    if (data.conta_id) {
+    if (!conta && data.conta_id) {
       const { data: contaById, error: contaByIdError } = await supabaseClient
         .from('email_contas')
         .select('*')
@@ -1287,22 +1315,26 @@ serve(async (req) => {
     }
 
     if (!conta) {
-      throw new Error('Conta de email não encontrada. Informe conta_id ou conta_email.');
+      throw new Error('Conta de email não encontrada. Informe conta_id, conta_email ou smtp_override.');
     }
 
     if (!conta.ativo) {
       throw new Error('Conta de email está inativa');
     }
 
-    // Limpar email da conta (remover vírgulas, espaços extras)
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-    const emailMatch = conta.email.match(emailRegex);
-    const cleanContaEmail = emailMatch ? emailMatch[0].toLowerCase() : conta.email.trim().replace(/[,;\s]/g, '');
+    if (!cleanContaEmail) {
+      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+      const emailMatch = conta.email.match(emailRegex);
+      cleanContaEmail = emailMatch ? emailMatch[0].toLowerCase() : conta.email.trim().replace(/[,;\s]/g, '');
+    }
     
     console.log('[email-send] Conta selecionada:', cleanContaEmail);
 
-    // Descriptografar senha
-    const senha = await decryptPassword(conta.senha_criptografada);
+    if (!senha) {
+      senha = await decryptPassword(conta.senha_criptografada);
+    }
+
+    const fromEmail = conta.email;
 
     // Enviar email via SMTP com suporte a threading
     const result = await sendSmtpEmail(
