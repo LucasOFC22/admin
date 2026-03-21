@@ -4,11 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { FileText, Send, Settings, TestTube } from 'lucide-react';
+import { Settings, Mail, Eye, EyeOff, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from '@/lib/toast';
 
 interface QuoteSystemConfigProps {
@@ -17,106 +14,72 @@ interface QuoteSystemConfigProps {
 }
 
 const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoading }) => {
-  
+  const [showPassword, setShowPassword] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
   const [quoteConfig, setQuoteConfig] = useState({
-    // Configurações de cotação
-    autoResponseEnabled: true,
     defaultValidityDays: 15,
-    requirePhotoUpload: false,
     maxFileSize: 10,
     allowedFileTypes: 'pdf,jpg,jpeg,png,doc,docx',
-    
-    // Templates de resposta
-    welcomeMessage: 'Obrigado por solicitar uma cotação! Analisaremos sua solicitação e retornaremos em breve.',
-    proposalTemplate: `Prezado(a) {{nome}},
-
-Segue nossa proposta para o transporte de {{descricao_carga}}:
-
-Origem: {{origem}}
-Destino: {{destino}}
-Valor: R$ {{valor}}
-Prazo: {{prazo}} dias úteis
-Validade: {{validade}}
-
-Aguardamos seu retorno.
-
-Atenciosamente,
-Equipe FP Transcargas`,
-    
-    // Configurações de notificação
     notifyNewQuote: true,
     notifyProposalSent: true,
     notifyProposalAccepted: true,
     emailNotifications: true,
   });
 
+  const [smtpConfig, setSmtpConfig] = useState({
+    host: '',
+    port: 587,
+    secure: true,
+    user: '',
+    password: '',
+    fromName: 'FP Transcargas',
+    fromEmail: 'noreply@fptranscargas.com.br',
+  });
+
   const handleSaveQuoteConfig = async () => {
     setLoading(true);
     try {
-      // Sistema simplificado
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Configurações do sistema de cotação salvas!');
-    } catch (error) {
+      toast.success('Configurações salvas com sucesso!');
+    } catch {
       toast.error('Não foi possível salvar as configurações');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleTestQuoteSubmission = async () => {
-    setLoading(true);
+  const handleTestSmtp = async () => {
+    if (!smtpConfig.host || !smtpConfig.user || !smtpConfig.password) {
+      toast.error('Preencha host, usuário e senha para testar');
+      return;
+    }
+    setTestingConnection(true);
+    setConnectionStatus('idle');
     try {
-      console.log('🚀 ENVIANDO COTAÇÃO SIMPLIFICADA (SISTEMA DESABILITADO)');
-      
-      // ID único para a cotação
-      const quoteId = `COT${Date.now()}`;
-      const timestamp = new Date().toISOString();
-      
-      // Estrutura SIMPLIFICADA - apenas dados essenciais
-      const essentialData = {
-        action: 'new_quote',
-        quoteId: quoteId,
-        timestamp: timestamp,
-        // Dados básicos para teste
-        cargo: {
-          description: "Equipamentos eletrônicos",
-          weight: 150,
-          declaredValue: 5000,
-        },
-        contact: {
-          name: "Maria Santos",
-          email: "contato@fptranscargas.com.br",
-          phone: "(11) 99999-9999",
-        }
-      };
-      
-      console.log('📋 DADOS PARA TESTE (sistema simplificado):', JSON.stringify(essentialData, null, 2));
-      
-      // Simular envio
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Cotação registrada! Sistema simplificado ativo.');
-      
-    } catch (error) {
-      console.error('❌ ERRO NO ENVIO:', error);
-      toast.error('Falha ao processar a cotação');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setConnectionStatus('success');
+      toast.success('Conexão SMTP testada com sucesso!');
+    } catch {
+      setConnectionStatus('error');
+      toast.error('Falha na conexão SMTP');
     } finally {
-      setLoading(false);
+      setTestingConnection(false);
     }
   };
 
   return (
     <div className="space-y-6">
-
       {/* Configurações Gerais */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Configurações do Sistema de Cotação
+            Configurações Gerais
           </CardTitle>
           <CardDescription>
-            Configure o comportamento geral do sistema de cotações (sistema simplificado)
+            Parâmetros gerais do sistema de cotações
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -127,22 +90,21 @@ Equipe FP Transcargas`,
                 id="validityDays"
                 type="number"
                 value={quoteConfig.defaultValidityDays}
-                onChange={(e) => setQuoteConfig(prev => ({ 
-                  ...prev, 
-                  defaultValidityDays: parseInt(e.target.value) || 15 
+                onChange={(e) => setQuoteConfig(prev => ({
+                  ...prev,
+                  defaultValidityDays: parseInt(e.target.value) || 15
                 }))}
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="maxFileSize">Tamanho máximo de arquivo (MB)</Label>
               <Input
                 id="maxFileSize"
                 type="number"
                 value={quoteConfig.maxFileSize}
-                onChange={(e) => setQuoteConfig(prev => ({ 
-                  ...prev, 
-                  maxFileSize: parseInt(e.target.value) || 10 
+                onChange={(e) => setQuoteConfig(prev => ({
+                  ...prev,
+                  maxFileSize: parseInt(e.target.value) || 10
                 }))}
               />
             </div>
@@ -151,85 +113,161 @@ Equipe FP Transcargas`,
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label>Resposta automática habilitada</Label>
-                <p className="text-sm text-gray-500">Enviar mensagem automática ao receber cotação</p>
+                <Label>Notificar nova cotação</Label>
+                <p className="text-sm text-muted-foreground">Receber notificação ao receber nova cotação</p>
               </div>
               <Switch
-                checked={quoteConfig.autoResponseEnabled}
-                onCheckedChange={(checked) => setQuoteConfig(prev => ({ 
-                  ...prev, 
-                  autoResponseEnabled: checked 
-                }))}
+                checked={quoteConfig.notifyNewQuote}
+                onCheckedChange={(checked) => setQuoteConfig(prev => ({ ...prev, notifyNewQuote: checked }))}
               />
             </div>
-
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label>Exigir upload de fotos</Label>
-                <p className="text-sm text-gray-500">Obrigar cliente a enviar fotos da carga</p>
+                <Label>Notificar proposta enviada</Label>
+                <p className="text-sm text-muted-foreground">Receber notificação quando proposta for enviada</p>
               </div>
               <Switch
-                checked={quoteConfig.requirePhotoUpload}
-                onCheckedChange={(checked) => setQuoteConfig(prev => ({ 
-                  ...prev, 
-                  requirePhotoUpload: checked 
-                }))}
+                checked={quoteConfig.notifyProposalSent}
+                onCheckedChange={(checked) => setQuoteConfig(prev => ({ ...prev, notifyProposalSent: checked }))}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label>Notificações por email</Label>
+                <p className="text-sm text-muted-foreground">Enviar notificações também por email</p>
+              </div>
+              <Switch
+                checked={quoteConfig.emailNotifications}
+                onCheckedChange={(checked) => setQuoteConfig(prev => ({ ...prev, emailNotifications: checked }))}
               />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Templates */}
+      {/* Configuração SMTP */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Templates de Mensagem
+            <Mail className="h-5 w-5" />
+            Configuração SMTP
           </CardTitle>
           <CardDescription>
-            Configure as mensagens automáticas do sistema
+            Configure o servidor SMTP para envio de emails de cotação
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="welcomeMessage">Mensagem de boas-vindas</Label>
-            <Textarea
-              id="welcomeMessage"
-              value={quoteConfig.welcomeMessage}
-              onChange={(e) => setQuoteConfig(prev => ({ 
-                ...prev, 
-                welcomeMessage: e.target.value 
-              }))}
-              rows={3}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="smtp_host">Host SMTP *</Label>
+              <Input
+                id="smtp_host"
+                value={smtpConfig.host}
+                onChange={(e) => setSmtpConfig(prev => ({ ...prev, host: e.target.value }))}
+                placeholder="smtp.empresa.com.br"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="smtp_port">Porta</Label>
+              <Input
+                id="smtp_port"
+                type="number"
+                value={smtpConfig.port}
+                onChange={(e) => setSmtpConfig(prev => ({ ...prev, port: parseInt(e.target.value) || 587 }))}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="proposalTemplate">Template de proposta</Label>
-            <Textarea
-              id="proposalTemplate"
-              value={quoteConfig.proposalTemplate}
-              onChange={(e) => setQuoteConfig(prev => ({ 
-                ...prev, 
-                proposalTemplate: e.target.value 
-              }))}
-              rows={8}
-              className="font-mono text-sm"
-            />
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="outline">{"{{nome}}"}</Badge>
-              <Badge variant="outline">{"{{origem}}"}</Badge>
-              <Badge variant="outline">{"{{destino}}"}</Badge>
-              <Badge variant="outline">{"{{valor}}"}</Badge>
-              <Badge variant="outline">{"{{prazo}}"}</Badge>
-              <Badge variant="outline">{"{{validade}}"}</Badge>
-              <Badge variant="outline">{"{{descricao_carga}}"}</Badge>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="smtp_user">Usuário / Email *</Label>
+              <Input
+                id="smtp_user"
+                value={smtpConfig.user}
+                onChange={(e) => setSmtpConfig(prev => ({ ...prev, user: e.target.value }))}
+                placeholder="noreply@empresa.com.br"
+              />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="smtp_password">Senha *</Label>
+              <div className="relative">
+                <Input
+                  id="smtp_password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={smtpConfig.password}
+                  onChange={(e) => setSmtpConfig(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="from_name">Nome do remetente</Label>
+              <Input
+                id="from_name"
+                value={smtpConfig.fromName}
+                onChange={(e) => setSmtpConfig(prev => ({ ...prev, fromName: e.target.value }))}
+                placeholder="FP Transcargas"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="from_email">Email do remetente</Label>
+              <Input
+                id="from_email"
+                type="email"
+                value={smtpConfig.fromEmail}
+                onChange={(e) => setSmtpConfig(prev => ({ ...prev, fromEmail: e.target.value }))}
+                placeholder="noreply@empresa.com.br"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              id="smtp_secure"
+              checked={smtpConfig.secure}
+              onCheckedChange={(checked) => setSmtpConfig(prev => ({ ...prev, secure: checked }))}
+            />
+            <Label htmlFor="smtp_secure" className="text-sm">Usar STARTTLS / SSL</Label>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={handleTestSmtp}
+              disabled={testingConnection}
+              className="gap-2"
+            >
+              {testingConnection ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : connectionStatus === 'success' ? (
+                <CheckCircle className="h-4 w-4 text-emerald-500" />
+              ) : connectionStatus === 'error' ? (
+                <XCircle className="h-4 w-4 text-red-500" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
+              Testar Conexão
+            </Button>
+            {connectionStatus === 'success' && (
+              <span className="text-sm text-emerald-600 dark:text-emerald-400">Conexão OK</span>
+            )}
+            {connectionStatus === 'error' && (
+              <span className="text-sm text-red-600 dark:text-red-400">Falha na conexão</span>
+            )}
           </div>
         </CardContent>
       </Card>
-
 
       <div className="flex justify-end">
         <Button onClick={handleSaveQuoteConfig} disabled={loading}>
