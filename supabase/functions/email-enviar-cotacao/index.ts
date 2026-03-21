@@ -61,136 +61,101 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 function buildEmailHtml(data: {
   nomeCliente: string;
-  idCotacao: string | number;
+  nroOrcamento: string | number;
   valorTotal?: string;
   origem?: string;
   destino?: string;
   peso?: string;
 }): string {
-  const { nomeCliente, idCotacao, valorTotal, origem, destino, peso } = data;
+  const { nomeCliente, nroOrcamento, valorTotal, origem, destino, peso } = data;
   
   const detailsRows: string[] = [];
-  if (origem) detailsRows.push(`<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;border-bottom:1px solid #f3f4f6;">Origem</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${origem}</td></tr>`);
-  if (destino) detailsRows.push(`<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;border-bottom:1px solid #f3f4f6;">Destino</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${destino}</td></tr>`);
-  if (peso) detailsRows.push(`<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;border-bottom:1px solid #f3f4f6;">Peso</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${peso}</td></tr>`);
-  if (valorTotal) detailsRows.push(`<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;">Valor Total</td><td style="padding:8px 16px;font-size:14px;font-weight:700;color:#ea580c;">${valorTotal}</td></tr>`);
+  if (origem && origem !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Origem</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${origem}</td></tr>`);
+  if (destino && destino !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Destino</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${destino}</td></tr>`);
+  if (peso) detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Peso</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${peso}</td></tr>`);
+  if (valorTotal && valorTotal !== '0' && valorTotal !== '0,00') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;width:120px;">Valor Total</td><td style="padding:10px 16px;font-size:13px;font-weight:700;color:#1e293b;">${valorTotal}</td></tr>`);
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cotação #${idCotacao} - FP Transcargas</title>
+  <title>Cotação ${nroOrcamento} - FP Transcargas</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;-webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f2f5;padding:40px 16px;">
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:24px 8px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,0.08);border-radius:12px;overflow:hidden;">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;">
           
-          <!-- Header -->
+          <!-- Logo -->
           <tr>
-            <td style="background-color:#1e293b;padding:28px 32px;text-align:center;">
-              <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:52px;width:auto;margin-bottom:4px;" />
+            <td style="background-color:#ffffff;padding:20px 32px;text-align:center;border-bottom:3px solid #1e40af;">
+              <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:44px;width:auto;" />
             </td>
           </tr>
 
-          <!-- Orange accent line -->
+          <!-- Content -->
           <tr>
-            <td style="background-color:#ea580c;height:4px;font-size:0;line-height:0;">&nbsp;</td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="background-color:#ffffff;padding:36px 32px 28px;">
+            <td style="background-color:#ffffff;padding:32px;">
               
-              <!-- Badge -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding-bottom:28px;">
-                    <span style="display:inline-block;background-color:#fff7ed;color:#c2410c;font-size:14px;font-weight:700;padding:8px 20px;border-radius:24px;border:1px solid #fed7aa;letter-spacing:0.3px;">
-                      COTAÇÃO Nº ${idCotacao}
-                    </span>
-                  </td>
-                </tr>
-              </table>
+              <p style="margin:0 0 4px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Cotação nº ${nroOrcamento}</p>
+              <hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0 24px;" />
 
-              <p style="margin:0 0 20px;color:#1f2937;font-size:15px;line-height:1.7;">
+              <p style="margin:0 0 16px;color:#1e293b;font-size:14px;line-height:1.6;">
                 Prezado(a) <strong>${nomeCliente}</strong>,
               </p>
               
-              <p style="margin:0 0 28px;color:#374151;font-size:15px;line-height:1.7;">
+              <p style="margin:0 0 24px;color:#334155;font-size:14px;line-height:1.6;">
                 Agradecemos o seu contato. Segue em anexo a cotação de frete conforme solicitado.
               </p>
 
               ${detailsRows.length > 0 ? `
-              <!-- Details Table -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
-                <tr>
-                  <td colspan="2" style="padding:10px 16px;background-color:#f8fafc;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e5e7eb;">
-                    Resumo da Cotação
-                  </td>
-                </tr>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border:1px solid #e2e8f0;">
+                <tr><td colspan="2" style="padding:8px 16px;background-color:#f8fafc;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Resumo</td></tr>
                 ${detailsRows.join('')}
               </table>
               ` : ''}
 
-              <!-- Attachment notice -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                 <tr>
-                  <td style="padding:16px 20px;background-color:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;border-left:4px solid #22c55e;">
-                    <p style="margin:0;color:#166534;font-size:14px;font-weight:500;">
-                      📎 O PDF completo da cotação está anexado a este e-mail.
-                    </p>
+                  <td style="padding:12px 16px;background-color:#f0f9ff;border-left:3px solid #1e40af;">
+                    <p style="margin:0;color:#1e40af;font-size:13px;">O PDF da cotação está anexado a este e-mail.</p>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;">
-                Caso tenha alguma dúvida ou queira prosseguir com esta cotação, entre em contato conosco pelos canais abaixo:
+              <p style="margin:0 0 20px;color:#334155;font-size:14px;line-height:1.6;">
+                Em caso de dúvidas ou para prosseguir com esta cotação:
               </p>
 
-              <!-- Contact channels -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                 <tr>
-                  <td style="padding:16px 20px;background-color:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="padding:6px 0;color:#374151;font-size:14px;">
-                          ✉️ <strong>E-mail:</strong> <a href="mailto:atendimento@fptranscargas.com.br" style="color:#ea580c;text-decoration:none;font-weight:600;">atendimento@fptranscargas.com.br</a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0;color:#374151;font-size:14px;">
-                          📱 <strong>WhatsApp:</strong> <a href="https://wa.me/557583718627" style="color:#ea580c;text-decoration:none;font-weight:600;">Clique aqui para falar conosco</a>
-                        </td>
-                      </tr>
-                    </table>
+                  <td style="padding:4px 0;color:#334155;font-size:13px;">
+                    E-mail: <a href="mailto:atendimento@fptranscargas.com.br" style="color:#1e40af;text-decoration:none;">atendimento@fptranscargas.com.br</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:4px 0;color:#334155;font-size:13px;">
+                    WhatsApp: <a href="https://wa.me/5575837117561" style="color:#1e40af;text-decoration:none;">+55 75 8371-7561</a>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0;color:#374151;font-size:15px;line-height:1.7;">
-                Atenciosamente,<br/>
-                <strong style="color:#1e293b;">Equipe FP Transcargas</strong>
+              <p style="margin:0;color:#334155;font-size:14px;line-height:1.6;">
+                Atenciosamente,<br/><strong>Equipe FP Transcargas</strong>
               </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="background-color:#1e293b;padding:24px 32px;text-align:center;">
-              <p style="margin:0 0 6px;color:#cbd5e1;font-size:12px;font-weight:500;">
-                FP Transcargas — Transporte Rodoviário &amp; Logística
+            <td style="background-color:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+              <p style="margin:0 0 4px;color:#94a3b8;font-size:11px;">
+                E-mail automático — não responda esta mensagem.
               </p>
-              <p style="margin:0 0 6px;color:#94a3b8;font-size:11px;">
-                Este é um e-mail automático enviado por <strong>noreply@fptranscargas.com.br</strong>.
-              </p>
-              <p style="margin:0 0 6px;color:#94a3b8;font-size:11px;">
-                Por favor, <strong>não responda</strong> este e-mail. Para atendimento, utilize os canais acima.
-              </p>
-              <p style="margin:0;color:#64748b;font-size:10px;margin-top:12px;">
-                © ${new Date().getFullYear()} FP Transcargas. Todos os direitos reservados.
+              <p style="margin:0;color:#cbd5e1;font-size:10px;">
+                © ${new Date().getFullYear()} FP Transcargas
               </p>
             </td>
           </tr>
@@ -212,6 +177,7 @@ serve(async (req) => {
     const body = await req.json();
     const { 
       idCotacao, 
+      nroOrcamento,
       emailCliente, 
       nomeCliente, 
       contaEmailId,
@@ -220,6 +186,8 @@ serve(async (req) => {
       destino,
       peso
     } = body;
+
+    const numeroCotacao = nroOrcamento || idCotacao;
 
     if (!idCotacao || !emailCliente) {
       return new Response(JSON.stringify({ 
@@ -260,7 +228,7 @@ serve(async (req) => {
     // 2. Montar HTML do email
     const htmlEmail = buildEmailHtml({
       nomeCliente: nomeCliente || 'Cliente',
-      idCotacao,
+      nroOrcamento: numeroCotacao,
       valorTotal,
       origem,
       destino,
@@ -268,18 +236,17 @@ serve(async (req) => {
     });
 
     // 3. Chamar a edge function email-send para enviar
-    // Usar conta noreply@fptranscargas.com.br
     const contaEmail = 'noreply@fptranscargas.com.br';
     console.log(`[email-cotacao] Usando conta: ${contaEmail}`);
 
     const emailPayload: any = {
       conta_email: contaEmail,
       para: [emailCliente],
-      assunto: `Cotação de Frete #${idCotacao} - FP Transcargas`,
+      assunto: `Cotação de Frete nº ${numeroCotacao} - FP Transcargas`,
       corpo: htmlEmail,
       html: true,
       anexos: [{
-        nome: `Cotacao_${idCotacao}.pdf`,
+        nome: `Cotacao_${numeroCotacao}.pdf`,
         tipo: 'application/pdf',
         conteudo: pdfBase64,
       }],
