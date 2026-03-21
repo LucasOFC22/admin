@@ -1354,7 +1354,6 @@ serve(async (req) => {
       fromEmail,
       fromName
     );
-    );
 
     if (!result.success) {
       // Log do erro de envio
