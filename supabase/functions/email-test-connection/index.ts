@@ -6,9 +6,6 @@ const corsHeaders = {
 };
 
 interface TestConnectionRequest {
-  imap_host: string;
-  imap_port: number;
-  imap_ssl: boolean;
   smtp_host: string;
   smtp_port: number;
   smtp_ssl: boolean;
@@ -17,9 +14,7 @@ interface TestConnectionRequest {
 }
 
 interface TestConnectionResponse {
-  imap_ok: boolean;
   smtp_ok: boolean;
-  imap_error?: string;
   smtp_error?: string;
 }
 
@@ -238,21 +233,14 @@ serve(async (req) => {
     const data: TestConnectionRequest = await req.json();
     
     console.log('Testando conexão de email:', {
-      imap: `${data.imap_host}:${data.imap_port}`,
       smtp: `${data.smtp_host}:${data.smtp_port}`,
       email: data.email
     });
 
-    // Testar IMAP e SMTP em paralelo
-    const [imapResult, smtpResult] = await Promise.all([
-      testImapConnection(data.imap_host, data.imap_port, data.imap_ssl, data.email, data.senha),
-      testSmtpConnection(data.smtp_host, data.smtp_port, data.smtp_ssl, data.email, data.senha)
-    ]);
+    const smtpResult = await testSmtpConnection(data.smtp_host, data.smtp_port, data.smtp_ssl, data.email, data.senha);
 
     const response: TestConnectionResponse = {
-      imap_ok: imapResult.success,
       smtp_ok: smtpResult.success,
-      imap_error: imapResult.error,
       smtp_error: smtpResult.error
     };
 
@@ -267,9 +255,7 @@ serve(async (req) => {
     console.error('Erro ao testar conexão:', errorMessage);
     return new Response(
       JSON.stringify({ 
-        imap_ok: false,
         smtp_ok: false,
-        imap_error: errorMessage,
         smtp_error: errorMessage
       }),
       { 
