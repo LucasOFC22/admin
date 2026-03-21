@@ -157,20 +157,18 @@ export async function attemptTokenRefresh(): Promise<boolean> {
           cookieStorage.setItem('fp_supabase_session', JSON.stringify(currentSession));
         } catch { /* silent */ }
         
-        // Tentar refresh via Supabase client
+        // Tentar refresh via Supabase client existente
         try {
-          const { createClient } = await import('@supabase/supabase-js');
+          const { supabase: existingClient } = await import('@/config/supabase');
           const rawSession = cookieStorage.getItem('fp_supabase_session');
           if (rawSession) {
             const parsed = JSON.parse(rawSession);
             if (parsed.refresh_token) {
-              const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
-              const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsa3BwdWNkbm12eWZzbmFycHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNDEzNTQsImV4cCI6MjA4ODgxNzM1NH0.MCR1rdDr9CNgfzlpqPFp2sfLMpyfxFKeEcgFOFdTXVs';
-              const tempClient = createClient(supabaseUrl, supabaseAnonKey);
-              const { data: refreshData } = await tempClient.auth.setSession({
+              const { data: refreshData } = await existingClient.auth.setSession({
                 access_token: parsed.access_token || '',
                 refresh_token: parsed.refresh_token,
               });
+
               if (refreshData?.session?.access_token) {
                 tokenStore.setToken(refreshData.session.access_token, refreshData.session.expires_in || 3600);
                 onTokenRefreshedCallback?.(refreshData.session.access_token, refreshData.session.expires_in || 3600);

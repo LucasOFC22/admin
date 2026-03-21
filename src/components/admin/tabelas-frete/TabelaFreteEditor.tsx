@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/config/supabase';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, Plus, Trash2, History, Download, Upload, GripVertical } from 'lucide-react';
