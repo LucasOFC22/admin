@@ -190,7 +190,8 @@ export const tabMapping: Record<string, AdminTab> = {
   'logs-campanhas': 'logs-campanhas',
   'vagas': 'vagas',
   'logs-vagas': 'logs-vagas',
-  'auditoria-seguranca': 'auditoria-seguranca'
+  'auditoria-seguranca': 'auditoria-seguranca',
+  'tabelas-frete': 'tabelas-frete'
 };
 
 // Nova estrutura reorganizada do menu
