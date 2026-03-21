@@ -14,6 +14,16 @@ interface Attachment {
   data: string; // base64
 }
 
+interface SmtpOverrideConfig {
+  host: string;
+  port: number;
+  secure?: boolean;
+  user: string;
+  password: string;
+  from_name?: string;
+  from_email?: string;
+}
+
 // Interface para o formato PT (nativo)
 interface SendEmailRequestPT {
   conta_id?: string;
@@ -27,6 +37,7 @@ interface SendEmailRequestPT {
   anexos?: Attachment[];
   in_reply_to?: string;
   references?: string[];
+  smtp_override?: SmtpOverrideConfig;
 }
 
 // Interface para o formato EN (legado/compatibilidade)
@@ -41,6 +52,7 @@ interface SendEmailRequestEN {
   replyTo?: string;
   in_reply_to?: string;
   references?: string[];
+  smtp_override?: SmtpOverrideConfig;
 }
 
 // Interface unificada interna
@@ -56,6 +68,7 @@ interface NormalizedEmailRequest {
   anexos: Attachment[];
   in_reply_to?: string;
   references?: string[];
+  smtp_override?: SmtpOverrideConfig;
 }
 
 // Função para descriptografar senha
