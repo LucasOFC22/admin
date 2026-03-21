@@ -1115,6 +1115,50 @@ export type Database = {
           },
         ]
       }
+      email_anexos: {
+        Row: {
+          content_id: string | null
+          created_at: string | null
+          email_mensagem_id: string
+          id: string
+          is_inline: boolean | null
+          nome: string
+          part_id: string | null
+          tamanho: number | null
+          tipo_mime: string | null
+        }
+        Insert: {
+          content_id?: string | null
+          created_at?: string | null
+          email_mensagem_id: string
+          id?: string
+          is_inline?: boolean | null
+          nome: string
+          part_id?: string | null
+          tamanho?: number | null
+          tipo_mime?: string | null
+        }
+        Update: {
+          content_id?: string | null
+          created_at?: string | null
+          email_mensagem_id?: string
+          id?: string
+          is_inline?: boolean | null
+          nome?: string
+          part_id?: string | null
+          tamanho?: number | null
+          tipo_mime?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_anexos_email_mensagem_id_fkey"
+            columns: ["email_mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "email_mensagens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_conta_usuarios: {
         Row: {
           created_at: string | null
@@ -1249,6 +1293,152 @@ export type Database = {
           },
         ]
       }
+      email_mensagens: {
+        Row: {
+          assunto: string | null
+          cc: string[] | null
+          created_at: string | null
+          data: string | null
+          de: string
+          de_nome: string | null
+          email_conta_id: string
+          email_pasta_id: string | null
+          has_attachments: boolean | null
+          headers: Json | null
+          id: string
+          in_reply_to: string | null
+          lido: boolean | null
+          message_id: string | null
+          para: string[] | null
+          pasta: string | null
+          preview: string | null
+          references: string[] | null
+          starred: boolean | null
+          tamanho_bytes: number | null
+          thread_id: string | null
+          uid: number
+          updated_at: string | null
+        }
+        Insert: {
+          assunto?: string | null
+          cc?: string[] | null
+          created_at?: string | null
+          data?: string | null
+          de: string
+          de_nome?: string | null
+          email_conta_id: string
+          email_pasta_id?: string | null
+          has_attachments?: boolean | null
+          headers?: Json | null
+          id?: string
+          in_reply_to?: string | null
+          lido?: boolean | null
+          message_id?: string | null
+          para?: string[] | null
+          pasta?: string | null
+          preview?: string | null
+          references?: string[] | null
+          starred?: boolean | null
+          tamanho_bytes?: number | null
+          thread_id?: string | null
+          uid: number
+          updated_at?: string | null
+        }
+        Update: {
+          assunto?: string | null
+          cc?: string[] | null
+          created_at?: string | null
+          data?: string | null
+          de?: string
+          de_nome?: string | null
+          email_conta_id?: string
+          email_pasta_id?: string | null
+          has_attachments?: boolean | null
+          headers?: Json | null
+          id?: string
+          in_reply_to?: string | null
+          lido?: boolean | null
+          message_id?: string | null
+          para?: string[] | null
+          pasta?: string | null
+          preview?: string | null
+          references?: string[] | null
+          starred?: boolean | null
+          tamanho_bytes?: number | null
+          thread_id?: string | null
+          uid?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_mensagens_email_conta_id_fkey"
+            columns: ["email_conta_id"]
+            isOneToOne: false
+            referencedRelation: "email_contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_mensagens_email_pasta_id_fkey"
+            columns: ["email_pasta_id"]
+            isOneToOne: false
+            referencedRelation: "email_pastas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_pastas: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          email_conta_id: string
+          id: string
+          nao_lidos: number | null
+          nome_exibicao: string | null
+          nome_imap: string
+          tipo: string | null
+          total_mensagens: number | null
+          uid_validity: number | null
+          ultimo_uid_sincronizado: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          email_conta_id: string
+          id?: string
+          nao_lidos?: number | null
+          nome_exibicao?: string | null
+          nome_imap: string
+          tipo?: string | null
+          total_mensagens?: number | null
+          uid_validity?: number | null
+          ultimo_uid_sincronizado?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          email_conta_id?: string
+          id?: string
+          nao_lidos?: number | null
+          nome_exibicao?: string | null
+          nome_imap?: string
+          tipo?: string | null
+          total_mensagens?: number | null
+          uid_validity?: number | null
+          ultimo_uid_sincronizado?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_pastas_email_conta_id_fkey"
+            columns: ["email_conta_id"]
+            isOneToOne: false
+            referencedRelation: "email_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_preferencias_usuario: {
         Row: {
           assinatura_ativa: boolean | null
@@ -1301,6 +1491,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "email_preferencias_usuario_email_conta_id_fkey"
+            columns: ["email_conta_id"]
+            isOneToOne: false
+            referencedRelation: "email_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_sync_log: {
+        Row: {
+          duracao_ms: number | null
+          email_conta_id: string
+          erro: string | null
+          fim: string | null
+          id: string
+          inicio: string | null
+          mensagens_atualizadas: number | null
+          mensagens_novas: number | null
+          mensagens_removidas: number | null
+          pasta: string | null
+          status: string | null
+        }
+        Insert: {
+          duracao_ms?: number | null
+          email_conta_id: string
+          erro?: string | null
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          mensagens_atualizadas?: number | null
+          mensagens_novas?: number | null
+          mensagens_removidas?: number | null
+          pasta?: string | null
+          status?: string | null
+        }
+        Update: {
+          duracao_ms?: number | null
+          email_conta_id?: string
+          erro?: string | null
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          mensagens_atualizadas?: number | null
+          mensagens_novas?: number | null
+          mensagens_removidas?: number | null
+          pasta?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sync_log_email_conta_id_fkey"
             columns: ["email_conta_id"]
             isOneToOne: false
             referencedRelation: "email_contas"
