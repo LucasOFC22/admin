@@ -82,83 +82,114 @@ function buildEmailHtml(data: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cotação #${idCotacao} - FP Transcargas</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:32px 16px;">
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f2f5;padding:40px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,0.08);border-radius:12px;overflow:hidden;">
           
           <!-- Header -->
           <tr>
-            <td style="background-color:#1e293b;padding:24px 32px;border-radius:12px 12px 0 0;text-align:center;">
-              <img src="https://fptranscargas.com.br/imags/favicon.png" alt="FP Transcargas" style="height:48px;width:auto;margin-bottom:8px;" />
-              <h1 style="margin:0;color:#ffffff;font-size:18px;font-weight:600;letter-spacing:0.5px;">FP TRANSCARGAS</h1>
-              <p style="margin:4px 0 0;color:#94a3b8;font-size:12px;">Transporte Rodoviário &amp; Logística</p>
+            <td style="background-color:#1e293b;padding:28px 32px;text-align:center;">
+              <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:52px;width:auto;margin-bottom:4px;" />
             </td>
+          </tr>
+
+          <!-- Orange accent line -->
+          <tr>
+            <td style="background-color:#ea580c;height:4px;font-size:0;line-height:0;">&nbsp;</td>
           </tr>
 
           <!-- Body -->
           <tr>
-            <td style="background-color:#ffffff;padding:32px;">
+            <td style="background-color:#ffffff;padding:36px 32px 28px;">
               
               <!-- Badge -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center" style="padding-bottom:24px;">
-                    <span style="display:inline-block;background-color:#fff7ed;color:#ea580c;font-size:13px;font-weight:600;padding:6px 16px;border-radius:20px;border:1px solid #fed7aa;">
-                      📋 Cotação #${idCotacao}
+                  <td align="center" style="padding-bottom:28px;">
+                    <span style="display:inline-block;background-color:#fff7ed;color:#c2410c;font-size:14px;font-weight:700;padding:8px 20px;border-radius:24px;border:1px solid #fed7aa;letter-spacing:0.3px;">
+                      COTAÇÃO Nº ${idCotacao}
                     </span>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
+              <p style="margin:0 0 20px;color:#1f2937;font-size:15px;line-height:1.7;">
                 Prezado(a) <strong>${nomeCliente}</strong>,
               </p>
               
-              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
-                Segue em anexo a cotação de frete solicitada. Confira os detalhes abaixo:
+              <p style="margin:0 0 28px;color:#374151;font-size:15px;line-height:1.7;">
+                Agradecemos o seu contato. Segue em anexo a cotação de frete conforme solicitado.
               </p>
 
               ${detailsRows.length > 0 ? `
               <!-- Details Table -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                <tr>
+                  <td colspan="2" style="padding:10px 16px;background-color:#f8fafc;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e5e7eb;">
+                    Resumo da Cotação
+                  </td>
+                </tr>
                 ${detailsRows.join('')}
               </table>
               ` : ''}
 
-              <!-- CTA -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <!-- Attachment notice -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
-                  <td align="center" style="padding:16px;background-color:#fffbeb;border-radius:8px;border:1px solid #fde68a;">
-                    <p style="margin:0;color:#92400e;font-size:14px;">
-                      📎 O PDF da cotação está anexado a este e-mail.
+                  <td style="padding:16px 20px;background-color:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;border-left:4px solid #22c55e;">
+                    <p style="margin:0;color:#166534;font-size:14px;font-weight:500;">
+                      📎 O PDF completo da cotação está anexado a este e-mail.
                     </p>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0 0 8px;color:#374151;font-size:15px;line-height:1.6;">
-                Caso tenha alguma dúvida ou queira prosseguir com esta cotação, entre em contato conosco.
+              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;">
+                Caso tenha alguma dúvida ou queira prosseguir com esta cotação, entre em contato conosco pelos canais abaixo:
               </p>
-              
-              <p style="margin:0;color:#374151;font-size:15px;line-height:1.6;">
+
+              <!-- Contact channels -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="padding:16px 20px;background-color:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:6px 0;color:#374151;font-size:14px;">
+                          ✉️ <strong>E-mail:</strong> <a href="mailto:atendimento@fptranscargas.com.br" style="color:#ea580c;text-decoration:none;font-weight:600;">atendimento@fptranscargas.com.br</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;color:#374151;font-size:14px;">
+                          📱 <strong>WhatsApp:</strong> <a href="https://wa.me/557583718627" style="color:#ea580c;text-decoration:none;font-weight:600;">Clique aqui para falar conosco</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#374151;font-size:15px;line-height:1.7;">
                 Atenciosamente,<br/>
-                <strong>Equipe FP Transcargas</strong>
+                <strong style="color:#1e293b;">Equipe FP Transcargas</strong>
               </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="background-color:#f8fafc;padding:20px 32px;border-radius:0 0 12px 12px;border-top:1px solid #e5e7eb;text-align:center;">
-              <p style="margin:0 0 4px;color:#6b7280;font-size:12px;">
-                FP Transcargas - Transporte Rodoviário &amp; Logística
+            <td style="background-color:#1e293b;padding:24px 32px;text-align:center;">
+              <p style="margin:0 0 6px;color:#cbd5e1;font-size:12px;font-weight:500;">
+                FP Transcargas — Transporte Rodoviário &amp; Logística
               </p>
-              <p style="margin:0 0 4px;color:#9ca3af;font-size:11px;">
-                Este e-mail foi enviado automaticamente. Por favor, não responda.
+              <p style="margin:0 0 6px;color:#94a3b8;font-size:11px;">
+                Este é um e-mail automático enviado por <strong>noreply@fptranscargas.com.br</strong>.
               </p>
-              <p style="margin:0;color:#9ca3af;font-size:11px;">
+              <p style="margin:0 0 6px;color:#94a3b8;font-size:11px;">
+                Por favor, <strong>não responda</strong> este e-mail. Para atendimento, utilize os canais acima.
+              </p>
+              <p style="margin:0;color:#64748b;font-size:10px;margin-top:12px;">
                 © ${new Date().getFullYear()} FP Transcargas. Todos os direitos reservados.
               </p>
             </td>
