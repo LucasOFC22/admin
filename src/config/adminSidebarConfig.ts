@@ -41,6 +41,7 @@ import {
   Megaphone,
   UserCircle,
   FileDown,
+  TableProperties,
   LucideIcon
 } from 'lucide-react';
 
@@ -108,7 +109,8 @@ export type AdminTab =
   | 'vagas'
   | 'logs-vagas'
   | 'logs-coleta'
-  | 'auditoria-seguranca';
+  | 'auditoria-seguranca'
+  | 'tabelas-frete';
 
 export interface MenuItemConfig {
   id: string;
@@ -188,7 +190,8 @@ export const tabMapping: Record<string, AdminTab> = {
   'logs-campanhas': 'logs-campanhas',
   'vagas': 'vagas',
   'logs-vagas': 'logs-vagas',
-  'auditoria-seguranca': 'auditoria-seguranca'
+  'auditoria-seguranca': 'auditoria-seguranca',
+  'tabelas-frete': 'tabelas-frete'
 };
 
 // Nova estrutura reorganizada do menu
@@ -209,7 +212,8 @@ export const menuCategories: MenuCategoryConfig[] = [
       { id: 'manifestos', label: 'Manifestos', icon: Package, requiredPermission: 'admin.manifestos.visualizar' },
       { id: 'consultar-nfe', label: 'Consultar NF-e', icon: FileSearch, requiredPermission: 'admin.nfe.visualizar' },
       { id: 'rastreamento', label: 'Rastreamento', icon: Navigation, requiredPermission: 'admin.rastreamento.visualizar' },
-      { id: 'baixa-rapida-cte', label: 'Baixa Rápida CT-e', icon: FileDown, requiredPermission: 'admin.baixa_rapida.visualizar' }
+      { id: 'baixa-rapida-cte', label: 'Baixa Rápida CT-e', icon: FileDown, requiredPermission: 'admin.baixa_rapida.visualizar' },
+      { id: 'tabelas-frete', label: 'Tabelas de Frete', icon: TableProperties, requiredPermission: 'admin.tabelas-frete.visualizar' }
     ]
   },
   {

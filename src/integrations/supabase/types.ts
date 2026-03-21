@@ -2773,6 +2773,57 @@ export type Database = {
           },
         ]
       }
+      logs_tabelas_frete: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhes: Json | null
+          id: string
+          ip_address: string | null
+          tabela_frete_id: string
+          user_agent: string | null
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          ip_address?: string | null
+          tabela_frete_id: string
+          user_agent?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          ip_address?: string | null
+          tabela_frete_id?: string
+          user_agent?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_tabelas_frete_tabela_frete_id_fkey"
+            columns: ["tabela_frete_id"]
+            isOneToOne: false
+            referencedRelation: "tabelas_frete"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_tabelas_frete_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logs_tags: {
         Row: {
           created_at: string
@@ -3648,6 +3699,60 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "contatos_whatsapp"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tabelas_frete: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          atualizado_por: string | null
+          colunas: Json
+          criado_em: string
+          criado_por: string | null
+          dados: Json
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          atualizado_por?: string | null
+          colunas?: Json
+          criado_em?: string
+          criado_por?: string | null
+          dados?: Json
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          atualizado_por?: string | null
+          colunas?: Json
+          criado_em?: string
+          criado_por?: string | null
+          dados?: Json
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tabelas_frete_atualizado_por_fkey"
+            columns: ["atualizado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tabelas_frete_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]

@@ -63,7 +63,8 @@ const routeToTabMapping: Record<string, AdminTab> = {
   '/rastreamento': 'rastreamento',
   '/baixa-rapida-cte': 'baixa-rapida-cte',
   '/logs-coleta': 'logs-coleta',
-  '/auditoria-seguranca': 'auditoria-seguranca'
+  '/auditoria-seguranca': 'auditoria-seguranca',
+  '/tabelas-frete': 'tabelas-frete'
 };
 
 // Mapeamento de tabs para rotas (usado no setActiveTab - sem prefixo /admin)
@@ -129,7 +130,8 @@ const tabToRouteMapping: Record<AdminTab, string> = {
   'logs-vagas': '/logs-vagas',
   'baixa-rapida-cte': '/baixa-rapida-cte',
   'logs-coleta': '/logs-coleta',
-  'auditoria-seguranca': '/auditoria-seguranca'
+  'auditoria-seguranca': '/auditoria-seguranca',
+  'tabelas-frete': '/tabelas-frete'
 };
 
 export function useActiveAdminTab() {
