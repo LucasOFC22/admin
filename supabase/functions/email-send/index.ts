@@ -1033,7 +1033,7 @@ async function sendSmtpEmail(
     let message = '';
     message += `Message-ID: ${messageId}\r\n`;
     message += `Date: ${formatRFC2822Date(new Date())}\r\n`;
-    message += `From: <${cleanEmail}>\r\n`;
+    message += `From: ${fromName ? `${encodeMimeHeader(fromName)} <${cleanFromEmail}>` : `<${cleanFromEmail}>`}\r\n`;
     message += `To: ${to.join(', ')}\r\n`;
     if (cc.length > 0) {
       message += `Cc: ${cc.join(', ')}\r\n`;
