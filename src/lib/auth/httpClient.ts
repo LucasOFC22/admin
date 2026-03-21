@@ -168,9 +168,7 @@ export async function attemptTokenRefresh(): Promise<boolean> {
                 access_token: parsed.access_token || '',
                 refresh_token: parsed.refresh_token,
               });
-                access_token: parsed.access_token || '',
-                refresh_token: parsed.refresh_token,
-              });
+
               if (refreshData?.session?.access_token) {
                 tokenStore.setToken(refreshData.session.access_token, refreshData.session.expires_in || 3600);
                 onTokenRefreshedCallback?.(refreshData.session.access_token, refreshData.session.expires_in || 3600);
