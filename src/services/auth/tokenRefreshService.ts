@@ -40,6 +40,11 @@ class TokenRefreshService {
   private lastRefreshAttempt: number = 0;
   private isRefreshing: boolean = false;
   private refreshPromise: Promise<boolean> | null = null;
+  private lastFailureStatus: number | null = null;
+
+  getLastFailureStatus(): number | null {
+    return this.lastFailureStatus;
+  }
 
   /**
    * Chama o endpoint /refresh para obter um novo access_token
@@ -73,11 +78,12 @@ class TokenRefreshService {
 
   private async _doRefresh(): Promise<boolean> {
     try {
+      this.lastFailureStatus = null;
       console.log('[TokenRefresh] ========== INÍCIO DO REFRESH ==========');
 
       // Extrair refresh_token do cookie fp_supabase_session como fallback
       const session = CookieAuth.getSupabaseSession();
-      const refreshTokenFromCookie = (session as any)?.device_refresh_token || session?.refresh_token || '';
+      const refreshTokenFromCookie = session?.device_refresh_token || '';
       const deviceId = getOrCreateDeviceId();
 
       console.log('[TokenRefresh] Session encontrada no cookie:', !!session);
@@ -87,7 +93,19 @@ class TokenRefreshService {
       console.log('[TokenRefresh] access_token presente:', !!session?.access_token);
       console.log('[TokenRefresh] expires_at:', session?.expires_at, '| agora:', Math.floor(Date.now() / 1000));
 
+      if (!refreshTokenFromCookie && session?.refresh_token) {
+        console.warn('[TokenRefresh] Cookie não possui device_refresh_token; refresh vai depender apenas do cookie httpOnly');
+      }
+
       console.log('[TokenRefresh] Enviando POST para:', REFRESH_API_URL);
+
+      const bodyPayload: Record<string, string> = {
+        device_id: deviceId,
+      };
+
+      if (refreshTokenFromCookie) {
+        bodyPayload.refresh_token = refreshTokenFromCookie;
+      }
 
       const response = await fetch(REFRESH_API_URL, {
         method: 'POST',
@@ -96,16 +114,14 @@ class TokenRefreshService {
           'Content-Type': 'application/json',
           'X-Source': 'admin-frontend',
         },
-        body: JSON.stringify({ 
-          refresh_token: refreshTokenFromCookie,
-          device_id: deviceId,
-        }),
+        body: JSON.stringify(bodyPayload),
       });
 
       console.log('[TokenRefresh] Response status:', response.status);
       console.log('[TokenRefresh] Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
 
       if (!response.ok) {
+        this.lastFailureStatus = response.status;
         const errorData = await response.json().catch(() => ({}));
         console.error('[TokenRefresh] ❌ Falha ao renovar token:', response.status, JSON.stringify(errorData));
         
@@ -197,6 +213,7 @@ class TokenRefreshService {
         expires_in: expiresIn,
         expires_at: Math.floor(Date.now() / 1000) + expiresIn,
         token_type: currentSession?.token_type || 'bearer',
+        device_id: currentSession?.device_id || getOrCreateDeviceId(),
         ...(newDeviceRefreshToken ? { device_refresh_token: newDeviceRefreshToken } : {}),
         ...(newSupabaseRefreshToken ? { refresh_token: newSupabaseRefreshToken } : {}),
       };

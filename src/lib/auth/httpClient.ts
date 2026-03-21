@@ -11,10 +11,9 @@
  */
 
 import { tokenStore } from './tokenStore';
-import { cookieStorage } from './cookieStorage';
 import { BACKEND_CONFIG, getBackendUrl } from '@/config/backend.config';
 import { devLog } from '@/utils/logger';
-import { getOrCreateDeviceId } from '@/utils/deviceInfo';
+import { tokenRefreshService } from '@/services/auth/tokenRefreshService';
 
 const REFRESH_URL = `${BACKEND_CONFIG.baseUrl.replace(/\/$/, '')}/auth/refresh`;
 
@@ -81,154 +80,29 @@ export async function attemptTokenRefresh(): Promise<boolean> {
   
   refreshPromise = (async () => {
     try {
-      devLog.log('[HttpClient] 🔄 Tentando refresh token...');
+      devLog.log('[HttpClient] 🔄 Delegando refresh ao TokenRefreshService...');
 
-      // Enviar device_id + refresh_token do cookie fp_supabase_session como fallback
-      const bodyPayload: Record<string, string> = {
-        device_id: getOrCreateDeviceId(),
-      };
-      try {
-        const rawSession = cookieStorage.getItem('fp_supabase_session');
-        if (rawSession) {
-          const parsed = JSON.parse(rawSession);
-          const token = parsed.device_refresh_token || parsed.refresh_token;
-          if (token) {
-            bodyPayload.refresh_token = token;
-            devLog.log('[HttpClient] 📦 Enviando refresh_token + device_id no body');
-          } else {
-            devLog.warn('[HttpClient] ⚠️ Cookie fp_supabase_session não contém refresh_token. Keys:', Object.keys(parsed).join(', '));
-          }
-        } else {
-          devLog.warn('[HttpClient] ⚠️ Cookie fp_supabase_session não encontrado');
-        }
-      } catch (e) {
-        devLog.warn('[HttpClient] ⚠️ Erro ao ler cookie fp_supabase_session:', e);
-      }
+      const success = await tokenRefreshService.refreshToken(true);
 
-      // Se não tem refresh_token no body, tentar Supabase session como último recurso
-      if (!bodyPayload.refresh_token) {
-        try {
-          const { supabase } = await import('@/integrations/supabase/client');
-          const { data: sessionData } = await supabase.auth.getSession();
-          if (sessionData?.session?.refresh_token) {
-            bodyPayload.refresh_token = sessionData.session.refresh_token;
-            devLog.log('[HttpClient] 📦 Usando refresh_token do Supabase SDK como fallback');
-          }
-        } catch {
-          // Silencioso
-        }
-      }
+      if (!success) {
+        const status = tokenRefreshService.getLastFailureStatus();
+        devLog.warn('[HttpClient] ❌ Refresh falhou via TokenRefreshService', { status });
 
-      const response = await fetch(REFRESH_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Source': 'fp-transcargas-admin',
-        },
-        credentials: 'include', // Envia httpOnly cookie automaticamente
-        body: JSON.stringify(bodyPayload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        devLog.warn('[HttpClient] ❌ Refresh falhou:', response.status, errorData);
-
-        if (response.status === 401) {
-          // Refresh token inválido/expirado → sessão morta, BLOQUEAR futuras tentativas
+        if (status === 401) {
           refreshBlocked = true;
           lastRefreshFailure = Date.now();
           handleSessionExpired();
-          return false;
         }
 
         return false;
       }
 
-      const data = await response.json();
-      
-      // Se a edge function indica que precisa de refresh Supabase
-      if (data.needs_supabase_refresh) {
-        devLog.log('[HttpClient] 🔄 Edge function pede refresh via Supabase client...');
-        // Atualizar device_refresh_token no cookie
-        try {
-          const rawSession = cookieStorage.getItem('fp_supabase_session');
-          const currentSession = rawSession ? JSON.parse(rawSession) : {};
-          currentSession.device_refresh_token = data.refresh_token;
-          cookieStorage.setItem('fp_supabase_session', JSON.stringify(currentSession));
-        } catch { /* silent */ }
-        
-        // Tentar refresh via Supabase client existente
-        try {
-          const { supabase: existingClient } = await import('@/config/supabase');
-          const rawSession = cookieStorage.getItem('fp_supabase_session');
-          if (rawSession) {
-            const parsed = JSON.parse(rawSession);
-            if (parsed.refresh_token) {
-              const { data: refreshData } = await existingClient.auth.setSession({
-                access_token: parsed.access_token || '',
-                refresh_token: parsed.refresh_token,
-              });
-
-              if (refreshData?.session?.access_token) {
-                tokenStore.setToken(refreshData.session.access_token, refreshData.session.expires_in || 3600);
-                onTokenRefreshedCallback?.(refreshData.session.access_token, refreshData.session.expires_in || 3600);
-                devLog.log('[HttpClient] ✅ Token renovado via Supabase client');
-                return true;
-              }
-            }
-          }
-        } catch {
-          devLog.warn('[HttpClient] ⚠️ Erro no refresh via Supabase client');
-        }
-        return false;
+      const refreshedToken = tokenStore.getToken();
+      if (refreshedToken) {
+        onTokenRefreshedCallback?.(refreshedToken, tokenStore.getTimeToExpiry());
       }
 
-      const { access_token, expires_in, refresh_token: new_refresh_token, supabase_refresh_token } = data;
-
-      if (!access_token || !expires_in) {
-        devLog.warn('[HttpClient] ❌ Resposta de refresh inválida:', data);
-        return false;
-      }
-
-      // Armazenar novo token em memória
-      tokenStore.setToken(access_token, expires_in);
-
-      // CRÍTICO: Atualizar fp_supabase_session cookie com os novos tokens
-      try {
-        const rawSession = cookieStorage.getItem('fp_supabase_session');
-        const currentSession = rawSession ? JSON.parse(rawSession) : {};
-        const updatedSession = {
-          ...currentSession,
-          access_token,
-          expires_in,
-          expires_at: Math.floor(Date.now() / 1000) + expires_in,
-          ...(new_refresh_token ? { device_refresh_token: new_refresh_token } : {}),
-          ...(supabase_refresh_token ? { refresh_token: supabase_refresh_token } : {}),
-        };
-        cookieStorage.setItem('fp_supabase_session', JSON.stringify(updatedSession));
-        devLog.log('[HttpClient] ✅ Cookie fp_supabase_session atualizado com novos tokens');
-      } catch (cookieError) {
-        devLog.warn('[HttpClient] ⚠️ Erro ao atualizar cookie de sessão:', cookieError);
-      }
-
-      // Sincronizar sessão Supabase para manter RLS funcionando
-      if (supabase_refresh_token) {
-        try {
-          const { supabase } = await import('@/config/supabase');
-          await supabase.auth.setSession({
-            access_token,
-            refresh_token: supabase_refresh_token,
-          });
-          devLog.log('[HttpClient] ✅ Sessão Supabase sincronizada após refresh');
-        } catch {
-          devLog.warn('[HttpClient] ⚠️ Erro ao sincronizar sessão Supabase');
-        }
-      }
-
-      // Notificar callback
-      onTokenRefreshedCallback?.(access_token, expires_in);
-
-      devLog.log(`[HttpClient] ✅ Token renovado (expira em ${expires_in}s)`);
+      devLog.log('[HttpClient] ✅ Refresh concluído pelo TokenRefreshService');
       return true;
     } catch (error) {
       devLog.error('[HttpClient] ❌ Erro no refresh:', error);

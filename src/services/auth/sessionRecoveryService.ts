@@ -136,7 +136,9 @@ class SessionRecoveryService {
     user: Record<string, unknown> & { id: string; email?: string };
   }): void {
     try {
+      const currentCookieSession = CookieAuth.getSupabaseSession();
       const cookieValue = encodeURIComponent(JSON.stringify({
+        ...(currentCookieSession || {}),
         access_token: session.access_token,
         refresh_token: session.refresh_token,
         expires_in: session.expires_in,
