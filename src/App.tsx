@@ -134,6 +134,7 @@ const App = () => (
             <Route path="ocorrencias" element={<Ocorrencias />} />
             <Route path="rastreamento" element={<AdminRastreamento />} />
             <Route path="baixa-rapida-cte" element={<BaixaRapidaCte />} />
+            <Route path="tabelas-frete" element={<TabelasFrete />} />
             <Route path="erros-envio" element={<ErrosEnvio />} />
             
             {/* Usuários e Acessos */}
