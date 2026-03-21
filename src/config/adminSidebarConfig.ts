@@ -109,7 +109,8 @@ export type AdminTab =
   | 'vagas'
   | 'logs-vagas'
   | 'logs-coleta'
-  | 'auditoria-seguranca';
+  | 'auditoria-seguranca'
+  | 'tabelas-frete';
 
 export interface MenuItemConfig {
   id: string;
