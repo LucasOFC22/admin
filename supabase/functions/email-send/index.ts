@@ -901,26 +901,25 @@ async function sendSmtpEmail(
   let stage = 'INIT';
   
   try {
-    console.log(`[SMTP] Conectando a ${host}:${port} como ${email}`);
-    console.log(`[SMTP] Destinatários: to=${to.length}, cc=${cc.length}, bcc=${bcc.length}, anexos=${attachments.length}`);
-    if (inReplyTo) {
-      console.log(`[SMTP] Threading - In-Reply-To: ${inReplyTo}`);
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanAuthEmail = authEmail.trim().toLowerCase();
+    const cleanFromEmail = (fromEmail || authEmail).trim().toLowerCase();
     const emailValidationRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailValidationRegex.test(cleanEmail)) {
-      throw new Error(`Email inválido: ${cleanEmail}`);
+    if (!emailValidationRegex.test(cleanAuthEmail)) {
+      throw new Error(`Email SMTP inválido: ${cleanAuthEmail}`);
+    }
+    if (!emailValidationRegex.test(cleanFromEmail)) {
+      throw new Error(`Email remetente inválido: ${cleanFromEmail}`);
     }
     
-    console.log(`[SMTP] From: "${cleanEmail}"`);
+    console.log(`[SMTP] Conectando a ${host}:${port} como ${cleanAuthEmail}`);
+    console.log(`[SMTP] From: "${cleanFromEmail}"`);
 
     // Porta 465 = TLS implícito (conexão direta TLS)
     // Porta 587/25 = STARTTLS (conexão TCP, depois upgrade)
     const useImplicitTls = port === 465;
     
     const encoder = new TextEncoder();
-    const domain = extractDomain(cleanEmail);
+    const domain = extractDomain(cleanAuthEmail);
     
     stage = 'CONNECT';
     if (useImplicitTls) {
