@@ -237,7 +237,32 @@ serve(async (req) => {
     });
 
     // 3. Chamar a edge function email-send para enviar
+    // Buscar conta de email padrão se não fornecida
+    let contaId = contaEmailId;
+    if (!contaId) {
+      const { data: contas, error: contaError } = await supabase
+        .from('email_contas')
+        .select('id')
+        .eq('ativo', true)
+        .limit(1)
+        .single();
+      
+      if (contaError || !contas) {
+        console.error('[email-cotacao] Nenhuma conta de email ativa encontrada:', contaError);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Nenhuma conta de email configurada. Configure uma conta em Configurações > Email.' 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      contaId = contas.id;
+      console.log(`[email-cotacao] Usando conta de email padrão: ${contaId}`);
+    }
+
     const emailPayload: any = {
+      conta_id: contaId,
       para: [emailCliente],
       assunto: `Cotação de Frete #${idCotacao} - FP Transcargas`,
       corpo: htmlEmail,
@@ -248,11 +273,6 @@ serve(async (req) => {
         conteudo: pdfBase64,
       }],
     };
-
-    // Se tiver conta de email específica, usar
-    if (contaEmailId) {
-      emailPayload.conta_id = contaEmailId;
-    }
 
     const emailSendUrl = `${supabaseUrl}/functions/v1/email-send`;
     const emailResponse = await fetch(emailSendUrl, {
