@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import AdminPageHeader from '@/components/admin/AdminPageHeader';
+import PageHeader from '@/components/admin/PageHeader';
 import { TabelaFrete } from './TabelasFreteManager';
 import * as XLSX from 'xlsx';
 

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import AdminPageHeader from '@/components/admin/AdminPageHeader';
+import PageHeader from '@/components/admin/PageHeader';
 import TabelaFreteList from './TabelaFreteList';
 import TabelaFreteEditor from './TabelaFreteEditor';
 import TabelaFreteLogs from './TabelaFreteLogs';
