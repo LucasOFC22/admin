@@ -2085,5 +2085,75 @@ export const permissionsMap: PermissionGroup[] = [
         enabled: true
       }
     ]
+  },
+  {
+    category: 'Tabelas de Frete',
+    icon: 'TableProperties',
+    description: 'Gerenciamento de tabelas de frete para clientes',
+    permissions: [
+      {
+        id: 'admin.tabelas-frete.visualizar',
+        name: 'Visualizar Tabelas de Frete',
+        description: 'Acessar página de tabelas de frete',
+        action: 'view',
+        resource: 'tabelas-frete',
+        category: 'Tabelas de Frete',
+        enabled: true
+      },
+      {
+        id: 'admin.tabelas-frete.criar',
+        name: 'Criar Tabelas de Frete',
+        description: 'Criar novas tabelas de frete',
+        action: 'create',
+        resource: 'tabelas-frete',
+        category: 'Tabelas de Frete',
+        enabled: true
+      },
+      {
+        id: 'admin.tabelas-frete.editar',
+        name: 'Editar Tabelas de Frete',
+        description: 'Editar tabelas de frete existentes',
+        action: 'edit',
+        resource: 'tabelas-frete',
+        category: 'Tabelas de Frete',
+        enabled: true
+      },
+      {
+        id: 'admin.tabelas-frete.excluir',
+        name: 'Excluir Tabelas de Frete',
+        description: 'Excluir tabelas de frete',
+        action: 'delete',
+        resource: 'tabelas-frete',
+        category: 'Tabelas de Frete',
+        enabled: true
+      },
+      {
+        id: 'admin.tabelas-frete.exportar',
+        name: 'Exportar Tabelas de Frete',
+        description: 'Exportar tabelas de frete em Excel',
+        action: 'export',
+        resource: 'tabelas-frete',
+        category: 'Tabelas de Frete',
+        enabled: true
+      },
+      {
+        id: 'admin.tabelas-frete.importar',
+        name: 'Importar Tabelas de Frete',
+        description: 'Importar dados de Excel para tabelas de frete',
+        action: 'import',
+        resource: 'tabelas-frete',
+        category: 'Tabelas de Frete',
+        enabled: true
+      },
+      {
+        id: 'admin.tabelas-frete.logs',
+        name: 'Ver Logs de Tabelas de Frete',
+        description: 'Visualizar logs de alterações nas tabelas de frete',
+        action: 'view',
+        resource: 'tabelas-frete',
+        category: 'Tabelas de Frete',
+        enabled: true
+      }
+    ]
   }
 ];
