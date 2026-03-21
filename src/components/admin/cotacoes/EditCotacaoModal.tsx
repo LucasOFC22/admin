@@ -435,6 +435,7 @@ export const EditCotacaoModal = ({
         if (enviarEmail) {
           const emailCliente = formData.emailSolicitante || (cotacao as any)?.contato?.email;
           const idOrcamento = (cotacao as any)?.idOrcamento || cotacao?.id;
+          const nroOrcamento = (cotacao as any)?.nroOrcamento || detalhes?.nroOrcamento || idOrcamento;
           
           if (emailCliente && emailCliente !== 'N/A' && idOrcamento) {
             toast.info('Enviando email ao cliente...');
@@ -443,6 +444,7 @@ export const EditCotacaoModal = ({
               const { data: emailResult, error: emailError } = await supabase.functions.invoke('email-enviar-cotacao', {
                 body: {
                   idCotacao: idOrcamento,
+                  nroOrcamento,
                   emailCliente,
                   nomeCliente: formData.solicitante || (cotacao as any)?.contato?.nome || 'Cliente',
                   valorTotal: formData.valorTotal || undefined,

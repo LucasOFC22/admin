@@ -177,6 +177,7 @@ serve(async (req) => {
     const body = await req.json();
     const { 
       idCotacao, 
+      nroOrcamento,
       emailCliente, 
       nomeCliente, 
       contaEmailId,
@@ -185,6 +186,8 @@ serve(async (req) => {
       destino,
       peso
     } = body;
+
+    const numeroCotacao = nroOrcamento || idCotacao;
 
     if (!idCotacao || !emailCliente) {
       return new Response(JSON.stringify({ 
