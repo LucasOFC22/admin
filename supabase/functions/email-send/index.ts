@@ -14,6 +14,16 @@ interface Attachment {
   data: string; // base64
 }
 
+interface SmtpOverrideConfig {
+  host: string;
+  port: number;
+  secure?: boolean;
+  user: string;
+  password: string;
+  from_name?: string;
+  from_email?: string;
+}
+
 // Interface para o formato PT (nativo)
 interface SendEmailRequestPT {
   conta_id?: string;
@@ -27,6 +37,7 @@ interface SendEmailRequestPT {
   anexos?: Attachment[];
   in_reply_to?: string;
   references?: string[];
+  smtp_override?: SmtpOverrideConfig;
 }
 
 // Interface para o formato EN (legado/compatibilidade)
@@ -41,6 +52,7 @@ interface SendEmailRequestEN {
   replyTo?: string;
   in_reply_to?: string;
   references?: string[];
+  smtp_override?: SmtpOverrideConfig;
 }
 
 // Interface unificada interna
@@ -56,6 +68,7 @@ interface NormalizedEmailRequest {
   anexos: Attachment[];
   in_reply_to?: string;
   references?: string[];
+  smtp_override?: SmtpOverrideConfig;
 }
 
 // Função para descriptografar senha
@@ -128,6 +141,7 @@ function normalizeRequest(data: any): NormalizedEmailRequest {
       anexos,
       in_reply_to: enData.in_reply_to,
       references: enData.references,
+      smtp_override: enData.smtp_override,
     };
   } else {
     const ptData = data as SendEmailRequestPT;
@@ -143,6 +157,7 @@ function normalizeRequest(data: any): NormalizedEmailRequest {
       anexos,
       in_reply_to: ptData.in_reply_to,
       references: ptData.references,
+      smtp_override: ptData.smtp_override,
     };
   }
 }
@@ -868,7 +883,7 @@ async function readSmtpResponse(conn: Deno.Conn): Promise<{ code: string; lines:
 async function sendSmtpEmail(
   host: string,
   port: number,
-  email: string,
+  authEmail: string,
   password: string,
   to: string[],
   cc: string[],
@@ -878,32 +893,33 @@ async function sendSmtpEmail(
   isHtml: boolean,
   attachments: Attachment[] = [],
   inReplyTo?: string,
-  references?: string[]
+  references?: string[],
+  fromEmail?: string,
+  fromName?: string
 ): Promise<{ success: boolean; error?: string; messageId?: string; stage?: string }> {
   let conn: Deno.Conn | Deno.TlsConn | null = null;
   let stage = 'INIT';
   
   try {
-    console.log(`[SMTP] Conectando a ${host}:${port} como ${email}`);
-    console.log(`[SMTP] Destinatários: to=${to.length}, cc=${cc.length}, bcc=${bcc.length}, anexos=${attachments.length}`);
-    if (inReplyTo) {
-      console.log(`[SMTP] Threading - In-Reply-To: ${inReplyTo}`);
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanAuthEmail = authEmail.trim().toLowerCase();
+    const cleanFromEmail = (fromEmail || authEmail).trim().toLowerCase();
     const emailValidationRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailValidationRegex.test(cleanEmail)) {
-      throw new Error(`Email inválido: ${cleanEmail}`);
+    if (!emailValidationRegex.test(cleanAuthEmail)) {
+      throw new Error(`Email SMTP inválido: ${cleanAuthEmail}`);
+    }
+    if (!emailValidationRegex.test(cleanFromEmail)) {
+      throw new Error(`Email remetente inválido: ${cleanFromEmail}`);
     }
     
-    console.log(`[SMTP] From: "${cleanEmail}"`);
+    console.log(`[SMTP] Conectando a ${host}:${port} como ${cleanAuthEmail}`);
+    console.log(`[SMTP] From: "${cleanFromEmail}"`);
 
     // Porta 465 = TLS implícito (conexão direta TLS)
     // Porta 587/25 = STARTTLS (conexão TCP, depois upgrade)
     const useImplicitTls = port === 465;
     
     const encoder = new TextEncoder();
-    const domain = extractDomain(cleanEmail);
+    const domain = extractDomain(cleanAuthEmail);
     
     stage = 'CONNECT';
     if (useImplicitTls) {
@@ -970,7 +986,7 @@ async function sendSmtpEmail(
     }
     
     // Username (base64)
-    authResp = await sendCommand(btoa(cleanEmail));
+    authResp = await sendCommand(btoa(cleanAuthEmail));
     if (!authResp.code.startsWith('3')) {
       throw new Error(`AUTH username falhou: ${authResp.lines.join(' ')}`);
     }
@@ -984,7 +1000,7 @@ async function sendSmtpEmail(
     
     // MAIL FROM
     stage = 'MAIL_FROM';
-    const mailFromResp = await sendCommand(`MAIL FROM:<${cleanEmail}>`);
+    const mailFromResp = await sendCommand(`MAIL FROM:<${cleanFromEmail}>`);
     if (!mailFromResp.code.startsWith('2')) {
       throw new Error(`MAIL FROM falhou: ${mailFromResp.lines.join(' ')}`);
     }
@@ -1017,7 +1033,7 @@ async function sendSmtpEmail(
     let message = '';
     message += `Message-ID: ${messageId}\r\n`;
     message += `Date: ${formatRFC2822Date(new Date())}\r\n`;
-    message += `From: <${cleanEmail}>\r\n`;
+    message += `From: ${fromName ? `${encodeMimeHeader(fromName)} <${cleanFromEmail}>` : `<${cleanFromEmail}>`}\r\n`;
     message += `To: ${to.join(', ')}\r\n`;
     if (cc.length > 0) {
       message += `Cc: ${cc.join(', ')}\r\n`;
@@ -1225,11 +1241,39 @@ serve(async (req) => {
       usuario_responsavel: usuarioResponsavelId
     });
 
-    // Resolver conta de email
+    // Resolver conta SMTP
     let conta: any = null;
+    let senha = '';
+    let cleanContaEmail = '';
+    let fromName = '';
+
+    // Prioridade 0: smtp_override enviado pela função chamadora
+    if (data.smtp_override) {
+      const override = data.smtp_override;
+      cleanContaEmail = override.user.trim().toLowerCase();
+      senha = override.password;
+      fromName = override.from_name || '';
+      conta = {
+        id: 'smtp-override',
+        email: override.from_email || override.user,
+        smtp_host: override.host,
+        smtp_port: override.port,
+        smtp_ssl: override.secure ?? (override.port === 465),
+        imap_host: override.host,
+        imap_port: 993,
+        imap_ssl: true,
+        ativo: true,
+      };
+      console.log('[email-send] Usando smtp_override:', {
+        auth_user: cleanContaEmail,
+        from_email: conta.email,
+        host: conta.smtp_host,
+        port: conta.smtp_port,
+      });
+    }
 
     // Prioridade 1: conta_id
-    if (data.conta_id) {
+    if (!conta && data.conta_id) {
       const { data: contaById, error: contaByIdError } = await supabaseClient
         .from('email_contas')
         .select('*')
@@ -1271,22 +1315,26 @@ serve(async (req) => {
     }
 
     if (!conta) {
-      throw new Error('Conta de email não encontrada. Informe conta_id ou conta_email.');
+      throw new Error('Conta de email não encontrada. Informe conta_id, conta_email ou smtp_override.');
     }
 
     if (!conta.ativo) {
       throw new Error('Conta de email está inativa');
     }
 
-    // Limpar email da conta (remover vírgulas, espaços extras)
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-    const emailMatch = conta.email.match(emailRegex);
-    const cleanContaEmail = emailMatch ? emailMatch[0].toLowerCase() : conta.email.trim().replace(/[,;\s]/g, '');
+    if (!cleanContaEmail) {
+      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+      const emailMatch = conta.email.match(emailRegex);
+      cleanContaEmail = emailMatch ? emailMatch[0].toLowerCase() : conta.email.trim().replace(/[,;\s]/g, '');
+    }
     
     console.log('[email-send] Conta selecionada:', cleanContaEmail);
 
-    // Descriptografar senha
-    const senha = await decryptPassword(conta.senha_criptografada);
+    if (!senha) {
+      senha = await decryptPassword(conta.senha_criptografada);
+    }
+
+    const fromEmail = conta.email;
 
     // Enviar email via SMTP com suporte a threading
     const result = await sendSmtpEmail(
@@ -1302,7 +1350,9 @@ serve(async (req) => {
       data.html,
       data.anexos,
       data.in_reply_to,
-      data.references
+      data.references,
+      fromEmail,
+      fromName
     );
 
     if (!result.success) {
@@ -1346,7 +1396,7 @@ serve(async (req) => {
     console.log('[email-send] Salvando na pasta Enviados via IMAP APPEND...');
     
     const mimeMessage = buildMimeMessage(
-      cleanContaEmail,
+      fromEmail,
       data.para,
       data.cc,
       data.assunto,
