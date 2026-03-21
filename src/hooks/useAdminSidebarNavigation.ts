@@ -85,6 +85,7 @@ export const useAdminSidebarNavigation = () => {
         'baixa-rapida-cte': '/baixa-rapida-cte',
         'logs-coleta': '/logs-coleta',
         'auditoria-seguranca': '/auditoria-seguranca',
+        'tabelas-frete': '/tabelas-frete',
       };
 
       const route = routeMap[itemId] || '/';
