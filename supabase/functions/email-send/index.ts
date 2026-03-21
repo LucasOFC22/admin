@@ -141,6 +141,7 @@ function normalizeRequest(data: any): NormalizedEmailRequest {
       anexos,
       in_reply_to: enData.in_reply_to,
       references: enData.references,
+      smtp_override: enData.smtp_override,
     };
   } else {
     const ptData = data as SendEmailRequestPT;
@@ -156,6 +157,7 @@ function normalizeRequest(data: any): NormalizedEmailRequest {
       anexos,
       in_reply_to: ptData.in_reply_to,
       references: ptData.references,
+      smtp_override: ptData.smtp_override,
     };
   }
 }
