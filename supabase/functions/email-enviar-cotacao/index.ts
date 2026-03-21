@@ -114,7 +114,7 @@ function buildEmailHtml(data: {
 
               ${detailsRows.length > 0 ? `
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border:1px solid #e2e8f0;">
-                <tr><td colspan="2" style="padding:8px 16px;background-color:#f8fafc;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Resumo</td></tr>
+                <tr><td colspan="2" style="padding:8px 16px;background-color:#f8fafc;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Detalhes</td></tr>
                 ${detailsRows.join('')}
               </table>
               ` : ''}
