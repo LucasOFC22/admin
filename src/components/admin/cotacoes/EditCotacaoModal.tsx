@@ -435,7 +435,7 @@ export const EditCotacaoModal = ({
         if (enviarEmail) {
           const emailCliente = formData.emailSolicitante || (cotacao as any)?.contato?.email;
           const idOrcamento = (cotacao as any)?.idOrcamento || cotacao?.id;
-          const nroOrcamento = (cotacao as any)?.nroOrcamento || detalhes?.nroOrcamento || idOrcamento;
+          const nroOrcamento = (cotacao as any)?.nroOrcamento || (cotacaoCompleta as any)?.nroOrcamento || idOrcamento;
           
           if (emailCliente && emailCliente !== 'N/A' && idOrcamento) {
             toast.info('Enviando email ao cliente...');

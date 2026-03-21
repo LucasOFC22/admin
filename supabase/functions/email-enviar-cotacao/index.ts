@@ -228,7 +228,7 @@ serve(async (req) => {
     // 2. Montar HTML do email
     const htmlEmail = buildEmailHtml({
       nomeCliente: nomeCliente || 'Cliente',
-      idCotacao,
+      nroOrcamento: numeroCotacao,
       valorTotal,
       origem,
       destino,
@@ -236,18 +236,17 @@ serve(async (req) => {
     });
 
     // 3. Chamar a edge function email-send para enviar
-    // Usar conta noreply@fptranscargas.com.br
     const contaEmail = 'noreply@fptranscargas.com.br';
     console.log(`[email-cotacao] Usando conta: ${contaEmail}`);
 
     const emailPayload: any = {
       conta_email: contaEmail,
       para: [emailCliente],
-      assunto: `Cotação de Frete #${idCotacao} - FP Transcargas`,
+      assunto: `Cotação de Frete nº ${numeroCotacao} - FP Transcargas`,
       corpo: htmlEmail,
       html: true,
       anexos: [{
-        nome: `Cotacao_${idCotacao}.pdf`,
+        nome: `Cotacao_${numeroCotacao}.pdf`,
         tipo: 'application/pdf',
         conteudo: pdfBase64,
       }],
