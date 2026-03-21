@@ -15,6 +15,47 @@ const DBFRETE = {
   LOGIN: "https://dbfreteapi.dyndns-web.com/login",
 };
 
+interface SmtpConfig {
+  host: string;
+  port: number;
+  secure: boolean;
+  usuario: string;
+  senha: string;
+  from_name: string;
+  from_email: string;
+}
+
+async function getSmtpConfig(): Promise<SmtpConfig> {
+  const { data, error } = await supabase
+    .from("config_smtp")
+    .select("*")
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    console.warn("[email-cotacao] Config SMTP não encontrada, usando padrão");
+    return {
+      host: '',
+      port: 587,
+      secure: true,
+      usuario: '',
+      senha: '',
+      from_name: 'FP Transcargas',
+      from_email: 'noreply@fptranscargas.com.br',
+    };
+  }
+
+  return {
+    host: data.host || '',
+    port: data.port || 587,
+    secure: data.secure ?? true,
+    usuario: data.usuario || '',
+    senha: data.senha || '',
+    from_name: data.from_name || 'FP Transcargas',
+    from_email: data.from_email || 'noreply@fptranscargas.com.br',
+  };
+}
+
 async function getToken() {
   const { data: registro, error } = await supabase.from("dbfrete_token").select("*").single();
   if (error || !registro) throw new Error("Registro de token não encontrado");
@@ -66,21 +107,23 @@ function buildEmailHtml(data: {
   origem?: string;
   destino?: string;
   peso?: string;
+  fromName?: string;
 }): string {
-  const { nomeCliente, nroOrcamento, valorTotal, origem, destino, peso } = data;
+  const { nomeCliente, nroOrcamento, origem, destino, peso, fromName } = data;
   
   const detailsRows: string[] = [];
   if (origem && origem !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Origem</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${origem}</td></tr>`);
   if (destino && destino !== '/') detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Destino</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${destino}</td></tr>`);
   if (peso) detailsRows.push(`<tr><td style="padding:10px 16px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;width:120px;">Peso</td><td style="padding:10px 16px;font-size:13px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;">${peso}</td></tr>`);
-  // Valor Total removido do email
+
+  const companyName = fromName || 'FP Transcargas';
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cotação ${nroOrcamento} - FP Transcargas</title>
+  <title>Cotação ${nroOrcamento} - ${companyName}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:24px 8px;">
@@ -92,7 +135,7 @@ function buildEmailHtml(data: {
           <tr>
             <td style="background-color:#ffffff;padding:20px 32px;border-bottom:3px solid #1e40af;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="text-align:center;">
-                <img src="https://fptranscargas.com.br/imags/logo.png" alt="FP Transcargas" style="height:44px;width:auto;margin:0 auto;display:block;" />
+                <img src="https://fptranscargas.com.br/imags/logo.png" alt="${companyName}" style="height:44px;width:auto;margin:0 auto;display:block;" />
               </td></tr></table>
             </td>
           </tr>
@@ -145,7 +188,7 @@ function buildEmailHtml(data: {
               </table>
 
               <p style="margin:0;color:#334155;font-size:14px;line-height:1.6;">
-                Atenciosamente,<br/><strong>Equipe FP Transcargas</strong>
+                Atenciosamente,<br/><strong>Equipe ${companyName}</strong>
               </p>
             </td>
           </tr>
@@ -157,7 +200,7 @@ function buildEmailHtml(data: {
                 E-mail automático — não responda esta mensagem.
               </p>
               <p style="margin:0;color:#cbd5e1;font-size:10px;">
-                © ${new Date().getFullYear()} FP Transcargas
+                © ${new Date().getFullYear()} ${companyName}
               </p>
             </td>
           </tr>
@@ -182,7 +225,6 @@ serve(async (req) => {
       nroOrcamento,
       emailCliente, 
       nomeCliente, 
-      contaEmailId,
       valorTotal,
       origem,
       destino,
@@ -195,6 +237,20 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'idCotacao e emailCliente são obrigatórios' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Buscar configuração SMTP do banco
+    const smtpCfg = await getSmtpConfig();
+    console.log(`[email-cotacao] SMTP config: host=${smtpCfg.host}, from=${smtpCfg.from_email}, fromName=${smtpCfg.from_name}`);
+
+    if (!smtpCfg.host || !smtpCfg.usuario || !smtpCfg.senha) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'SMTP não configurado. Vá em Configurações > Cotações e configure o SMTP.' 
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -235,18 +291,29 @@ serve(async (req) => {
       origem,
       destino,
       peso,
+      fromName: smtpCfg.from_name,
     });
 
-    // 3. Chamar a edge function email-send para enviar
-    const contaEmail = 'noreply@fptranscargas.com.br';
+    // 3. Chamar a edge function email-send usando a conta SMTP configurada
+    const contaEmail = smtpCfg.from_email;
     console.log(`[email-cotacao] Usando conta: ${contaEmail}`);
 
     const emailPayload: any = {
       conta_email: contaEmail,
       para: [emailCliente],
-      assunto: `Cotação de Frete nº ${numeroCotacao} - FP Transcargas`,
+      assunto: `Cotação de Frete nº ${numeroCotacao} - ${smtpCfg.from_name}`,
       corpo: htmlEmail,
       html: true,
+      // Passar dados SMTP diretamente para a edge function email-send
+      smtp_override: {
+        host: smtpCfg.host,
+        port: smtpCfg.port,
+        secure: smtpCfg.secure,
+        user: smtpCfg.usuario,
+        password: smtpCfg.senha,
+        from_name: smtpCfg.from_name,
+        from_email: smtpCfg.from_email,
+      },
       anexos: [{
         nome: `Cotacao_${numeroCotacao}.pdf`,
         tipo: 'application/pdf',

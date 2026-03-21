@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Settings, Mail, Eye, EyeOff, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from '@/lib/toast';
+import { supabase } from '@/config/supabase';
 
 interface QuoteSystemConfigProps {
   loading: boolean;
@@ -17,14 +18,14 @@ const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoadi
   const [showPassword, setShowPassword] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [configId, setConfigId] = useState<number | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
 
   const [quoteConfig, setQuoteConfig] = useState({
     defaultValidityDays: 15,
     maxFileSize: 10,
-    allowedFileTypes: 'pdf,jpg,jpeg,png,doc,docx',
     notifyNewQuote: true,
     notifyProposalSent: true,
-    notifyProposalAccepted: true,
     emailNotifications: true,
   });
 
@@ -38,13 +39,86 @@ const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoadi
     fromEmail: 'noreply@fptranscargas.com.br',
   });
 
+  // Carregar configurações do banco
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('config_smtp')
+          .select('*')
+          .maybeSingle();
+
+        if (error) {
+          console.error('Erro ao carregar config SMTP:', error);
+          return;
+        }
+
+        if (data) {
+          setConfigId(data.id);
+          setSmtpConfig({
+            host: data.host || '',
+            port: data.port || 587,
+            secure: data.secure ?? true,
+            user: data.usuario || '',
+            password: data.senha || '',
+            fromName: data.from_name || 'FP Transcargas',
+            fromEmail: data.from_email || 'noreply@fptranscargas.com.br',
+          });
+          setQuoteConfig({
+            defaultValidityDays: data.validade_dias || 15,
+            maxFileSize: data.tamanho_max_arquivo || 10,
+            notifyNewQuote: data.notificar_nova_cotacao ?? true,
+            notifyProposalSent: data.notificar_proposta_enviada ?? true,
+            emailNotifications: data.notificacoes_email ?? true,
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao carregar configurações:', err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    loadConfig();
+  }, []);
+
   const handleSaveQuoteConfig = async () => {
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const payload = {
+        host: smtpConfig.host,
+        port: smtpConfig.port,
+        secure: smtpConfig.secure,
+        usuario: smtpConfig.user,
+        senha: smtpConfig.password,
+        from_name: smtpConfig.fromName,
+        from_email: smtpConfig.fromEmail,
+        validade_dias: quoteConfig.defaultValidityDays,
+        tamanho_max_arquivo: quoteConfig.maxFileSize,
+        notificar_nova_cotacao: quoteConfig.notifyNewQuote,
+        notificar_proposta_enviada: quoteConfig.notifyProposalSent,
+        notificacoes_email: quoteConfig.emailNotifications,
+      };
+
+      let result;
+      if (configId) {
+        result = await supabase
+          .from('config_smtp')
+          .update(payload)
+          .eq('id', configId);
+      } else {
+        result = await supabase
+          .from('config_smtp')
+          .insert([payload])
+          .select()
+          .single();
+        if (result.data) setConfigId(result.data.id);
+      }
+
+      if (result.error) throw new Error(result.error.message);
       toast.success('Configurações salvas com sucesso!');
-    } catch {
-      toast.error('Não foi possível salvar as configurações');
+    } catch (err: any) {
+      toast.error(`Não foi possível salvar: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -58,9 +132,27 @@ const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoadi
     setTestingConnection(true);
     setConnectionStatus('idle');
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setConnectionStatus('success');
-      toast.success('Conexão SMTP testada com sucesso!');
+      const { data, error } = await supabase.functions.invoke('email-test-connection', {
+        body: {
+          smtp_host: smtpConfig.host,
+          smtp_port: smtpConfig.port,
+          smtp_ssl: smtpConfig.secure,
+          imap_host: smtpConfig.host,
+          imap_port: 993,
+          imap_ssl: true,
+          email: smtpConfig.user,
+          senha: smtpConfig.password,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.smtp_ok) {
+        setConnectionStatus('success');
+        toast.success('Conexão SMTP testada com sucesso!');
+      } else {
+        setConnectionStatus('error');
+        toast.error(`Falha SMTP: ${data?.smtp_error || 'Erro desconhecido'}`);
+      }
     } catch {
       setConnectionStatus('error');
       toast.error('Falha na conexão SMTP');
@@ -68,6 +160,15 @@ const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoadi
       setTestingConnection(false);
     }
   };
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">Carregando configurações...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -634,6 +634,60 @@ export type Database = {
         }
         Relationships: []
       }
+      config_smtp: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          from_email: string
+          from_name: string
+          host: string
+          id: number
+          notificacoes_email: boolean
+          notificar_nova_cotacao: boolean
+          notificar_proposta_enviada: boolean
+          port: number
+          secure: boolean
+          senha: string
+          tamanho_max_arquivo: number
+          usuario: string
+          validade_dias: number
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          from_email?: string
+          from_name?: string
+          host?: string
+          id?: never
+          notificacoes_email?: boolean
+          notificar_nova_cotacao?: boolean
+          notificar_proposta_enviada?: boolean
+          port?: number
+          secure?: boolean
+          senha?: string
+          tamanho_max_arquivo?: number
+          usuario?: string
+          validade_dias?: number
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          from_email?: string
+          from_name?: string
+          host?: string
+          id?: never
+          notificacoes_email?: boolean
+          notificar_nova_cotacao?: boolean
+          notificar_proposta_enviada?: boolean
+          port?: number
+          secure?: boolean
+          senha?: string
+          tamanho_max_arquivo?: number
+          usuario?: string
+          validade_dias?: number
+        }
+        Relationships: []
+      }
       config_whatsapp: {
         Row: {
           accept_audio_message_contact: boolean | null
