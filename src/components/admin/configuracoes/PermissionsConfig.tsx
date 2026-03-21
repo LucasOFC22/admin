@@ -28,6 +28,7 @@ const PermissionsConfig = () => {
     'Coletas': 'db-frete',
     'Manifestos': 'db-frete',
     'Consultar NF-e': 'db-frete',
+    'Tabelas de Frete': 'db-frete',
     // Comunicação
     'Atendimento': 'comunicacao',
     'Kanban': 'comunicacao',
