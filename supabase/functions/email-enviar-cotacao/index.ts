@@ -268,32 +268,12 @@ serve(async (req) => {
     });
 
     // 3. Chamar a edge function email-send para enviar
-    // Buscar conta de email padrão se não fornecida
-    let contaId = contaEmailId;
-    if (!contaId) {
-      const { data: contas, error: contaError } = await supabase
-        .from('email_contas')
-        .select('id')
-        .eq('ativo', true)
-        .limit(1)
-        .single();
-      
-      if (contaError || !contas) {
-        console.error('[email-cotacao] Nenhuma conta de email ativa encontrada:', contaError);
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: 'Nenhuma conta de email configurada. Configure uma conta em Configurações > Email.' 
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      contaId = contas.id;
-      console.log(`[email-cotacao] Usando conta de email padrão: ${contaId}`);
-    }
+    // Usar conta noreply@fptranscargas.com.br
+    const contaEmail = 'noreply@fptranscargas.com.br';
+    console.log(`[email-cotacao] Usando conta: ${contaEmail}`);
 
     const emailPayload: any = {
-      conta_id: contaId,
+      conta_email: contaEmail,
       para: [emailCliente],
       assunto: `Cotação de Frete #${idCotacao} - FP Transcargas`,
       corpo: htmlEmail,
