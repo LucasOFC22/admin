@@ -132,8 +132,17 @@ const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoadi
     setTestingConnection(true);
     setConnectionStatus('idle');
     try {
-      const { data, error } = await supabase.functions.invoke('email-test-connection', {
-        body: {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ulkppucdnmvyfsnarpth.supabase.co';
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsa3BwdWNkbm12eWZzbmFycHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNDEzNTQsImV4cCI6MjA4ODgxNzM1NH0.MCR1rdDr9CNgfzlpqPFp2sfLMpyfxFKeEcgFOFdTXVs';
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/email-test-connection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
+        },
+        body: JSON.stringify({
           smtp_host: smtpConfig.host,
           smtp_port: smtpConfig.port,
           smtp_ssl: smtpConfig.secure,
@@ -142,10 +151,12 @@ const QuoteSystemConfig: React.FC<QuoteSystemConfigProps> = ({ loading, setLoadi
           imap_ssl: true,
           email: smtpConfig.user,
           senha: smtpConfig.password,
-        },
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Erro na requisição');
+      const data = await response.json();
+
       if (data?.smtp_ok) {
         setConnectionStatus('success');
         toast.success('Conexão SMTP testada com sucesso!');
