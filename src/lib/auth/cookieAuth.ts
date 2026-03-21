@@ -23,6 +23,8 @@ export interface SupabaseSessionCookie {
   expires_in: number;
   expires_at: number;
   refresh_token: string;
+  device_refresh_token?: string;
+  device_id?: string;
   user: {
     id: string;
     email: string;

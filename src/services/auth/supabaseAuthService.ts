@@ -167,6 +167,7 @@ class SupabaseAuthService {
           access_token,
           expires_in,
           expires_at: Math.floor(Date.now() / 1000) + (expires_in || 3600),
+          device_id: getOrCreateDeviceId(),
           device_refresh_token: deviceRefreshToken,
           refresh_token: supabase_refresh_token || currentSession.refresh_token,
         };

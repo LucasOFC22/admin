@@ -1,5 +1,57 @@
 import { getBackendUrl } from '@/config/backend.config';
 
+const SHARED_DEVICE_KEY = 'fp_device_id';
+const SUPABASE_SESSION_COOKIE = 'fp_supabase_session';
+
+const getCookieDomain = (): string => {
+  const hostname = window.location.hostname;
+  if (hostname.includes('fptranscargas.com.br')) {
+    return '.fptranscargas.com.br';
+  }
+  return '';
+};
+
+const readCookie = (name: string): string | null => {
+  const prefix = `${name}=`;
+  const cookies = document.cookie.split(';');
+
+  for (const cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith(prefix)) {
+      try {
+        return decodeURIComponent(trimmed.substring(prefix.length));
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  return null;
+};
+
+const writeSharedDeviceCookie = (deviceId: string): void => {
+  const isSecure = window.location.protocol === 'https:';
+  const domain = getCookieDomain();
+
+  let cookieString = `${SHARED_DEVICE_KEY}=${encodeURIComponent(deviceId)}; max-age=2592000; path=/; SameSite=Lax`;
+  if (domain) cookieString += `; domain=${domain}`;
+  if (isSecure) cookieString += '; Secure';
+
+  document.cookie = cookieString;
+};
+
+const readDeviceIdFromSessionCookie = (): string | null => {
+  try {
+    const rawSession = readCookie(SUPABASE_SESSION_COOKIE);
+    if (!rawSession) return null;
+
+    const parsed = JSON.parse(rawSession) as { device_id?: string };
+    return parsed.device_id || null;
+  } catch {
+    return null;
+  }
+};
+
 export interface DeviceInfo {
   userAgent: string;
   platform: string;
@@ -29,12 +81,26 @@ let cachedIP: string | null = null;
  * Usado pelo sistema de usuarios_dispositivos para vincular refresh tokens ao dispositivo.
  */
 export const getOrCreateDeviceId = (): string => {
-  const KEY = 'fp_device_id';
-  let deviceId = localStorage.getItem(KEY);
+  const sessionDeviceId = readDeviceIdFromSessionCookie();
+  if (sessionDeviceId) {
+    localStorage.setItem(SHARED_DEVICE_KEY, sessionDeviceId);
+    writeSharedDeviceCookie(sessionDeviceId);
+    return sessionDeviceId;
+  }
+
+  const cookieDeviceId = readCookie(SHARED_DEVICE_KEY);
+  if (cookieDeviceId) {
+    localStorage.setItem(SHARED_DEVICE_KEY, cookieDeviceId);
+    return cookieDeviceId;
+  }
+
+  let deviceId = localStorage.getItem(SHARED_DEVICE_KEY);
   if (!deviceId) {
     deviceId = crypto.randomUUID();
-    localStorage.setItem(KEY, deviceId);
+    localStorage.setItem(SHARED_DEVICE_KEY, deviceId);
   }
+
+  writeSharedDeviceCookie(deviceId);
   return deviceId;
 };
 
