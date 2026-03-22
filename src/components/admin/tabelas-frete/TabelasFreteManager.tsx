@@ -53,13 +53,21 @@ const TabelasFreteManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const defaultColunas = ['Origem', 'Destino', 'Peso (kg)', 'Valor (R$)'];
-      const defaultDados = [['', '', '', '']];
+      const defaultColunas = ['Faixa de Peso', 'Valor Fixo (R$)', 'Frete Peso (R$/kg)', 'Frete Valor (%)', 'Taxa (R$)', 'Outros (%)'];
+      const defaultDados = [
+        ['01 a 30 Kg', '100,00', '', '', '', ''],
+        ['31 a 50 Kg', '110,00', '', '', '', ''],
+        ['51 a 70 Kg', '120,00', '', '', '', ''],
+        ['71 a 100 Kg', '140,00', '', '', '', ''],
+        ['101 a 150 Kg', '160,00', '', '', '', ''],
+        ['151 a 200 Kg', '190,00', '', '', '', ''],
+        ['Acima de 200 Kg', '', '0,98', '0,8', '50,00', '7'],
+      ];
       const { data, error } = await supabase
         .from('tabelas_frete' as any)
         .insert({
           nome: 'Nova Tabela de Frete',
-          descricao: '',
+          descricao: 'Cubagem: 240 kg/m³. Mercadorias acima de R$ 1.000,00: frete cobrado sobre NF. Validade: 45 dias sem movimentação.',
           colunas: defaultColunas,
           dados: defaultDados,
           criado_por: user?.id || null,
