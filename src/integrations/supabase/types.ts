@@ -3759,9 +3759,15 @@ export type Database = {
       }
       tabelas_frete: {
         Row: {
+          arquivo_nome: string | null
+          arquivo_tamanho: number | null
+          arquivo_tipo: string | null
+          arquivo_url: string | null
           ativo: boolean
           atualizado_em: string
           atualizado_por: string | null
+          cliente_nome: string | null
+          cnpj: string | null
           colunas: Json
           criado_em: string
           criado_por: string | null
@@ -3771,9 +3777,15 @@ export type Database = {
           nome: string
         }
         Insert: {
+          arquivo_nome?: string | null
+          arquivo_tamanho?: number | null
+          arquivo_tipo?: string | null
+          arquivo_url?: string | null
           ativo?: boolean
           atualizado_em?: string
           atualizado_por?: string | null
+          cliente_nome?: string | null
+          cnpj?: string | null
           colunas?: Json
           criado_em?: string
           criado_por?: string | null
@@ -3783,9 +3795,15 @@ export type Database = {
           nome: string
         }
         Update: {
+          arquivo_nome?: string | null
+          arquivo_tamanho?: number | null
+          arquivo_tipo?: string | null
+          arquivo_url?: string | null
           ativo?: boolean
           atualizado_em?: string
           atualizado_por?: string | null
+          cliente_nome?: string | null
+          cnpj?: string | null
           colunas?: Json
           criado_em?: string
           criado_por?: string | null
