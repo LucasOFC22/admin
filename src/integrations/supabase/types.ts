@@ -3773,8 +3773,12 @@ export type Database = {
           criado_por: string | null
           dados: Json
           descricao: string | null
+          forma_pagamento: string | null
           id: string
           nome: string
+          sequencia: string | null
+          tabela_config_id: string | null
+          telefone: string | null
         }
         Insert: {
           arquivo_nome?: string | null
@@ -3791,8 +3795,12 @@ export type Database = {
           criado_por?: string | null
           dados?: Json
           descricao?: string | null
+          forma_pagamento?: string | null
           id?: string
           nome: string
+          sequencia?: string | null
+          tabela_config_id?: string | null
+          telefone?: string | null
         }
         Update: {
           arquivo_nome?: string | null
@@ -3809,8 +3817,12 @@ export type Database = {
           criado_por?: string | null
           dados?: Json
           descricao?: string | null
+          forma_pagamento?: string | null
           id?: string
           nome?: string
+          sequencia?: string | null
+          tabela_config_id?: string | null
+          telefone?: string | null
         }
         Relationships: [
           {
