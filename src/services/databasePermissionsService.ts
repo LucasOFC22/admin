@@ -238,6 +238,7 @@ class DatabasePermissionsService {
       'manifestos': 'admin.manifestos.visualizar',
       'rastreamento': 'admin.rastreamento.visualizar',
       'consultar-nfe': 'admin.nfe.visualizar',
+      'avarias': 'admin.avarias.visualizar',
       'baixa-rapida-cte': 'admin.baixa_rapida.visualizar',
       
       // Comunicação / WhatsApp
