@@ -2155,5 +2155,30 @@ export const permissionsMap: PermissionGroup[] = [
         enabled: true
       }
     ]
+  },
+  {
+    category: 'Avarias',
+    icon: 'AlertTriangle',
+    description: 'Registro e gestão de avarias em MDF-e',
+    permissions: [
+      {
+        id: 'admin.avarias.visualizar',
+        name: 'Visualizar Avarias',
+        description: 'Acessar página de avarias',
+        action: 'view',
+        resource: 'avarias',
+        category: 'Avarias',
+        enabled: true
+      },
+      {
+        id: 'admin.avarias.criar',
+        name: 'Criar Avarias',
+        description: 'Registrar novas avarias de MDF-e',
+        action: 'create',
+        resource: 'avarias',
+        category: 'Avarias',
+        enabled: true
+      }
+    ]
   }
 ];
