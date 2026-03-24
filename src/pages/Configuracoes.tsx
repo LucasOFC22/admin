@@ -16,6 +16,7 @@ import WhatsAppKanbanConfig from '@/components/admin/configuracoes/WhatsAppKanba
 import PermissionsConfig from '@/components/admin/configuracoes/PermissionsConfig';
 import MalotesConfigTab from '@/components/admin/configuracoes/MalotesConfigTab';
 import EmailConfigTab from '@/components/admin/configuracoes/EmailConfigTab';
+import FreightTableConfigTab from '@/components/admin/configuracoes/FreightTableConfigTab';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { configService, SystemConfig } from '@/services/supabase/configService';
