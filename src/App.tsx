@@ -84,6 +84,7 @@ import Erros from "./pages/admin/Erros";
 import AdminRastreamento from "./pages/admin/AdminRastreamento";
 import AuditoriaSeguranca from "./pages/admin/AuditoriaSeguranca";
 import TabelasFrete from "./pages/admin/TabelasFrete";
+import Avarias from "./pages/admin/Avarias";
 
 // QueryClient fora do componente para evitar recriações
 const queryClient = new QueryClient({
