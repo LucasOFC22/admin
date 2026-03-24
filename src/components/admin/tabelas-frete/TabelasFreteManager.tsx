@@ -5,6 +5,8 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { toast } from 'sonner';
 import { Plus, Search, FileSpreadsheet, Trash2, Download, History, Loader2, Upload, X } from 'lucide-react';
+import logoFpTranscargas from '@/assets/logo-fptransportes-2.png';
+import logoAntt from '@/assets/logo-antt.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -264,6 +266,18 @@ const TabelasFreteManager = () => {
           { label: 'Tabelas de Frete' },
         ]}
       />
+
+      {/* Header com logos */}
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
+          <img src={logoFpTranscargas} alt="FP Transcargas" className="h-14 object-contain" />
+          <div className="text-center">
+            <h2 className="text-lg font-bold text-foreground tracking-wide">TABELAS DE FRETE</h2>
+            <p className="text-xs text-muted-foreground">Transporte de Cargas Rodoviárias</p>
+          </div>
+          <img src={logoAntt} alt="ANTT - Agência Nacional de Transportes Terrestres" className="h-14 object-contain" />
+        </div>
+      </Card>
 
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
         <div className="relative flex-1 max-w-md">
