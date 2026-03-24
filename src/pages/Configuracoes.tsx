@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Settings, Save, RefreshCw, Shield, Globe, Building2, MessageCircle, FileText, Truck, Menu, Mail, Search, X } from 'lucide-react';
+import { Settings, Save, RefreshCw, Shield, Globe, Building2, MessageCircle, FileText, Truck, Menu, Mail, Search, X, PackageOpen } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
