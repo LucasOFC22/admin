@@ -84,11 +84,14 @@ const FreightTableConfigTab = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const dados = JSON.parse(JSON.stringify({ nome: tabela.nome, faixas: tabela.faixas }));
+      const colunas = JSON.parse(JSON.stringify(['Faixa de Peso', 'Valor Fixo (R$)', 'Frete Peso (R$/kg)', 'Frete Valor (%)', 'Taxa (R$)', 'Outros (%)']));
+      
       const payload = {
-        nome: '__CONFIG_TABELA_PADRAO__',
+        nome: '__CONFIG_TABELA_PADRAO__' as string,
         descricao: 'Tabela de preços padrão do sistema',
-        dados: { nome: tabela.nome, faixas: tabela.faixas },
-        colunas: ['Faixa de Peso', 'Valor Fixo (R$)', 'Frete Peso (R$/kg)', 'Frete Valor (%)', 'Taxa (R$)', 'Outros (%)'],
+        dados,
+        colunas,
         ativo: true,
         atualizado_em: new Date().toISOString(),
       };
@@ -102,7 +105,7 @@ const FreightTableConfigTab = () => {
       } else {
         const { error } = await supabase
           .from('tabelas_frete')
-          .insert(payload);
+          .insert({ ...payload, nome: '__CONFIG_TABELA_PADRAO__' });
         if (error) throw error;
       }
 
