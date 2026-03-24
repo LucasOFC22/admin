@@ -1,0 +1,1 @@
+ALTER TABLE public.tabelas_frete ADD COLUMN IF NOT EXISTS pessoa_responsavel TEXT;

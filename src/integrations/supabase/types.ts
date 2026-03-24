@@ -3852,6 +3852,7 @@ export type Database = {
           forma_pagamento: string | null
           id: string
           nome: string
+          pessoa_responsavel: string | null
           sequencia: string | null
           tabela_config_id: string | null
           telefone: string | null
@@ -3874,6 +3875,7 @@ export type Database = {
           forma_pagamento?: string | null
           id?: string
           nome: string
+          pessoa_responsavel?: string | null
           sequencia?: string | null
           tabela_config_id?: string | null
           telefone?: string | null
@@ -3896,6 +3898,7 @@ export type Database = {
           forma_pagamento?: string | null
           id?: string
           nome?: string
+          pessoa_responsavel?: string | null
           sequencia?: string | null
           tabela_config_id?: string | null
           telefone?: string | null
