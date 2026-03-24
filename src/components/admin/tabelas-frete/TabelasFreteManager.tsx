@@ -5,6 +5,8 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import { toast } from 'sonner';
 import { Plus, Search, FileSpreadsheet, Trash2, Download, History, Loader2, Upload, X } from 'lucide-react';
+import logoFpTranscargas from '@/assets/logo-fptransportes-2.png';
+import logoAntt from '@/assets/logo-antt.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
