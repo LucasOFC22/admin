@@ -252,6 +252,8 @@ const Configuracoes = () => {
         return <WhatsAppKanbanConfig />;
       case 'malotes':
         return <MalotesConfigTab />;
+      case 'tabela-frete':
+        return <FreightTableConfigTab />;
       default:
         return null;
     }
