@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Settings, Save, RefreshCw, Shield, Globe, Building2, MessageCircle, FileText, Truck, Menu, Mail, Search, X } from 'lucide-react';
+import { Settings, Save, RefreshCw, Shield, Globe, Building2, MessageCircle, FileText, Truck, Menu, Mail, Search, X, PackageOpen } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -16,6 +16,7 @@ import WhatsAppKanbanConfig from '@/components/admin/configuracoes/WhatsAppKanba
 import PermissionsConfig from '@/components/admin/configuracoes/PermissionsConfig';
 import MalotesConfigTab from '@/components/admin/configuracoes/MalotesConfigTab';
 import EmailConfigTab from '@/components/admin/configuracoes/EmailConfigTab';
+import FreightTableConfigTab from '@/components/admin/configuracoes/FreightTableConfigTab';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { configService, SystemConfig } from '@/services/supabase/configService';
@@ -64,6 +65,11 @@ const navigationGroups: NavGroup[] = [{
     label: 'Malotes',
     icon: Truck,
     description: 'Logística e entregas'
+  }, {
+    id: 'tabela-frete',
+    label: 'Tabela de Frete',
+    icon: PackageOpen,
+    description: 'Faixas de preço por peso'
   }]
 }, {
   title: 'Comunicação',
@@ -246,6 +252,8 @@ const Configuracoes = () => {
         return <WhatsAppKanbanConfig />;
       case 'malotes':
         return <MalotesConfigTab />;
+      case 'tabela-frete':
+        return <FreightTableConfigTab />;
       default:
         return null;
     }
