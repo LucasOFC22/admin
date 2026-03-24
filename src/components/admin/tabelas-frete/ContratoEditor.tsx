@@ -157,20 +157,9 @@ const ContratoEditor = ({
           style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: '8pt', lineHeight: '1.4', color: '#000', padding: '20px 24px' }}
         >
           {/* ===== HEADER: Logo FP + ANTT ===== */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img src={logoFP} alt="FP Transcargas" style={{ height: '50px', objectFit: 'contain' }} />
-              <div>
-                <div style={{ fontSize: '7pt', color: '#555' }}>Transporte de Cargas Rodoviárias</div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', textAlign: 'right' }}>
-              <div style={{ fontSize: '7pt', color: '#888' }}>
-                <div style={{ fontWeight: 'bold' }}>ANTT</div>
-                <div>Agência Nacional de<br/>Transportes Terrestres</div>
-              </div>
-              <img src={logoANTT} alt="ANTT" style={{ height: '40px', objectFit: 'contain' }} />
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', paddingBottom: '4px' }}>
+            <img src={logoFP} alt="FP Transcargas" style={{ height: '70px', objectFit: 'contain' }} />
+            <img src={logoANTT} alt="ANTT" style={{ height: '55px', objectFit: 'contain' }} />
           </div>
 
           {/* ===== DATA ===== */}
