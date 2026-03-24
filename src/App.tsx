@@ -84,6 +84,7 @@ import Erros from "./pages/admin/Erros";
 import AdminRastreamento from "./pages/admin/AdminRastreamento";
 import AuditoriaSeguranca from "./pages/admin/AuditoriaSeguranca";
 import TabelasFrete from "./pages/admin/TabelasFrete";
+import Avarias from "./pages/admin/Avarias";
 
 // QueryClient fora do componente para evitar recriações
 const queryClient = new QueryClient({
@@ -135,6 +136,7 @@ const App = () => (
             <Route path="rastreamento" element={<AdminRastreamento />} />
             <Route path="baixa-rapida-cte" element={<BaixaRapidaCte />} />
             <Route path="tabelas-frete" element={<TabelasFrete />} />
+            <Route path="avarias" element={<Avarias />} />
             <Route path="erros-envio" element={<ErrosEnvio />} />
             
             {/* Usuários e Acessos */}

@@ -86,6 +86,7 @@ export const useAdminSidebarNavigation = () => {
         'logs-coleta': '/logs-coleta',
         'auditoria-seguranca': '/auditoria-seguranca',
         'tabelas-frete': '/tabelas-frete',
+        'avarias': '/avarias',
       };
 
       const route = routeMap[itemId] || '/';
