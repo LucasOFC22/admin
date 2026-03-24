@@ -267,6 +267,18 @@ const TabelasFreteManager = () => {
         ]}
       />
 
+      {/* Header com logos */}
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
+          <img src={logoFpTranscargas} alt="FP Transcargas" className="h-14 object-contain" />
+          <div className="text-center">
+            <h2 className="text-lg font-bold text-foreground tracking-wide">TABELAS DE FRETE</h2>
+            <p className="text-xs text-muted-foreground">Transporte de Cargas Rodoviárias</p>
+          </div>
+          <img src={logoAntt} alt="ANTT - Agência Nacional de Transportes Terrestres" className="h-14 object-contain" />
+        </div>
+      </Card>
+
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
