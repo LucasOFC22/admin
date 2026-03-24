@@ -70,6 +70,82 @@ export type Database = {
           },
         ]
       }
+      avaria_itens: {
+        Row: {
+          avaria_id: string
+          criado_em: string | null
+          descricao: string | null
+          id: string
+          nfe: string
+          valor: number
+        }
+        Insert: {
+          avaria_id: string
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nfe: string
+          valor?: number
+        }
+        Update: {
+          avaria_id?: string
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nfe?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaria_itens_avaria_id_fkey"
+            columns: ["avaria_id"]
+            isOneToOne: false
+            referencedRelation: "avarias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avarias: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          id: string
+          mdfe: string
+          motorista_nome: string
+          observacoes: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          id?: string
+          mdfe: string
+          motorista_nome: string
+          observacoes?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          id?: string
+          mdfe?: string
+          motorista_nome?: string
+          observacoes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avarias_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campanhas_contatos: {
         Row: {
           campanha_id: string | null
