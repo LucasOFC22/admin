@@ -64,7 +64,8 @@ const routeToTabMapping: Record<string, AdminTab> = {
   '/baixa-rapida-cte': 'baixa-rapida-cte',
   '/logs-coleta': 'logs-coleta',
   '/auditoria-seguranca': 'auditoria-seguranca',
-  '/tabelas-frete': 'tabelas-frete'
+  '/tabelas-frete': 'tabelas-frete',
+  '/avarias': 'avarias'
 };
 
 // Mapeamento de tabs para rotas (usado no setActiveTab - sem prefixo /admin)
