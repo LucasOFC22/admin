@@ -65,6 +65,11 @@ const navigationGroups: NavGroup[] = [{
     label: 'Malotes',
     icon: Truck,
     description: 'Logística e entregas'
+  }, {
+    id: 'tabela-frete',
+    label: 'Tabela de Frete',
+    icon: PackageOpen,
+    description: 'Faixas de preço por peso'
   }]
 }, {
   title: 'Comunicação',
