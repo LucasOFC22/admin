@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Printer, Eye, Edit3, Loader2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import logoFP from '@/assets/logo-fp-transcargas.png';
+import logoANTT from '@/assets/logo-antt.png';
 
 interface FaixaPreco {
   id: string;
