@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Printer, Eye, Edit3, Loader2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import logoFP from '@/assets/logo-fp-transcargas.png';
+import logoANTT from '@/assets/logo-antt.png';
 
 interface FaixaPreco {
   id: string;
@@ -154,17 +156,20 @@ const ContratoEditor = ({
           className="bg-white shadow-2xl w-full max-w-[210mm] min-h-[297mm]"
           style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: '8pt', lineHeight: '1.4', color: '#000', padding: '20px 24px' }}
         >
-          {/* ===== HEADER ===== */}
+          {/* ===== HEADER: Logo FP + ANTT ===== */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-            <div>
-              <div style={{ fontSize: '16pt', fontWeight: 'bold', letterSpacing: '1px', color: '#1a365d' }}>
-                F P TRANSPORTES
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={logoFP} alt="FP Transcargas" style={{ height: '50px', objectFit: 'contain' }} />
+              <div>
+                <div style={{ fontSize: '7pt', color: '#555' }}>Transporte de Cargas Rodoviárias</div>
               </div>
-              <div style={{ fontSize: '7pt', color: '#555' }}>Transporte de Cargas Rodoviárias</div>
             </div>
-            <div style={{ textAlign: 'right', fontSize: '7pt', color: '#888' }}>
-              <div style={{ fontWeight: 'bold' }}>ANTT</div>
-              <div>Agência Nacional de Transportes Terrestres</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', textAlign: 'right' }}>
+              <div style={{ fontSize: '7pt', color: '#888' }}>
+                <div style={{ fontWeight: 'bold' }}>ANTT</div>
+                <div>Agência Nacional de<br/>Transportes Terrestres</div>
+              </div>
+              <img src={logoANTT} alt="ANTT" style={{ height: '40px', objectFit: 'contain' }} />
             </div>
           </div>
 
