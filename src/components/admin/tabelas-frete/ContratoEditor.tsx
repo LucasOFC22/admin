@@ -158,7 +158,7 @@ const ContratoEditor = ({
         >
           {/* ===== HEADER: Logo FP + ANTT ===== */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', paddingBottom: '4px' }}>
-            <img src={logoFP} alt="FP Transcargas" style={{ height: '70px', objectFit: 'contain' }} />
+            <img src={logoFP} alt="FP Transcargas" style={{ height: '140px', objectFit: 'contain' }} />
             <img src={logoANTT} alt="ANTT" style={{ height: '55px', objectFit: 'contain' }} />
           </div>
 
